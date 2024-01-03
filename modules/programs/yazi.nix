@@ -60,6 +60,25 @@ in {
 
     enableNushellIntegration = mkEnableOption "Nushell integration";
 
+    extraPackages = mkOption {
+        type = with types; listOf package;
+        example =
+          literalExpression "with pkgs; [ zoxide ]";
+        description = ''
+          Extra packages available to yazi.
+        '';
+        default = [ pkgs.zoxide ];
+    };
+
+    finalPackage = mkOption {
+        type = types.package;
+        readOnly = true;
+        visible = false;
+        description = ''
+          Resulting yazi package.
+        '';
+    };
+
     keymap = mkOption {
       type = tomlFormat.type;
       default = { };
@@ -137,8 +156,21 @@ in {
     };
   };
 
-  config = mkIf cfg.enable {
-    home.packages = [ cfg.package ];
+  config = let
+    yaziPackage = cfg.package.overrideAttrs (oldAttrs: {
+      nativeBuildInputs = (oldAttrs.nativeBuildInputs or [ ])
+        ++ [ pkgs.makeWrapper ];
+      postInstall = ''
+        ${oldAttrs.postInstall or ""}
+
+        wrapProgram $out/bin/yazi \
+          --prefix PATH : "${makeBinPath cfg.extraPackages}"
+      '';
+    });
+    in mkIf cfg.enable {
+    programs.yazi.finalPackage = yaziPackage;
+
+    home.packages = [ yaziPackage ];
 
     programs.bash.initExtra = mkIf cfg.enableBashIntegration bashIntegration;
 
