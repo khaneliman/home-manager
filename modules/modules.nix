@@ -87,6 +87,7 @@ let
     ./programs/eza.nix
     ./programs/feh.nix
     ./programs/firefox.nix
+    ./programs/floorp.nix
     ./programs/fish.nix
     ./programs/foot.nix
     ./programs/fuzzel.nix
