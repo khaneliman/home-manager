@@ -237,6 +237,7 @@ let
     ./programs/senpai.nix
     ./programs/sftpman.nix
     ./programs/sioyek.nix
+    ./programs/sketchybar.nix
     ./programs/skim.nix
     ./programs/sm64ex.nix
     ./programs/spotify-player.nix
