@@ -23,7 +23,7 @@ let
         if (isAttrs source)
         then
           let
-            name = toString (builtins.attrNames source);
+            name = source.name;
             placement = source.placement;
             keyValuePairs = toString (mapAttrs (key: value: "${key}=${value}") (removeAttrs source [ "name" "placement" ]));
           in
@@ -32,7 +32,7 @@ let
         then "source " + source
         else throw "Unsupported source type";
     in
-    concatMapStringsSep "\n" generateCommand sources;
+    concatMapStringsSep "\n" (map generateCommand sources);
 in
 {
   options = {
