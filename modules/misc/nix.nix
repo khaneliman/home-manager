@@ -74,6 +74,7 @@ let
         ${mkKeyValuePairs cfg.settings}
         ${cfg.extraOptions}
       '';
+      passthru.doCheck = cfg.checkConfig;
       checkPhase =
         if pkgs.stdenv.hostPlatform != pkgs.stdenv.buildPlatform then ''
           echo "Ignoring validation for cross-compilation"
@@ -241,7 +242,7 @@ in {
       default = true;
       description = ''
         If enabled (the default), checks for data type mismatches and that Nix
-        can parse the generated nix.conf.
+        can parse the generated {file}`nix.conf`.
       '';
     };
 
