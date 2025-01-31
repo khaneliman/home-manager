@@ -6,29 +6,22 @@
   outputs = { self, nixpkgs, ... }:
     {
       nixosModules = rec {
-        home-manager = import ./nixos;
         default = home-manager;
+        home-manager = import ./nixos;
       };
-      # deprecated in Nix 2.8
-      nixosModule = self.nixosModules.default;
 
       darwinModules = rec {
-        home-manager = import ./nix-darwin;
         default = home-manager;
+        home-manager = import ./nix-darwin;
       };
-      # unofficial; deprecated in Nix 2.8
-      darwinModule = self.darwinModules.default;
 
       flakeModules = rec {
-        home-manager = import ./flake-module.nix;
         default = home-manager;
+        home-manager = import ./flake-module.nix;
       };
 
       templates = {
-        standalone = {
-          path = ./templates/standalone;
-          description = "Standalone setup";
-        };
+        default = self.templates.standalone;
         nixos = {
           path = ./templates/nixos;
           description = "Home Manager as a NixOS module,";
@@ -37,50 +30,17 @@
           path = ./templates/nix-darwin;
           description = "Home Manager as a nix-darwin module,";
         };
+        standalone = {
+          path = ./templates/standalone;
+          description = "Standalone setup";
+        };
       };
-
-      defaultTemplate = self.templates.standalone;
 
       lib = {
         hm = (import ./modules/lib/stdlib-extended.nix nixpkgs.lib).hm;
         homeManagerConfiguration = { modules ? [ ], pkgs, lib ? pkgs.lib
-          , extraSpecialArgs ? { }, check ? true
-            # Deprecated:
-          , configuration ? null, extraModules ? null, stateVersion ? null
-          , username ? null, homeDirectory ? null, system ? null }@args:
-          let
-            msgForRemovedArg = ''
-              The 'homeManagerConfiguration' arguments
-
-                - 'configuration',
-                - 'username',
-                - 'homeDirectory'
-                - 'stateVersion',
-                - 'extraModules', and
-                - 'system'
-
-              have been removed. Instead use the arguments 'pkgs' and
-              'modules'. See the 22.11 release notes for more: https://nix-community.github.io/home-manager/release-notes.xhtml#sec-release-22.11-highlights
-            '';
-
-            throwForRemovedArgs = v:
-              let
-                used = builtins.filter (n: (args.${n} or null) != null) [
-                  "configuration"
-                  "username"
-                  "homeDirectory"
-                  "stateVersion"
-                  "extraModules"
-                  "system"
-                ];
-                msg = msgForRemovedArg + ''
-
-
-                  Deprecated args passed: ''
-                  + builtins.concatStringsSep " " used;
-              in lib.throwIf (used != [ ]) msg v;
-
-          in throwForRemovedArgs (import ./modules {
+          , extraSpecialArgs ? { }, check ? true }:
+          (import ./modules {
             inherit pkgs lib check extraSpecialArgs;
             configuration = { ... }: {
               imports = modules ++ [{ programs.home-manager.path = "${./.}"; }];
@@ -118,7 +78,5 @@
           docs-json = docs.options.json;
           docs-manpages = docs.manPages;
         });
-
-      defaultPackage = forAllSystems (system: self.packages.${system}.default);
     });
 }
