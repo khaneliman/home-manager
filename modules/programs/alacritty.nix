@@ -1,26 +1,23 @@
 { config, lib, pkgs, ... }:
-
-with lib;
-
 let
   cfg = config.programs.alacritty;
   tomlFormat = pkgs.formats.toml { };
 in {
   options = {
     programs.alacritty = {
-      enable = mkEnableOption "Alacritty";
+      enable = lib.mkEnableOption "Alacritty";
 
-      package = mkOption {
-        type = types.package;
+      package = lib.mkOption {
+        type = lib.types.package;
         default = pkgs.alacritty;
-        defaultText = literalExpression "pkgs.alacritty";
+        defaultText = lib.literalExpression "pkgs.alacritty";
         description = "The Alacritty package to install.";
       };
 
-      settings = mkOption {
+      settings = lib.mkOption {
         type = tomlFormat.type;
         default = { };
-        example = literalExpression ''
+        example = lib.literalExpression ''
           {
             window.dimensions = {
               lines = 3;
@@ -47,12 +44,12 @@ in {
     };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     home.packages = [ cfg.package ];
 
     xdg.configFile."alacritty/alacritty.toml" = lib.mkIf (cfg.settings != { }) {
       source = (tomlFormat.generate "alacritty.toml" cfg.settings).overrideAttrs
-        (finalAttrs: prevAttrs: {
+        (_finalAttrs: prevAttrs: {
           buildCommand = lib.concatStringsSep "\n" [
             prevAttrs.buildCommand
             # TODO: why is this needed? Is there a better way to retain escape sequences?
