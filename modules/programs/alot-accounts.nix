@@ -1,12 +1,8 @@
 pkgs:
-{ config, lib, ... }:
-
-with lib;
-
-{
+{ config, lib, ... }: {
   options.alot = {
-    sendMailCommand = mkOption {
-      type = types.nullOr types.str;
+    sendMailCommand = lib.mkOption {
+      type = with lib.types; nullOr str;
       description = ''
         Command to send a mail. If msmtp is enabled for the account,
         then this is set to
@@ -14,8 +10,8 @@ with lib;
       '';
     };
 
-    contactCompletion = mkOption {
-      type = types.attrsOf types.str;
+    contactCompletion = lib.mkOption {
+      type = with lib.types; attrsOf str;
       default = {
         type = "shellcommand";
         command =
@@ -25,7 +21,7 @@ with lib;
           + "}[,\\]]?'";
         shellcommand_external_filtering = "False";
       };
-      example = literalExpression ''
+      example = lib.literalExpression ''
         {
           type = "shellcommand";
           command = "abook --mutt-query";
@@ -40,8 +36,8 @@ with lib;
       '';
     };
 
-    extraConfig = mkOption {
-      type = types.lines;
+    extraConfig = lib.mkOption {
+      type = lib.types.lines;
       default = "";
       description = ''
         Extra settings to add to this Alot account configuration.
@@ -49,8 +45,8 @@ with lib;
     };
   };
 
-  config = mkIf config.notmuch.enable {
-    alot.sendMailCommand = mkOptionDefault (if config.msmtp.enable then
+  config = lib.mkIf config.notmuch.enable {
+    alot.sendMailCommand = lib.mkOptionDefault (if config.msmtp.enable then
       "msmtpq --read-envelope-from --read-recipients"
     else
       null);
