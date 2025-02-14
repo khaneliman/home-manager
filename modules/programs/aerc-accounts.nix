@@ -1,9 +1,10 @@
 { config, lib, confSections, confSection, ... }:
 
-with lib;
-
 let
+  inherit (lib) mkOption types;
+
   mapAttrNames = f: attr:
+    with lib;
     listToAttrs (attrValues (mapAttrs (k: v: {
       name = f k;
       value = v;
@@ -12,31 +13,30 @@ let
   addAccountName = name: k: "${k}:account=${name}";
 
   oauth2Params = mkOption {
-    type = with types;
-      nullOr (submodule {
-        options = {
-          token_endpoint = mkOption {
-            type = nullOr str;
-            default = null;
-            description = "The OAuth2 token endpoint.";
-          };
-          client_id = mkOption {
-            type = nullOr str;
-            default = null;
-            description = "The OAuth2 client identifier.";
-          };
-          client_secret = mkOption {
-            type = nullOr str;
-            default = null;
-            description = "The OAuth2 client secret.";
-          };
-          scope = mkOption {
-            type = nullOr str;
-            default = null;
-            description = "The OAuth2 requested scope.";
-          };
+    type = types.nullOr (types.submodule {
+      options = {
+        token_endpoint = mkOption {
+          type = with types; nullOr str;
+          default = null;
+          description = "The OAuth2 token endpoint.";
         };
-      });
+        client_id = mkOption {
+          type = with types; nullOr str;
+          default = null;
+          description = "The OAuth2 client identifier.";
+        };
+        client_secret = mkOption {
+          type = with types; nullOr str;
+          default = null;
+          description = "The OAuth2 client secret.";
+        };
+        scope = mkOption {
+          type = with types; nullOr str;
+          default = null;
+          description = "The OAuth2 requested scope.";
+        };
+      };
+    });
     default = null;
     example = { token_endpoint = "<token_endpoint>"; };
     description = ''
@@ -50,12 +50,12 @@ in {
   type = mkOption {
     type = types.attrsOf (types.submodule {
       options.aerc = {
-        enable = mkEnableOption "aerc";
+        enable = lib.mkEnableOption "aerc";
         extraAccounts = mkOption {
           type = confSection;
           default = { };
-          example =
-            literalExpression ''{ source = "maildir://~/Maildir/example"; }'';
+          example = lib.literalExpression
+            ''{ source = "maildir://~/Maildir/example"; }'';
           description = ''
             Extra config added to the configuration section for this account in
             {file}`$HOME/.config/aerc/accounts.conf`.
@@ -66,7 +66,7 @@ in {
         extraBinds = mkOption {
           type = confSections;
           default = { };
-          example = literalExpression
+          example = lib.literalExpression
             ''{ messages = { d = ":move ''${folder.trash}<Enter>"; }; }'';
           description = ''
             Extra bindings specific to this account, added to
@@ -78,7 +78,7 @@ in {
         extraConfig = mkOption {
           type = confSections;
           default = { };
-          example = literalExpression "{ ui = { sidebar-width = 25; }; }";
+          example = lib.literalExpression "{ ui = { sidebar-width = 25; }; }";
           description = ''
             Config specific to this account, added to {file}`$HOME/.config/aerc/aerc.conf`.
             Aerc only supports per-account UI configuration.
@@ -128,7 +128,7 @@ in {
         if v != null && v != [ ] && v != "" then { ${k} = v; } else { };
 
       optPwCmd = k: p:
-        optAttr "${k}-cred-cmd" (nullOrMap (concatStringsSep " ") p);
+        optAttr "${k}-cred-cmd" (nullOrMap (lib.concatStringsSep " ") p);
 
       useOauth = auth: builtins.elem auth [ "oauthbearer" "xoauth2" ];
 
@@ -232,7 +232,7 @@ in {
           { };
 
       gpgCfg = account:
-        optionalAttrs (account.gpg != null) {
+        lib.optionalAttrs (account.gpg != null) {
           pgp-key-id = account.gpg.key;
           pgp-auto-sign = account.gpg.signByDefault;
           pgp-opportunistic-encrypt = account.gpg.encryptByDefault;
