@@ -93,9 +93,13 @@ let
                 "--no-net --option experimental-features nix-command"
               } \
               |& sed -e 's/^warning:/error:/' \
-              | (! grep '${
-                if cfg.checkConfig then "^error:" else "^error: unknown setting"
-              }')
+              | ${
+                if cfg.allowUnknownSettings then
+                  "grep -v '^error: unknown setting'"
+                else
+                  "cat"
+              } \
+              | (! grep '^error:')
             set -o pipefail
           '';
     };
@@ -243,6 +247,15 @@ in {
       description = ''
         If enabled (the default), checks for data type mismatches and that Nix
         can parse the generated {file}`nix.conf`.
+      '';
+    };
+
+    allowUnknownSettings = mkOption {
+      type = types.bool;
+      default = false;
+      description = ''
+        If enabled, unknown setting errors will be allowed when checking the
+        generated {file}`nix.conf`. This has no effect if {option}`checkConfig` is false.
       '';
     };
 
