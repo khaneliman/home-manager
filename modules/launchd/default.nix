@@ -94,19 +94,39 @@ in {
       home.activation.checkLaunchAgents =
         hm.dag.entryBefore [ "writeBoundary" ] ''
           checkLaunchAgents() {
+            echo "Checking LaunchAgents for conflicts..."
             local oldDir newDir dstDir err
             oldDir=""
             err=0
             if [[ -n "''${oldGenPath:-}" ]]; then
+              verboseEcho "Previous generation path found: $oldGenPath"
               oldDir="$(readlink -m "$oldGenPath/LaunchAgents")" || err=$?
               if (( err )); then
+                verboseEcho "Failed to resolve previous LaunchAgents directory, assuming first run"
                 oldDir=""
+              else
+                verboseEcho "Previous LaunchAgents directory: $oldDir"
               fi
+            else
+              verboseEcho "No previous generation path found, assuming first run"
             fi
             newDir=${escapeShellArg agentsDrv}
             dstDir=${escapeShellArg dstDir}
+            verboseEcho "New LaunchAgents directory: $newDir"
+            verboseEcho "Destination directory: $dstDir"
 
             local oldSrcPath newSrcPath dstPath agentFile agentName
+            local agentCount=0
+            local conflictCount=0
+
+            echo "Scanning for potential LaunchAgent conflicts..."
+
+            # Check if there are any plist files to process
+            if ! find -L "$newDir" -maxdepth 1 -name '*.plist' -type f | grep -q .; then
+              echo "No LaunchAgent plist files found in $newDir"
+              echo "LaunchAgent check complete. No agents to examine."
+              return 0
+            fi
 
             find -L "$newDir" -maxdepth 1 -name '*.plist' -type f -print0 \
                 | while IFS= read -rd "" newSrcPath; do
@@ -115,18 +135,42 @@ in {
               dstPath="$dstDir/$agentFile"
               oldSrcPath="$oldDir/$agentFile"
 
+              (( agentCount++ ))
+              verboseEcho "Checking agent: $agentName"
+
               if [[ ! -e "$dstPath" ]]; then
+                verboseEcho "  - No existing file at $dstPath, will be created"
                 continue
               fi
 
-              if ! cmp --quiet "$oldSrcPath" "$dstPath"; then
+              verboseEcho "  - Existing file found at $dstPath"
+              if [[ -z "$oldDir" || ! -e "$oldSrcPath" ]]; then
+                verboseEcho "  - No previous version to compare with"
+                (( conflictCount++ ))
                 errorEcho "Existing file '$dstPath' is in the way of '$newSrcPath'"
+                errorEcho "This file was not created by Home Manager or has been modified outside of Home Manager"
                 exit 1
               fi
+
+              if ! cmp --quiet "$oldSrcPath" "$dstPath"; then
+                verboseEcho "  - File has been modified since last generation"
+                (( conflictCount++ ))
+                errorEcho "Existing file '$dstPath' is in the way of '$newSrcPath'"
+                errorEcho "This file has been modified outside of Home Manager"
+                exit 1
+              else
+                verboseEcho "  - File matches previous generation, no conflict"
+              fi
             done
+
+            echo "LaunchAgent check complete. Examined $agentCount agents, found $conflictCount conflicts."
           }
 
-          checkLaunchAgents
+          if [[ -v DRY_RUN ]]; then
+            echo "Would check LaunchAgents for conflicts"
+          else
+            checkLaunchAgents
+          fi
         '';
 
       # NOTE: Launch Agent configurations can't be symlinked from the Nix store
@@ -134,12 +178,14 @@ in {
       home.activation.setupLaunchAgents =
         hm.dag.entryAfter [ "writeBoundary" ] ''
           setupLaunchAgents() {
+            echo "Setting up LaunchAgents..."
             local oldDir newDir dstDir domain err
             oldDir=""
             err=0
             if [[ -n "''${oldGenPath:-}" ]]; then
               oldDir="$(readlink -m "$oldGenPath/LaunchAgents")" || err=$?
               if (( err )); then
+                verboseEcho "Failed to resolve previous LaunchAgents directory, assuming first run"
                 oldDir=""
               fi
             fi
@@ -150,17 +196,44 @@ in {
 
             local srcPath dstPath agentFile agentName i bootout_retries
             bootout_retries=10
+            local agentCount=0
+            local updatedCount=0
+            local removedCount=0
+
+            # Check if there are any plist files to process
+            if ! find -L "$newDir" -maxdepth 1 -name '*.plist' -type f | grep -q .; then
+              echo "No LaunchAgent plist files found in $newDir"
+
+              # Check if we need to clean up old agents
+              if [[ -e "$oldDir" ]] && find -L "$oldDir" -maxdepth 1 -name '*.plist' -type f | grep -q .; then
+                echo "Checking for obsolete LaunchAgents to remove..."
+              else
+                echo "No LaunchAgents to set up or remove."
+                return 0
+              fi
+            else
+              echo "Processing LaunchAgents..."
+            fi
 
             find -L "$newDir" -maxdepth 1 -name '*.plist' -type f -print0 \
                 | while IFS= read -rd "" srcPath; do
               agentFile="''${srcPath##*/}"
               agentName="''${agentFile%.plist}"
               dstPath="$dstDir/$agentFile"
+              (( agentCount++ ))
+
+              verboseEcho "Processing agent: $agentName"
 
               if cmp --quiet "$srcPath" "$dstPath"; then
+                verboseEcho "  - Agent is already up to date, skipping"
                 continue
               fi
+
+              (( updatedCount++ ))
+              verboseEcho "  - Agent needs updating"
+
               if [[ -f "$dstPath" ]]; then
+                verboseEcho "  - Stopping existing agent"
                 for (( i = 0; i < bootout_retries; i++ )); do
                   run /bin/launchctl bootout "$domain/$agentName" || err=$?
                   if [[ -v DRY_RUN ]]; then
@@ -170,6 +243,7 @@ in {
                     ! /bin/launchctl print "$domain/$agentName" &> /dev/null; then
                     break
                   fi
+                  verboseEcho "    - Waiting for agent to stop (attempt $((i+1))/$bootout_retries)"
                   sleep 1
                 done
                 if (( i == bootout_retries )); then
@@ -177,33 +251,55 @@ in {
                   return 1
                 fi
               fi
+              verboseEcho "  - Installing agent file"
               run install -Dm444 -T "$srcPath" "$dstPath"
+              verboseEcho "  - Starting agent"
               run /bin/launchctl bootstrap "$domain" "$dstPath"
             done
 
             if [[ ! -e "$oldDir" ]]; then
-              return
+              if (( agentCount > 0 )); then
+                echo "LaunchAgent setup complete. Processed $agentCount agents, updated $updatedCount."
+              fi
+              return 0
             fi
 
-            find -L "$oldDir" -maxdepth 1 -name '*.plist' -type f -print0 \
-                | while IFS= read -rd "" srcPath; do
-              agentFile="''${srcPath##*/}"
-              agentName="''${agentFile%.plist}"
-              dstPath="$dstDir/$agentFile"
-              if [[ -e "$newDir/$agentFile" ]]; then
-                continue
-              fi
+            # Check for agents to remove
+            local oldAgentCount=0
+            oldAgentCount=$(find -L "$oldDir" -maxdepth 1 -name '*.plist' -type f | wc -l)
+            if (( oldAgentCount > 0 )); then
+              verboseEcho "Checking for obsolete LaunchAgents..."
 
-              run /bin/launchctl bootout "$domain/$agentName" || :
-              if [[ ! -e "$dstPath" ]]; then
-                continue
-              fi
-              if ! cmp --quiet "$srcPath" "$dstPath"; then
-                warnEcho "Skipping deletion of '$dstPath', since its contents have diverged"
-                continue
-              fi
-              run rm -f $VERBOSE_ARG "$dstPath"
-            done
+              find -L "$oldDir" -maxdepth 1 -name '*.plist' -type f -print0 \
+                  | while IFS= read -rd "" srcPath; do
+                agentFile="''${srcPath##*/}"
+                agentName="''${agentFile%.plist}"
+                dstPath="$dstDir/$agentFile"
+                if [[ -e "$newDir/$agentFile" ]]; then
+                  continue
+                fi
+
+                verboseEcho "Removing agent: $agentName"
+                run /bin/launchctl bootout "$domain/$agentName" || :
+                if [[ ! -e "$dstPath" ]]; then
+                  verboseEcho "  - Agent file already removed"
+                  continue
+                fi
+                if ! cmp --quiet "$srcPath" "$dstPath"; then
+                  warnEcho "Skipping deletion of '$dstPath', since its contents have diverged"
+                  continue
+                fi
+                (( removedCount++ ))
+                verboseEcho "  - Removing agent file"
+                run rm -f $VERBOSE_ARG "$dstPath"
+              done
+            fi
+
+            if (( agentCount > 0 || removedCount > 0 )); then
+              echo "LaunchAgent setup complete. Processed $agentCount agents, updated $updatedCount, removed $removedCount."
+            else
+              echo "LaunchAgent setup complete. No changes needed."
+            fi
           }
 
           setupLaunchAgents
