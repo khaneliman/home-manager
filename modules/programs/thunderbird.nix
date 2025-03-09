@@ -156,27 +156,6 @@ let
     ${extraPrefs}
   '';
 
-  mkFilterToIniString = f:
-    if f.text == null then
-      ''
-        name="${f.name}"
-        enabled="${if f.enabled then "yes" else "no"}"
-        type="${f.type}"
-        action="${f.action}"
-      '' + optionalString (f.actionValue != null) ''
-        actionValue="${f.actionValue}"
-      '' + ''
-        condition="${f.condition}"
-      '' + optionalString (f.extraConfig != null) f.extraConfig
-    else
-      f.text;
-
-  mkFilterListToIni = filters:
-    ''
-      version="9"
-      logging="no"
-    '' + concatStrings (map (f: mkFilterToIniString f) filters);
-
   getEmailAccountsForProfile = profileName: accounts:
     (filter (a:
       a.thunderbird.profiles == [ ]
@@ -448,13 +427,14 @@ in {
             messageFilters = mkOption {
               type = with types;
                 listOf (submodule {
+                  freeformType = attrsOf anything;
                   options = {
                     name = mkOption {
                       type = str;
                       description = "Name for the filter.";
                     };
                     enabled = mkOption {
-                      type = bool;
+                      type = enum ["yes" "no"];
                       default = true;
                       description = "Whether this filter is currently active.";
                     };
@@ -475,19 +455,6 @@ in {
                     condition = mkOption {
                       type = str;
                       description = "Condition to match messages against.";
-                    };
-                    extraConfig = mkOption {
-                      type = nullOr str;
-                      default = null;
-                      description = "Extra settings to apply to the filter";
-                    };
-                    text = mkOption {
-                      type = nullOr str;
-                      default = null;
-                      description = ''
-                        The raw text of the filter.
-                        Note that this will override all other options.
-                      '';
                     };
                   };
                 });
@@ -621,7 +588,13 @@ in {
       in (builtins.listToAttrs (map (a: {
         name =
           "${thunderbirdConfigPath}/${name}/ImapMail/${a.id}/msgFilterRules.dat";
-        value = { text = mkFilterListToIni a.thunderbird.messageFilters; };
+        value = {
+          text = concatStringsSep "\n" ([ "version=\"9\"" "logging=\"no\"" ] ++ map
+            (filter:
+              concatStringsSep "\n" (mapAttrsToList (name: value:
+                "${name}=\"${if value == null then "" else toString value}\"")
+                filter)) a.thunderbird.messageFilters);
+        };
       }) emailAccountsWithFilters))) cfg.profiles));
   };
 }

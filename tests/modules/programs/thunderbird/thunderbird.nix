@@ -1,4 +1,4 @@
-{ lib, realPkgs, ... }: {
+{ realPkgs, ... }: {
   imports = [ ../../accounts/email-test-accounts.nix ];
 
   accounts.email.accounts = {
@@ -8,7 +8,7 @@
         profiles = [ "first" ];
         messageFilters = [{
           name = "Mark as Read on Archive";
-          enabled = true;
+          enabled = "yes";
           type = "128";
           action = "Mark read";
           condition = "ALL";
