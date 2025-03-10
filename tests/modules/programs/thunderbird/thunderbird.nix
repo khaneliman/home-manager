@@ -1,4 +1,4 @@
-{ realPkgs, ... }: {
+{ lib, realPkgs, ... }: {
   imports = [ ../../accounts/email-test-accounts.nix ];
 
   accounts.email.accounts = {
@@ -6,13 +6,22 @@
       thunderbird = {
         enable = true;
         profiles = [ "first" ];
-        messageFilters = [{
-          name = "Mark as Read on Archive";
-          enabled = "yes";
-          type = "128";
-          action = "Mark read";
-          condition = "ALL";
-        }];
+        messageFilters = [
+          {
+            name = "Should be first";
+            enabled = "yes";
+            type = "128";
+            action = "Cry";
+            condition = "ALL";
+          }
+          {
+            name = "Mark as Read on Archive";
+            enabled = "yes";
+            type = "128";
+            action = "Mark read";
+            condition = "ALL";
+          }
+        ];
       };
 
       aliases = [ "home-manager@example.com" ];
@@ -107,10 +116,10 @@
     assertFileContent home-files/${profilesDir}/first/chrome/userContent.css \
       <(echo "* { color: red !important; }")
 
-    assertFileExists home-files/${configDir}/first/ImapMail/${
+    assertFileExists home-files/${profilesDir}/first/ImapMail/${
       builtins.hashString "sha256" "hm@example.com"
     }/msgFilterRules.dat
-    assertFileContent home-files/${configDir}/first/ImapMail/${
+    assertFileContent home-files/${profilesDir}/first/ImapMail/${
       builtins.hashString "sha256" "hm@example.com"
     }/msgFilterRules.dat \
       ${./thunderbird-expected-msgFilterRules.dat}
