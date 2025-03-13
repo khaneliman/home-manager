@@ -458,25 +458,44 @@ in
         example = lib.mkOrder 1000 ''
           echo "Hello, initContent!"
         '';
-        description = "Content to be added to {file}`.zshrc`. To specify the order, use `lib.mkOrder`.";
+        description = ''
+          Content to be added to {file}`.zshrc`. To specify the order, use `lib.mkOrder`.
+
+          Common order values:
+          - 550: Early initialization (replaces initExtraFirst)
+          - 850: Before completion initialization (replaces initExtraBeforeCompInit)
+          - 1200: General configuration (replaces initExtra)
+        '';
       };
 
       initExtraBeforeCompInit = mkOption {
         default = "";
         type = types.lines;
-        description = "Extra commands that should be added to {file}`.zshrc` before compinit.";
+        description = ''
+          Extra commands that should be added to {file}`.zshrc` before compinit.
+
+          Deprecated: Use `initContent` with `lib.mkOrder 850` instead.
+        '';
       };
 
       initExtra = mkOption {
         default = "";
         type = types.lines;
-        description = "Extra commands that should be added to {file}`.zshrc`.";
+        description = ''
+          Extra commands that should be added to {file}`.zshrc`.
+
+          Deprecated: Use `initContent` with `lib.mkOrder 1200` instead.
+        '';
       };
 
       initExtraFirst = mkOption {
         default = "";
         type = types.lines;
-        description = "Commands that should be added to top of {file}`.zshrc`.";
+        description = ''
+          Commands that should be added to top of {file}`.zshrc`.
+
+          Deprecated: Use `initContent` with `lib.mkOrder 550` instead.
+        '';
       };
 
       envExtra = mkOption {
@@ -547,7 +566,7 @@ in
           Extra local variables defined at the top of {file}`.zshrc`.
         '';
       };
-    };
+      };
   };
 
   config =
@@ -620,6 +639,21 @@ in
     }
 
     {
+      warnings = lib.mkIf cfg.enable (
+          lib.optional (cfg.initExtraFirst != "") ''
+            programs.zsh.initExtraFirst is deprecated, use programs.zsh.initContent with lib.mkOrder 550 instead.
+            Example: programs.zsh.initContent = lib.mkOrder 550 "your content here";
+          '' ++
+          lib.optional (cfg.initExtraBeforeCompInit != "") ''
+            programs.zsh.initExtraBeforeCompInit is deprecated, use programs.zsh.initContent with lib.mkOrder 850 instead.
+            Example: programs.zsh.initContent = lib.mkOrder 850 "your content here";
+          '' ++
+          lib.optional (cfg.initExtra != "") ''
+            programs.zsh.initExtra is deprecated, use programs.zsh.initContent with lib.mkOrder 1200 instead.
+            Example: programs.zsh.initContent = lib.mkOrder 1200 "your content here";
+          ''
+      );
+
       home.packages = [ cfg.package ]
         ++ lib.optional cfg.enableCompletion pkgs.nix-zsh-completions
         ++ lib.optional cfg.oh-my-zsh.enable cfg.oh-my-zsh.package;
