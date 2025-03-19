@@ -126,7 +126,7 @@ in {
               agentName="''${agentFile%.plist}"
               dstPath="$dstDir/$agentFile"
 
-              if cmp --quiet "$srcPath" "$dstPath"; then
+              if cmp -s "$srcPath" "$dstPath"; then
                 verboseEcho "Agent '$domain/$agentName' is already up-to-date"
                 continue
               fi
@@ -207,7 +207,7 @@ in {
                 continue
               fi
 
-              if ! cmp --quiet "$srcPath" "$dstPath"; then
+              if ! cmp -s "$srcPath" "$dstPath"; then
                 warnEcho "Skipping deletion of '$dstPath', since its contents have diverged"
                 continue
               fi
