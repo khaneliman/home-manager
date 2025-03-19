@@ -96,10 +96,142 @@ in {
       home.activation.setupLaunchAgents =
         hm.dag.entryAfter [ "writeBoundary" ] # Bash
         ''
+          # Initialize variables for tracking agent status
+          updated_count=0
+          failed_count=0
+          removed_count=0
+
+          bootoutAgent() {
+            local domain="$1"
+            local agentName="$2"
+            local bootout_retries=10
+            local err=0
+            local i
+
+            verboseEcho "Stopping agent '$domain/$agentName'..."
+            for (( i = 0; i < bootout_retries; i++ )); do
+              if (( i > 0 )); then
+                verboseEcho "Retry $i/$bootout_retries stopping agent '$agentName'..."
+              fi
+
+              run /bin/launchctl bootout "$domain/$agentName" || err=$?
+
+              if [[ -v DRY_RUN ]]; then
+                verboseEcho "DRY_RUN: Would stop agent '$agentName'"
+                return 0
+              fi
+
+              if (( err != 9216 )) &&
+                ! run /bin/launchctl print "$domain/$agentName" &> /dev/null; then
+                verboseEcho "Successfully stopped agent '$agentName'"
+                return 0
+              fi
+
+              if (( i < bootout_retries - 1 )); then
+                verboseEcho "Agent '$agentName' still running, waiting before retry..."
+                sleep 1
+              fi
+            done
+
+            if (( i == bootout_retries )); then
+              warnEcho "Failed to stop agent '$domain/$agentName' after $bootout_retries attempts"
+              return 1
+            fi
+
+            return 0
+          }
+
+          installAndBootstrapAgent() {
+            local domain="$1"
+            local srcPath="$2"
+            local dstPath="$3"
+            local agentName="$4"
+
+            verboseEcho "Installing agent file to $dstPath"
+            run install -Dm444 -T "$srcPath" "$dstPath"
+
+            verboseEcho "Bootstrapping agent '$domain/$agentName'"
+            if ! run /bin/launchctl bootstrap "$domain" "$dstPath"; then
+              errorEcho "Failed to bootstrap agent '$domain/$agentName'"
+              return 1
+            else
+              verboseEcho "Successfully bootstrapped agent '$domain/$agentName'"
+              return 0
+            fi
+          }
+
+          processAgent() {
+            local domain="$1"
+            local srcPath="$2"
+            local dstPath="$3"
+            local agentFile="$4"
+            local agentName="$5"
+
+            if cmp -s "$srcPath" "$dstPath"; then
+              verboseEcho "Agent '$domain/$agentName' is already up-to-date"
+              return 0
+            fi
+
+            verboseEcho "Processing agent '$agentName'"
+
+            if [[ -f "$dstPath" ]]; then
+              if ! bootoutAgent "$domain" "$agentName"; then
+                (( failed_count++ ))
+                return 1
+              fi
+            else
+              verboseEcho "Installing new agent '$agentName'"
+            fi
+
+            if installAndBootstrapAgent "$domain" "$srcPath" "$dstPath" "$agentName"; then
+              (( updated_count++ ))
+              return 0
+            else
+              (( failed_count++ ))
+              return 1
+            fi
+          }
+
+          removeAgent() {
+            local domain="$1"
+            local srcPath="$2"
+            local dstPath="$3"
+            local agentName="$4"
+
+            verboseEcho "Removing agent '$domain/$agentName'..."
+            if ! run /bin/launchctl bootout "$domain/$agentName"; then
+              warnEcho "Failed to stop agent '$domain/$agentName', it may already be stopped"
+            else
+              verboseEcho "Successfully stopped agent '$domain/$agentName'"
+            fi
+
+            if [[ ! -e "$dstPath" ]]; then
+              verboseEcho "Agent file '$dstPath' already removed"
+              return 0
+            fi
+
+            if ! cmp -s "$srcPath" "$dstPath"; then
+              warnEcho "Skipping deletion of '$dstPath', since its contents have diverged"
+              return 0
+            fi
+
+            verboseEcho "Removing agent file '$dstPath'"
+            if run rm -f $VERBOSE_ARG "$dstPath"; then
+              verboseEcho "Successfully removed agent file for '$agentName'"
+              (( removed_count++ ))
+              return 0
+            else
+              warnEcho "Failed to remove agent file '$dstPath'"
+              return 1
+            fi
+          }
+
           setupLaunchAgents() {
             local oldDir newDir dstDir domain err
             oldDir=""
             err=0
+
+            # Find the old and new LaunchAgents directories
             if [[ -n "''${oldGenPath:-}" ]]; then
               oldDir="$(readlink -m "$oldGenPath/LaunchAgents")" || err=$?
               verboseEcho $oldDir
@@ -108,6 +240,7 @@ in {
                 verboseEcho "No previous LaunchAgents directory found"
               fi
             fi
+
             newDir="$(readlink -m "$newGenPath/LaunchAgents")"
             dstDir=${escapeShellArg dstDir}
             domain="gui/$UID"
@@ -116,76 +249,35 @@ in {
             verboseEcho "Setting up LaunchAgents in $dstDir"
             [[ -d "$dstDir" ]] || run mkdir -p "$dstDir"
 
-            local srcPath dstPath agentFile agentName i bootout_retries
-            bootout_retries=10
-
+            # Process new and updated agents
             verboseEcho "Processing new/updated LaunchAgents..."
-            find -L "$newDir" -maxdepth 1 -name '*.plist' -type f -print0 \
-                | while IFS= read -rd "" srcPath; do
+            local newAgents=()
+            while IFS= read -rd "" srcPath; do
+              newAgents+=("$srcPath")
+            done < <(find -L "$newDir" -maxdepth 1 -name '*.plist' -type f -print0)
+
+            for srcPath in "''${newAgents[@]}"; do
               agentFile="''${srcPath##*/}"
               agentName="''${agentFile%.plist}"
               dstPath="$dstDir/$agentFile"
 
-              if cmp -s "$srcPath" "$dstPath"; then
-                verboseEcho "Agent '$domain/$agentName' is already up-to-date"
-                continue
-              fi
-
-              verboseEcho "Processing agent '$agentName'"
-
-              if [[ -f "$dstPath" ]]; then
-                verboseEcho "Stopping existing agent '$domain/$agentName'..."
-                for (( i = 0; i < bootout_retries; i++ )); do
-                  if (( i > 0 )); then
-                    verboseEcho "Retry $i/$bootout_retries stopping agent '$agentName'..."
-                  fi
-
-                  run /bin/launchctl bootout "$domain/$agentName" || err=$?
-
-                  if [[ -v DRY_RUN ]]; then
-                    verboseEcho "DRY_RUN: Would stop agent '$agentName'"
-                    break
-                  fi
-
-                  if (( err != 9216 )) &&
-                    ! run /bin/launchctl print "$domain/$agentName" &> /dev/null; then
-                    verboseEcho "Successfully stopped agent '$agentName'"
-                    break
-                  fi
-
-                  if (( i < bootout_retries - 1 )); then
-                    verboseEcho "Agent '$agentName' still running, waiting before retry..."
-                    sleep 1
-                  fi
-                done
-
-                if (( i == bootout_retries )); then
-                  warnEcho "Failed to stop agent '$domain/$agentName' after $bootout_retries attempts"
-                  return 1
-                fi
-              else
-                verboseEcho "Installing new agent '$agentName'"
-              fi
-
-              verboseEcho "Installing agent file to $dstPath"
-              run install -Dm444 -T "$srcPath" "$dstPath"
-
-              verboseEcho "Bootstrapping agent '$domain/$agentName'"
-              if ! run /bin/launchctl bootstrap "$domain" "$dstPath"; then
-                errorEcho "Failed to bootstrap agent '$domain/$agentName'"
-              else
-                verboseEcho "Successfully bootstrapped agent '$domain/$agentName'"
-              fi
+              processAgent "$domain" "$srcPath" "$dstPath" "$agentFile" "$agentName"
             done
 
+            # Skip cleanup if there's no previous generation
             if [[ ! -e "$oldDir" ]]; then
               verboseEcho "LaunchAgents setup complete: $updated_count updated, $failed_count failed"
               return
             fi
 
+            # Clean up removed agents
             verboseEcho "Cleaning up removed LaunchAgents..."
-            find -L "$oldDir" -maxdepth 1 -name '*.plist' -type f -print0 \
-                | while IFS= read -rd "" srcPath; do
+            local oldAgents=()
+            while IFS= read -rd "" srcPath; do
+              oldAgents+=("$srcPath")
+            done < <(find -L "$oldDir" -maxdepth 1 -name '*.plist' -type f -print0)
+
+            for srcPath in "''${oldAgents[@]}"; do
               agentFile="''${srcPath##*/}"
               agentName="''${agentFile%.plist}"
               dstPath="$dstDir/$agentFile"
@@ -195,30 +287,10 @@ in {
                 continue
               fi
 
-              verboseEcho "Removing agent '$domain/$agentName'..."
-              if ! run /bin/launchctl bootout "$domain/$agentName"; then
-                warnEcho "Failed to stop agent '$domain/$agentName', it may already be stopped"
-              else
-                verboseEcho "Successfully stopped agent '$domain/$agentName'"
-              fi
-
-              if [[ ! -e "$dstPath" ]]; then
-                verboseEcho "Agent file '$dstPath' already removed"
-                continue
-              fi
-
-              if ! cmp -s "$srcPath" "$dstPath"; then
-                warnEcho "Skipping deletion of '$dstPath', since its contents have diverged"
-                continue
-              fi
-
-              verboseEcho "Removing agent file '$dstPath'"
-              if run rm -f $VERBOSE_ARG "$dstPath"; then
-                verboseEcho "Successfully removed agent file for '$agentName'"
-              else
-                warnEcho "Failed to remove agent file '$dstPath'"
-              fi
+              removeAgent "$domain" "$srcPath" "$dstPath" "$agentName"
             done
+
+            verboseEcho "LaunchAgents setup complete: $updated_count updated, $removed_count removed, $failed_count failed"
           }
 
           setupLaunchAgents
