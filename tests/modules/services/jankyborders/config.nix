@@ -1,0 +1,18 @@
+{
+  services.jankyborders = {
+    enable = true;
+    settings = {
+      active_color = "0xffe2e2e3";
+      hidpi = "off";
+      inactive_color = "0xff414550";
+      style = "round";
+      width = 6.0;
+    };
+  };
+
+  nmt.script = ''
+    configFile=home-files/.config/borders/bordersrc
+    assertFileExists $configFile
+    assertFileContent $configFile ${./jankyborders-config-expected}
+  '';
+}
