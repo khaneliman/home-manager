@@ -1,8 +1,7 @@
 { config, lib, pkgs, ... }:
-
-with lib;
-
 let
+  inherit (lib) mkOption types;
+
   cfg = config.nix.gc;
   darwinIntervals =
     [ "hourly" "daily" "weekly" "monthly" "semiannually" "annually" ];
@@ -53,7 +52,7 @@ let
   else
     pkgs.nix;
 in {
-  meta.maintainers = [ maintainers.shivaraj-bh ];
+  meta.maintainers = [ lib.maintainers.shivaraj-bh ];
 
   options = {
     nix.gc = {
@@ -117,8 +116,8 @@ in {
     };
   };
 
-  config = lib.mkIf cfg.automatic (mkMerge [
-    (mkIf pkgs.stdenv.isLinux {
+  config = lib.mkIf cfg.automatic (lib.mkMerge [
+    (lib.mkIf pkgs.stdenv.isLinux {
       systemd.user.services.nix-gc = {
         Unit = { Description = "Nix Garbage Collector"; };
         Service = {
@@ -141,9 +140,9 @@ in {
       };
     })
 
-    (mkIf pkgs.stdenv.isDarwin {
+    (lib.mkIf pkgs.stdenv.isDarwin {
       assertions = [{
-        assertion = elem cfg.frequency darwinIntervals;
+        assertion = lib.elem cfg.frequency darwinIntervals;
         message = "On Darwin nix.gc.frequency must be one of: ${
             toString darwinIntervals
           }.";

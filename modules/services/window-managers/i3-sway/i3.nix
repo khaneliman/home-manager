@@ -1,8 +1,6 @@
 { config, lib, pkgs, ... }:
-
-with lib;
-
 let
+  inherit (lib) mkIf mkOption types;
 
   cfg = config.xsession.windowManager.i3;
 
@@ -20,7 +18,7 @@ let
 
       keybindings = mkOption {
         type = types.attrsOf (types.nullOr types.str);
-        default = mapAttrs (n: mkOptionDefault) {
+        default = lib.mapAttrs (n: lib.mkOptionDefault) {
           "${cfg.config.modifier}+Return" = "exec ${cfg.config.terminal}";
           "${cfg.config.modifier}+Shift+q" = "kill";
           "${cfg.config.modifier}+d" = "exec ${cfg.config.menu}";
@@ -98,7 +96,7 @@ let
           Consider to use `lib.mkOptionDefault` function to extend or override
           default keybindings instead of specifying all of them from scratch.
         '';
-        example = literalExpression ''
+        example = lib.literalExpression ''
           let
             modifier = config.xsession.windowManager.i3.config.modifier;
           in lib.mkOptionDefault {
@@ -143,7 +141,7 @@ let
     fontConfigStr keybindingDefaultWorkspace keybindingsRest workspaceOutputStr;
 
   startupEntryStr = { command, always, notification, workspace, ... }:
-    concatStringsSep " " [
+    lib.concatStringsSep " " [
       (if always then "exec_always" else "exec")
       (if (notification && workspace == null) then "" else "--no-startup-id")
       (if (workspace == null) then
@@ -152,7 +150,7 @@ let
         "i3-msg 'workspace ${workspace}; exec ${command}'")
     ];
 
-  configFile = pkgs.writeText "i3.conf" (concatStringsSep "\n"
+  configFile = pkgs.writeText "i3.conf" (lib.concatStringsSep "\n"
     ((if cfg.config != null then
       with cfg.config;
       ([
@@ -202,13 +200,13 @@ let
     '';
 
 in {
-  meta.maintainers = with maintainers; [ sumnerevans ];
+  meta.maintainers = with lib.maintainers; [ sumnerevans ];
 
   options = {
     xsession.windowManager.i3 = {
-      enable = mkEnableOption "i3 window manager";
+      enable = lib.mkEnableOption "i3 window manager";
 
-      package = mkPackageOption pkgs "i3" { nullable = true; };
+      package = lib.mkPackageOption pkgs "i3" { nullable = true; };
 
       config = mkOption {
         type = types.nullOr configModule;
@@ -225,11 +223,11 @@ in {
     };
   };
 
-  config = mkIf cfg.enable (mkMerge [
+  config = mkIf cfg.enable (lib.mkMerge [
     {
       assertions = [
-        (hm.assertions.assertPlatform "xsession.windowManager.i3" pkgs
-          platforms.linux)
+        (lib.hm.assertions.assertPlatform "xsession.windowManager.i3" pkgs
+          lib.platforms.linux)
       ];
 
       home.packages = lib.mkIf (cfg.package != null) [ cfg.package ];
@@ -251,13 +249,13 @@ in {
     }
 
     (mkIf (cfg.config != null) {
-      warnings = (optional (isList cfg.config.fonts)
+      warnings = (lib.optional (lib.isList cfg.config.fonts)
         "Specifying i3.config.fonts as a list is deprecated. Use the attrset version instead.")
-        ++ flatten (map (b:
-          optional (isList b.fonts)
+        ++ lib.flatten (map (b:
+          lib.optional (lib.isList b.fonts)
           "Specifying i3.config.bars[].fonts as a list is deprecated. Use the attrset version instead.")
           cfg.config.bars) ++ [
-            (mkIf (any (s: s.workspace != null) cfg.config.startup)
+            (mkIf (lib.any (s: s.workspace != null) cfg.config.startup)
               ("'xsession.windowManager.i3.config.startup.*.workspace' is deprecated, "
                 + "use 'xsession.windowManager.i3.config.assigns' instead."
                 + "See https://github.com/nix-community/home-manager/issues/265."))

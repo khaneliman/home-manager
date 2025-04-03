@@ -1,18 +1,15 @@
 { config, lib, pkgs, ... }:
-
-with lib;
-
 let cfg = config.services.pasystray;
 
 in {
-  meta.maintainers = [ hm.maintainers.pltanton ];
+  meta.maintainers = [ lib.hm.maintainers.pltanton ];
 
   options = {
     services.pasystray = {
-      enable = mkEnableOption "PulseAudio system tray";
+      enable = lib.mkEnableOption "PulseAudio system tray";
 
-      extraOptions = mkOption {
-        type = types.listOf types.str;
+      extraOptions = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
         default = [ ];
         description = ''
           Extra command-line arguments to pass to {command}`pasystray`.
@@ -21,9 +18,10 @@ in {
     };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     assertions = [
-      (hm.assertions.assertPlatform "services.pasystray" pkgs platforms.linux)
+      (lib.hm.assertions.assertPlatform "services.pasystray" pkgs
+        lib.platforms.linux)
     ];
 
     systemd.user.services.pasystray = {
@@ -38,9 +36,9 @@ in {
 
       Service = {
         Environment =
-          let toolPaths = makeBinPath [ pkgs.paprefs pkgs.pavucontrol ];
+          let toolPaths = lib.makeBinPath [ pkgs.paprefs pkgs.pavucontrol ];
           in [ "PATH=${toolPaths}" ];
-        ExecStart = escapeShellArgs
+        ExecStart = lib.escapeShellArgs
           ([ "${pkgs.pasystray}/bin/pasystray" ] ++ cfg.extraOptions);
       };
     };

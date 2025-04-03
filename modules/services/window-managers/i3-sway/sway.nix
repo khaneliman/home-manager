@@ -1,8 +1,6 @@
 { config, lib, pkgs, ... }:
-
-with lib;
-
 let
+  inherit (lib) concatStringsSep mkIf mkOption optional types;
 
   cfg = config.wayland.windowManager.sway;
 
@@ -45,7 +43,7 @@ let
 
       keybindings = mkOption {
         type = types.attrsOf (types.nullOr types.str);
-        default = mapAttrs (n: mkOptionDefault) {
+        default = lib.mapAttrs (n: lib.mkOptionDefault) {
           "${cfg.config.modifier}+Return" = "exec ${cfg.config.terminal}";
           "${cfg.config.modifier}+Shift+q" = "kill";
           "${cfg.config.modifier}+d" = "exec ${cfg.config.menu}";
@@ -131,7 +129,7 @@ let
           Consider to use `lib.mkOptionDefault` function to extend or override
           default keybindings instead of specifying all of them from scratch.
         '';
-        example = literalExpression ''
+        example = lib.literalExpression ''
           let
             modifier = config.wayland.windowManager.sway.config.modifier;
           in lib.mkOptionDefault {
@@ -249,7 +247,7 @@ let
   moduleStr = moduleType: name: attrs: ''
     ${moduleType} "${name}" {
     ${concatStringsSep "\n"
-    (mapAttrsToList (name: value: "  ${name} ${value}") attrs)}
+    (lib.mapAttrsToList (name: value: "  ${name} ${value}") attrs)}
     }
   '';
   inputStr = moduleStr "input";
@@ -331,7 +329,7 @@ let
   };
 
 in {
-  meta.maintainers = with maintainers; [
+  meta.maintainers = with lib.maintainers; [
     Scrumplex
     alexarice
     sumnerevans
@@ -340,12 +338,12 @@ in {
 
   imports = let modulePath = [ "wayland" "windowManager" "sway" ];
   in [
-    (mkRenamedOptionModule (modulePath ++ [ "systemdIntegration" ])
+    (lib.mkRenamedOptionModule (modulePath ++ [ "systemdIntegration" ])
       (modulePath ++ [ "systemd" "enable" ]))
   ];
 
   options.wayland.windowManager.sway = {
-    enable = mkEnableOption "sway wayland compositor";
+    enable = lib.mkEnableOption "sway wayland compositor";
 
     package = mkOption {
       type = with types; nullOr package;
@@ -355,7 +353,7 @@ in {
         withBaseWrapper = cfg.wrapperFeatures.base;
         withGtkWrapper = cfg.wrapperFeatures.gtk;
       };
-      defaultText = literalExpression "${pkgs.sway}";
+      defaultText = lib.literalExpression "${pkgs.sway}";
       description = ''
         Sway package to use. Will override the options
         'wrapperFeatures', 'extraSessionCommands', and 'extraOptions'.
@@ -420,7 +418,7 @@ in {
         '';
       };
 
-      xdgAutostart = mkEnableOption ''
+      xdgAutostart = lib.mkEnableOption ''
         autostart of applications using
         {manpage}`systemd-xdg-autostart-generator(8)`
       '';
@@ -485,7 +483,7 @@ in {
       type = types.bool;
       default = cfg.package != null;
       defaultText =
-        literalExpression "wayland.windowManager.sway.package != null";
+        lib.literalExpression "wayland.windowManager.sway.package != null";
       description = "If enabled, validates the generated config file.";
     };
 
@@ -504,12 +502,12 @@ in {
     };
   };
 
-  config = mkIf cfg.enable (mkMerge [
+  config = mkIf cfg.enable (lib.mkMerge [
     (mkIf (cfg.config != null) {
-      warnings = (optional (isList cfg.config.fonts)
+      warnings = (optional (lib.isList cfg.config.fonts)
         "Specifying sway.config.fonts as a list is deprecated. Use the attrset version instead.")
-        ++ flatten (map (b:
-          optional (isList b.fonts)
+        ++ lib.flatten (map (b:
+          optional (lib.isList b.fonts)
           "Specifying sway.config.bars[].fonts as a list is deprecated. Use the attrset version instead.")
           cfg.config.bars) ++ [
             (mkIf cfg.config.focus.forceWrapping
@@ -519,8 +517,8 @@ in {
 
     {
       assertions = [
-        (hm.assertions.assertPlatform "wayland.windowManager.sway" pkgs
-          platforms.linux)
+        (lib.hm.assertions.assertPlatform "wayland.windowManager.sway" pkgs
+          lib.platforms.linux)
         {
           assertion = cfg.checkConfig -> cfg.package != null;
           message =

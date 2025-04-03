@@ -1,8 +1,6 @@
 { config, options, lib, pkgs, ... }:
-
-with lib;
-
 let
+  inherit (lib) mkIf mkOption optional optionalString types;
 
   cfg = config.services.gpg-agent;
   gpgPkg = config.programs.gpg.package;
@@ -40,8 +38,8 @@ let
   # https://github.com/gpg/gnupg/blob/c6702d77d936b3e9d91b34d8fdee9599ab94ee1b/common/homedir.c#L672-L681
   gpgconf = dir:
     let
-      hash =
-        substring 0 24 (hexStringToBase32 (builtins.hashString "sha1" homedir));
+      hash = lib.substring 0 24
+        (hexStringToBase32 (builtins.hashString "sha1" homedir));
       subdir = if homedir == options.programs.gpg.homedir.default then
         "${dir}"
       else
@@ -55,11 +53,11 @@ let
   # Written in Nix for purity.
   hexStringToBase32 = let
     mod = a: b: a - a / b * b;
-    pow2 = elemAt [ 1 2 4 8 16 32 64 128 256 ];
+    pow2 = lib.elemAt [ 1 2 4 8 16 32 64 128 256 ];
 
-    base32Alphabet = stringToCharacters "ybndrfg8ejkmcpqxot1uwisza345h769";
-    hexToIntTable = listToAttrs (genList (x: {
-      name = toLower (toHexString x);
+    base32Alphabet = lib.stringToCharacters "ybndrfg8ejkmcpqxot1uwisza345h769";
+    hexToIntTable = lib.listToAttrs (lib.genList (x: {
+      name = lib.toLower (lib.toHexString x);
       value = x;
     }) 16);
 
@@ -75,7 +73,7 @@ let
         bufBits' = bufBits + 4;
         extraBits = bufBits' - 5;
       in if bufBits >= 5 then {
-        ret = ret + elemAt base32Alphabet (buf' / pow2 extraBits);
+        ret = ret + lib.elemAt base32Alphabet (buf' / pow2 extraBits);
         buf = mod buf' (pow2 extraBits);
         bufBits = bufBits' - 5;
       } else {
@@ -83,7 +81,8 @@ let
         buf = buf';
         bufBits = bufBits';
       };
-  in hexString: (foldl' go initState (stringToCharacters hexString)).ret;
+  in hexString:
+  (lib.foldl' go initState (lib.stringToCharacters hexString)).ret;
 
   # Systemd socket unit generator.
   mkSocket = { desc, docs, stream, fdName }: {
@@ -112,16 +111,16 @@ let
   };
 
 in {
-  meta.maintainers = [ maintainers.rycee ];
+  meta.maintainers = [ lib.maintainers.rycee ];
 
   imports = [
-    (mkRemovedOptionModule [ "services" "gpg-agent" "pinentryFlavor" ]
+    (lib.mkRemovedOptionModule [ "services" "gpg-agent" "pinentryFlavor" ]
       "Use services.gpg-agent.pinentryPackage instead")
   ];
 
   options = {
     services.gpg-agent = {
-      enable = mkEnableOption "GnuPG private key agent";
+      enable = lib.mkEnableOption "GnuPG private key agent";
 
       defaultCacheTtl = mkOption {
         type = types.nullOr types.int;
@@ -247,7 +246,7 @@ in {
       };
       pinentryPackage = mkOption {
         type = types.nullOr types.package;
-        example = literalExpression "pkgs.pinentry-gnome3";
+        example = lib.literalExpression "pkgs.pinentry-gnome3";
         default = null;
         description = ''
           Which pinentry interface to use. If not `null`, it sets
@@ -274,9 +273,9 @@ in {
     };
   };
 
-  config = mkIf cfg.enable (mkMerge [
+  config = mkIf cfg.enable (lib.mkMerge [
     {
-      home.file."${homedir}/gpg-agent.conf".text = concatStringsSep "\n"
+      home.file."${homedir}/gpg-agent.conf".text = lib.concatStringsSep "\n"
         (optional (cfg.enableSshSupport) "enable-ssh-support"
           ++ optional cfg.grabKeyboardAndMouse "grab"
           ++ optional (!cfg.enableScDaemon) "disable-scdaemon"
@@ -310,12 +309,12 @@ in {
 
     (mkIf (cfg.sshKeys != null) {
       # Trailing newlines are important
-      home.file."${homedir}/sshcontrol".text = concatMapStrings (s: ''
+      home.file."${homedir}/sshcontrol".text = lib.concatMapStrings (s: ''
         ${s}
       '') cfg.sshKeys;
     })
 
-    (mkMerge [
+    (lib.mkMerge [
       (mkIf pkgs.stdenv.isLinux {
         systemd.user.services.gpg-agent = {
           Unit = {
@@ -343,13 +342,13 @@ in {
         };
 
         systemd.user.sockets.gpg-agent-ssh = mkIf cfg.enableSshSupport
-          (mkSocket ({
+          (mkSocket {
             desc = "GnuPG cryptographic agent (ssh-agent emulation)";
             docs =
               "man:gpg-agent(1) man:ssh-add(1) man:ssh-agent(1) man:ssh(1)";
             stream = "S.gpg-agent.ssh";
             fdName = "ssh";
-          }));
+          });
 
         systemd.user.sockets.gpg-agent-extra = mkIf cfg.enableExtraSocket
           (mkSocket {

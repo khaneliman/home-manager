@@ -1,19 +1,16 @@
 { config, lib, pkgs, ... }:
-
-with lib;
-
 let cfg = config.services.podman;
 in {
   options.services.podman = {
     autoUpdate = {
-      enable = mkOption {
-        type = types.bool;
+      enable = lib.mkOption {
+        type = lib.types.bool;
         default = false;
         description = "Automatically update the podman images.";
       };
 
-      onCalendar = mkOption {
-        type = types.str;
+      onCalendar = lib.mkOption {
+        type = lib.types.str;
         default = "Sun *-*-* 00:00";
         description = ''
           The systemd `OnCalendar` expression for the update. See
@@ -23,8 +20,8 @@ in {
     };
   };
 
-  config = mkIf cfg.enable (mkMerge [
-    (mkIf cfg.autoUpdate.enable {
+  config = lib.mkIf cfg.enable (lib.mkMerge [
+    (lib.mkIf cfg.autoUpdate.enable {
       systemd.user.services."podman-auto-update" = {
         Unit = {
           Description = "Podman auto-update service";
@@ -61,14 +58,14 @@ in {
         Install = { WantedBy = [ "timers.target" ]; };
       };
     })
-    ({
+    {
       xdg.configFile."systemd/user/podman-user-wait-network-online.service.d/50-exec-search-path.conf".text =
         ''
           [Service]
           ExecSearchPath=${
-            makeBinPath (with pkgs; [ bashInteractive systemd coreutils ])
+            lib.makeBinPath (with pkgs; [ bashInteractive systemd coreutils ])
           }:/bin
         '';
-    })
+    }
   ]);
 }

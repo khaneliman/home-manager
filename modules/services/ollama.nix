@@ -1,8 +1,6 @@
 { config, lib, pkgs, ... }:
-
-with lib;
-
 let
+  inherit (lib) mkIf mkOption types;
 
   cfg = config.services.ollama;
 
@@ -12,13 +10,14 @@ let
     cfg.package.override { inherit (cfg) acceleration; };
 
 in {
-  meta.maintainers = [ maintainers.terlar ];
+  meta.maintainers = [ lib.maintainers.terlar ];
 
   options = {
     services.ollama = {
-      enable = mkEnableOption "ollama server for local large language models";
+      enable =
+        lib.mkEnableOption "ollama server for local large language models";
 
-      package = mkPackageOption pkgs "ollama" { };
+      package = lib.mkPackageOption pkgs "ollama" { };
 
       host = mkOption {
         type = types.str;
@@ -83,9 +82,9 @@ in {
       };
 
       Service = {
-        ExecStart = "${getExe ollamaPackage} serve";
+        ExecStart = "${lib.getExe ollamaPackage} serve";
         Environment =
-          (mapAttrsToList (n: v: "${n}=${v}") cfg.environmentVariables)
+          (lib.mapAttrsToList (n: v: "${n}=${v}") cfg.environmentVariables)
           ++ [ "OLLAMA_HOST=${cfg.host}:${toString cfg.port}" ];
       };
 
@@ -95,7 +94,7 @@ in {
     launchd.agents.ollama = mkIf pkgs.stdenv.isDarwin {
       enable = true;
       config = {
-        ProgramArguments = [ "${getExe ollamaPackage}" "serve" ];
+        ProgramArguments = [ "${lib.getExe ollamaPackage}" "serve" ];
         EnvironmentVariables = cfg.environmentVariables // {
           OLLAMA_HOST = "${cfg.host}:${toString cfg.port}";
         };

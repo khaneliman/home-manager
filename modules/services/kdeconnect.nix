@@ -1,39 +1,36 @@
 { config, lib, pkgs, ... }:
-
-with lib;
-
 let
 
   cfg = config.services.kdeconnect;
 
 in {
-  meta.maintainers = [ maintainers.adisbladis ];
+  meta.maintainers = [ lib.maintainers.adisbladis ];
 
   options = {
     services.kdeconnect = {
-      enable = mkEnableOption "KDE connect";
-      package = mkOption {
-        type = types.package;
+      enable = lib.mkEnableOption "KDE connect";
+      package = lib.mkOption {
+        type = lib.types.package;
         default = pkgs.kdePackages.kdeconnect-kde;
-        example = literalExpression "pkgs.plasma5Packages.kdeconnect-kde";
+        example = lib.literalExpression "pkgs.plasma5Packages.kdeconnect-kde";
         description = "The KDE connect package to use";
       };
 
-      indicator = mkOption {
-        type = types.bool;
+      indicator = lib.mkOption {
+        type = lib.types.bool;
         default = false;
         description = "Whether to enable kdeconnect-indicator service.";
       };
     };
   };
 
-  config = mkMerge [
-    (mkIf cfg.enable {
+  config = lib.mkMerge [
+    (lib.mkIf cfg.enable {
       home.packages = [ cfg.package ];
 
       assertions = [
-        (hm.assertions.assertPlatform "services.kdeconnect" pkgs
-          platforms.linux)
+        (lib.hm.assertions.assertPlatform "services.kdeconnect" pkgs
+          lib.platforms.linux)
       ];
 
       systemd.user.services.kdeconnect = {
@@ -48,21 +45,20 @@ in {
 
         Service = {
           Environment = [ "PATH=${config.home.profileDirectory}/bin" ];
-          ExecStart =
-            if strings.versionAtLeast (versions.majorMinor cfg.package.version)
-            "24.05" then
-              "${cfg.package}/bin/kdeconnectd"
-            else
-              "${cfg.package}/libexec/kdeconnectd";
+          ExecStart = if lib.strings.versionAtLeast
+          (lib.versions.majorMinor cfg.package.version) "24.05" then
+            "${cfg.package}/bin/kdeconnectd"
+          else
+            "${cfg.package}/libexec/kdeconnectd";
           Restart = "on-abort";
         };
       };
     })
 
-    (mkIf cfg.indicator {
+    (lib.mkIf cfg.indicator {
       assertions = [
-        (hm.assertions.assertPlatform "services.kdeconnect" pkgs
-          platforms.linux)
+        (lib.hm.assertions.assertPlatform "services.kdeconnect" pkgs
+          lib.platforms.linux)
       ];
 
       systemd.user.services.kdeconnect-indicator = {

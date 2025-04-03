@@ -1,8 +1,6 @@
 { config, lib, pkgs, ... }:
-
-with lib;
-
 let
+  inherit (lib) literalExpression maintainers mkIf mkOption types;
 
   cfg = config.services.git-sync;
 
@@ -16,9 +14,9 @@ let
         "PATH=${
           lib.makeBinPath (with pkgs; [ openssh git ] ++ repo.extraPackages)
         }"
-        "GIT_SYNC_DIRECTORY=${strings.escapeShellArg repo.path}"
+        "GIT_SYNC_DIRECTORY=${lib.strings.escapeShellArg repo.path}"
         "GIT_SYNC_COMMAND=${cfg.package}/bin/git-sync"
-        "GIT_SYNC_REPOSITORY=${strings.escapeShellArg repo.uri}"
+        "GIT_SYNC_REPOSITORY=${lib.strings.escapeShellArg repo.uri}"
         "GIT_SYNC_INTERVAL=${toString repo.interval}"
       ];
       ExecStart = "${cfg.package}/bin/git-sync-on-inotify";
@@ -38,7 +36,7 @@ let
   };
 
   mkService = if pkgs.stdenv.isLinux then mkUnit else mkAgent;
-  services = mapAttrs' (name: repo: {
+  services = lib.mapAttrs' (name: repo: {
     name = "git-sync-${name}";
     value = mkService name repo;
   }) cfg.repositories;
@@ -96,7 +94,7 @@ in {
 
   options = {
     services.git-sync = {
-      enable = mkEnableOption "git-sync services";
+      enable = lib.mkEnableOption "git-sync services";
 
       package = mkOption {
         type = types.package;
@@ -125,7 +123,7 @@ in {
     };
   };
 
-  config = mkIf cfg.enable (mkMerge [
+  config = mkIf cfg.enable (lib.mkMerge [
     (mkIf pkgs.stdenv.isLinux { systemd.user.services = services; })
     (mkIf pkgs.stdenv.isDarwin { launchd.agents = services; })
   ]);

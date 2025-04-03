@@ -1,23 +1,23 @@
 { config, options, lib, pkgs, ... }:
 
-with lib;
-
 # TODO: Fix the formatting of the resulting config.
 let
+  inherit (lib) generators isAttrs literalExpression mkOption types;
+
   cfg = config.services.recoll;
 
   # The key-value generator for Recoll config format. For future references,
   # see the example configuration from the package (i.e.,
   # `$out/share/recoll/examples/recoll.conf`).
   mkRecollConfKeyValue = generators.mkKeyValueDefault {
-    mkValueString = let mkQuoted = v: ''"${escape [ ''"'' ] v}"'';
+    mkValueString = let mkQuoted = v: ''"${lib.escape [ ''"'' ] v}"'';
     in v:
     if v == true then
       "1"
     else if v == false then
       "0"
-    else if isList v then
-      concatMapStringsSep " " mkQuoted v
+    else if lib.isList v then
+      lib.concatMapStringsSep " " mkQuoted v
     else
       generators.mkValueStringDefault { } v;
   } " = ";
@@ -31,7 +31,7 @@ let
         inherit listsAsDuplicateKeys;
         mkKeyValue = mkRecollConfKeyValue;
       };
-      mkSectionName = name: strings.escape [ "[" "]" ] name;
+      mkSectionName = name: lib.strings.escape [ "[" "]" ] name;
       convert = k: v:
         if isAttrs v then
           ''
@@ -44,10 +44,12 @@ let
       # There's a possibility of attributes with attrsets overriding other
       # top-level attributes with non-attrsets so we're forcing the attrsets to
       # come last.
-      _config = mapAttrsToList convert (filterAttrs (k: v: !isAttrs v) attr);
-      _config' = mapAttrsToList convert (filterAttrs (k: v: isAttrs v) attr);
+      _config =
+        lib.mapAttrsToList convert (lib.filterAttrs (k: v: !isAttrs v) attr);
+      _config' =
+        lib.mapAttrsToList convert (lib.filterAttrs (k: v: isAttrs v) attr);
       config = _config ++ _config';
-    in concatStringsSep "\n" config;
+    in lib.concatStringsSep "\n" config;
 
   # A specific type for Recoll config format. Taken from `pkgs.formats`
   # implementation from nixpkgs. See the 'Nix-representable formats' from the
@@ -75,10 +77,10 @@ let
   # of consistency (and dogfooding the settings format implementation).
   settingsFormat = recollConfFormat { };
 in {
-  meta.maintainers = [ maintainers.foo-dogsquared ];
+  meta.maintainers = [ lib.maintainers.foo-dogsquared ];
 
   options.services.recoll = {
-    enable = mkEnableOption "Recoll file index service";
+    enable = lib.mkEnableOption "Recoll file index service";
 
     package = mkOption {
       type = types.package;
@@ -137,7 +139,7 @@ in {
     };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     assertions = [
       (lib.hm.assertions.assertPlatform "services.recoll" pkgs
         lib.platforms.linux)
@@ -163,7 +165,7 @@ in {
 
       Service = {
         ExecStart = "${cfg.package}/bin/recollindex";
-        Environment = [ "RECOLL_CONFDIR=${escapeShellArg cfg.configDir}" ];
+        Environment = [ "RECOLL_CONFDIR=${lib.escapeShellArg cfg.configDir}" ];
       };
     };
 

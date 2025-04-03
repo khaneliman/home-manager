@@ -1,7 +1,5 @@
 { config, lib, pkgs, ... }:
 
-with lib;
-
 let
 
   cfg = config.services.rsibreak;
@@ -9,11 +7,11 @@ let
 in {
   options.services.rsibreak = {
 
-    enable = mkEnableOption "rsibreak";
+    enable = lib.mkEnableOption "rsibreak";
 
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     assertions = [
       (lib.hm.assertions.assertPlatform "services.rsibreak" pkgs
         lib.platforms.linux)

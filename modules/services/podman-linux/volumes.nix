@@ -1,8 +1,7 @@
 { config, lib, pkgs, ... }:
-
-with lib;
-
 let
+  inherit (lib) mkOption types;
+
   cfg = config.services.podman;
 
   podman-lib = import ./podman-lib.nix { inherit pkgs lib config; };
@@ -11,7 +10,7 @@ let
     let
       quadlet = podman-lib.deepMerge {
         Install = {
-          WantedBy = optionals volumeDef.autoStart [
+          WantedBy = lib.optionals volumeDef.autoStart [
             "default.target"
             "multi-user.target"
           ];
@@ -20,7 +19,7 @@ let
           Environment = {
             PATH = (builtins.concatStringsSep ":" [
               "${podman-lib.newuidmapPaths}"
-              "${makeBinPath [ pkgs.su pkgs.coreutils ]}"
+              "${lib.makeBinPath [ pkgs.su pkgs.coreutils ]}"
             ]);
           };
           ExecStartPre = [ "${podman-lib.awaitPodmanUnshare}" ];
@@ -102,7 +101,7 @@ in let
       extraConfig = mkOption {
         type = podman-lib.extraConfigType;
         default = { };
-        example = literalExpression ''
+        example = lib.literalExpression ''
           {
             Volume = {
               ContainerConfModule = "/etc/nvd.conf";
@@ -175,12 +174,13 @@ in {
     description = "Defines Podman volume quadlet configurations.";
   };
 
-  config = let volumeQuadlets = mapAttrsToList toQuadletInternal cfg.volumes;
-  in mkIf cfg.enable {
-    services.podman.internal.quadletDefinitions = volumeQuadlets;
-    assertions = flatten (map (volume: volume.assertions) volumeQuadlets);
+  config =
+    let volumeQuadlets = lib.mapAttrsToList toQuadletInternal cfg.volumes;
+    in lib.mkIf cfg.enable {
+      services.podman.internal.quadletDefinitions = volumeQuadlets;
+      assertions = lib.flatten (map (volume: volume.assertions) volumeQuadlets);
 
-    xdg.configFile."podman/volumes.manifest".text =
-      podman-lib.generateManifestText volumeQuadlets;
-  };
+      xdg.configFile."podman/volumes.manifest".text =
+        podman-lib.generateManifestText volumeQuadlets;
+    };
 }

@@ -1,8 +1,6 @@
 { cfg, config, lib, moduleName }:
-
-with lib;
-
-rec {
+let inherit (lib) concatStringsSep mapAttrsToList optionalString;
+in rec {
   criteriaStr = criteria:
     let
       toCriteria = k: v:
@@ -12,11 +10,11 @@ rec {
           ''${k}="${v}"'';
     in "[${concatStringsSep " " (mapAttrsToList toCriteria criteria)}]";
 
-  keybindingDefaultWorkspace = filterAttrs (n: v:
+  keybindingDefaultWorkspace = lib.filterAttrs (n: v:
     cfg.config.defaultWorkspace != null && v == cfg.config.defaultWorkspace)
     cfg.config.keybindings;
 
-  keybindingsRest = filterAttrs (n: v:
+  keybindingsRest = lib.filterAttrs (n: v:
     cfg.config.defaultWorkspace == null || v != cfg.config.defaultWorkspace)
     cfg.config.keybindings;
 
@@ -57,10 +55,14 @@ rec {
 
   fontConfigStr = let
     toFontStr = { names, style ? "", size ? "" }:
-      optionalString (names != [ ]) concatStringsSep " "
-      (remove "" [ "font" "pango:${concatStringsSep ", " names}" style size ]);
+      optionalString (names != [ ]) concatStringsSep " " (lib.remove "" [
+        "font"
+        "pango:${concatStringsSep ", " names}"
+        style
+        size
+      ]);
   in fontCfg:
-  if isList fontCfg then
+  if lib.isList fontCfg then
     toFontStr { names = fontCfg; }
   else
     toFontStr {
@@ -72,8 +74,8 @@ rec {
     , workspaceNumbers, command, statusCommand, colors, trayOutput, trayPadding
     , extraConfig, ... }:
     let colorsNotNull = lib.filterAttrs (n: v: v != null) colors != { };
-    in concatMapStrings (x: x + "\n") (indent (lists.subtractLists [ "" null ]
-      (flatten [
+    in lib.concatMapStrings (x: x + "\n") (indent
+      (lib.lists.subtractLists [ "" null ] (lib.flatten [
         "bar {"
         (optionalString (id != null) "id ${id}")
         (fontConfigStr fonts)
@@ -91,32 +93,33 @@ rec {
         (optionalString (trayOutput != null) "tray_output ${trayOutput}")
         (optionalString (trayPadding != null)
           "tray_padding ${toString trayPadding}")
-        (optionals colorsNotNull (indent (lists.subtractLists [ "" null ] [
-          "colors {"
-          (optionalString (colors.background != null)
-            "background ${colors.background}")
-          (optionalString (colors.statusline != null)
-            "statusline ${colors.statusline}")
-          (optionalString (colors.separator != null)
-            "separator ${colors.separator}")
-          (optionalString (colors.focusedBackground != null)
-            "focused_background ${colors.focusedBackground}")
-          (optionalString (colors.focusedStatusline != null)
-            "focused_statusline ${colors.focusedStatusline}")
-          (optionalString (colors.focusedSeparator != null)
-            "focused_separator ${colors.focusedSeparator}")
-          (optionalString (colors.focusedWorkspace != null)
-            "focused_workspace ${barColorSetStr colors.focusedWorkspace}")
-          (optionalString (colors.activeWorkspace != null)
-            "active_workspace ${barColorSetStr colors.activeWorkspace}")
-          (optionalString (colors.inactiveWorkspace != null)
-            "inactive_workspace ${barColorSetStr colors.inactiveWorkspace}")
-          (optionalString (colors.urgentWorkspace != null)
-            "urgent_workspace ${barColorSetStr colors.urgentWorkspace}")
-          (optionalString (colors.bindingMode != null)
-            "binding_mode ${barColorSetStr colors.bindingMode}")
-          "}"
-        ]) { }))
+        (lib.optionals colorsNotNull (indent
+          (lib.lists.subtractLists [ "" null ] [
+            "colors {"
+            (optionalString (colors.background != null)
+              "background ${colors.background}")
+            (optionalString (colors.statusline != null)
+              "statusline ${colors.statusline}")
+            (optionalString (colors.separator != null)
+              "separator ${colors.separator}")
+            (optionalString (colors.focusedBackground != null)
+              "focused_background ${colors.focusedBackground}")
+            (optionalString (colors.focusedStatusline != null)
+              "focused_statusline ${colors.focusedStatusline}")
+            (optionalString (colors.focusedSeparator != null)
+              "focused_separator ${colors.focusedSeparator}")
+            (optionalString (colors.focusedWorkspace != null)
+              "focused_workspace ${barColorSetStr colors.focusedWorkspace}")
+            (optionalString (colors.activeWorkspace != null)
+              "active_workspace ${barColorSetStr colors.activeWorkspace}")
+            (optionalString (colors.inactiveWorkspace != null)
+              "inactive_workspace ${barColorSetStr colors.inactiveWorkspace}")
+            (optionalString (colors.urgentWorkspace != null)
+              "urgent_workspace ${barColorSetStr colors.urgentWorkspace}")
+            (optionalString (colors.bindingMode != null)
+              "binding_mode ${barColorSetStr colors.bindingMode}")
+            "}"
+          ]) { }))
         extraConfig
         "}"
       ])) { });
@@ -150,7 +153,9 @@ rec {
   windowCommandsStr = { command, criteria, ... }:
     "for_window ${criteriaStr criteria} ${command}";
   workspaceOutputStr = item:
-    let outputs = concatMapStringsSep " " strings.escapeNixString item.output;
+    let
+      outputs =
+        lib.concatMapStringsSep " " lib.strings.escapeNixString item.output;
     in ''workspace "${item.workspace}" output ${outputs}'';
 
   indent = list:

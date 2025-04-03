@@ -1,6 +1,7 @@
 { config, lib, pkgs, ... }:
-with lib;
 let
+  inherit (lib) mkOption types;
+
   cfg = config.services.podman;
 
   podman-lib = import ./podman-lib.nix { inherit pkgs lib config; };
@@ -23,7 +24,7 @@ let
           TLSVerify = imageDef.tlsVerify;
         };
         Install = {
-          WantedBy = optionals imageDef.autoStart [
+          WantedBy = lib.optionals imageDef.autoStart [
             "default.target"
             "multi-user.target"
           ];
@@ -91,7 +92,7 @@ in let
       extraConfig = mkOption {
         type = podman-lib.extraConfigType;
         default = { };
-        example = literalExpression ''
+        example = lib.literalExpression ''
           {
             Image = {
               ContainersConfModule = "/etc/nvd.conf";
@@ -154,9 +155,9 @@ in {
     description = "Defines Podman image quadlet configurations.";
   };
 
-  config = let imageQuadlets = mapAttrsToList toQuadletInternal cfg.images;
-  in mkIf cfg.enable {
+  config = let imageQuadlets = lib.mapAttrsToList toQuadletInternal cfg.images;
+  in lib.mkIf cfg.enable {
     services.podman.internal.quadletDefinitions = imageQuadlets;
-    assertions = flatten (map (image: image.assertions) imageQuadlets);
+    assertions = lib.flatten (map (image: image.assertions) imageQuadlets);
   };
 }

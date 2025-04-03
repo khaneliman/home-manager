@@ -4,7 +4,7 @@ let
 
   cfg = config.services.conky;
 
-in with lib; {
+in {
   meta.maintainers = [ hm.maintainers.kaleo ];
 
   options = {

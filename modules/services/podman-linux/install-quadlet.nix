@@ -1,7 +1,4 @@
 { config, lib, pkgs, ... }:
-
-with lib;
-
 let
   cfg = config.services.podman;
 
@@ -19,7 +16,7 @@ let
 
       unpackPhase = ''
         mkdir -p $out/quadlets
-        ${concatStringsSep "\n" (map (v:
+        ${lib.concatStringsSep "\n" (map (v:
           "echo 'linking ${v.quadletData.serviceName}.${v.quadletData.resourceType}'; ln -s ${v.out}/quadlets/${v.quadletData.serviceName}.${v.quadletData.resourceType} $out/quadlets")
           quadlet.dependencies)}
       '';
@@ -60,17 +57,17 @@ let
             parentQuadlet = quadlet;
           };
         }];
-    in flatten
-    (map (name: processEntry name (getAttr name entries)) (attrNames entries));
+    in lib.flatten (map (name: processEntry name (lib.getAttr name entries))
+      (lib.attrNames entries));
 
-  allUnitFiles = concatMap (builtQuadlet:
+  allUnitFiles = lib.concatMap (builtQuadlet:
     accumulateUnitFiles "" "${builtQuadlet.outPath}/units"
     builtQuadlet.quadletData) builtQuadlets;
 
   # we're doing this because the home-manager recursive file linking implementation can't
   # merge from multiple sources. so we link each file explicitly, which is fine for all unique files
   generateSystemdFileLinks = files:
-    listToAttrs (map (unitFile: {
+    lib.listToAttrs (map (unitFile: {
       name = "${config.xdg.configHome}/systemd/user/${unitFile.key}";
       value = { source = unitFile.value.path; };
     }) files);
@@ -78,7 +75,7 @@ let
 in {
   imports = [ ./options.nix ];
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     home.file = generateSystemdFileLinks allUnitFiles;
 
     # if the length of builtQuadlets is 0, then we don't need register the activation script
@@ -86,9 +83,9 @@ in {
       lib.mkIf (lib.length builtQuadlets >= 1)
       (lib.hm.dag.entryAfter [ "reloadSystemd" ] activationCleanupScript);
 
-    services.podman.internal.builtQuadlets = listToAttrs (map (pkg: {
-      name = (removePrefix "podman-" pkg.passthru.quadletData.serviceName) + "."
-        + pkg.passthru.quadletData.resourceType;
+    services.podman.internal.builtQuadlets = lib.listToAttrs (map (pkg: {
+      name = (lib.removePrefix "podman-" pkg.passthru.quadletData.serviceName)
+        + "." + pkg.passthru.quadletData.resourceType;
       value = pkg;
     }) builtQuadlets);
   };

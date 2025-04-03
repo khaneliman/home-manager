@@ -1,16 +1,16 @@
 { config, lib, pkgs, ... }:
+let
+  inherit (lib) mkIf mkOption types;
 
-with lib;
-
-let cfg = config.services.osmscout-server;
+  cfg = config.services.osmscout-server;
 in {
-  meta.maintainers = [ maintainers.Thra11 ];
+  meta.maintainers = [ lib.maintainers.Thra11 ];
 
   options = {
     services.osmscout-server = {
-      enable = mkEnableOption "OSM Scout Server";
+      enable = lib.mkEnableOption "OSM Scout Server";
 
-      package = mkPackageOption pkgs "osmscout-server" { };
+      package = lib.mkPackageOption pkgs "osmscout-server" { };
 
       network = {
         startWhenNeeded = mkOption {

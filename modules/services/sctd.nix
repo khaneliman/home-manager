@@ -1,16 +1,14 @@
 { config, lib, pkgs, ... }:
 
-with lib;
-
 {
-  meta.maintainers = [ maintainers.somasis ];
+  meta.maintainers = [ lib.maintainers.somasis ];
 
   options = {
     services.sctd = {
-      enable = mkEnableOption "sctd";
+      enable = lib.mkEnableOption "sctd";
 
-      baseTemperature = mkOption {
-        type = types.ints.between 2500 9000;
+      baseTemperature = lib.mkOption {
+        type = lib.types.ints.between 2500 9000;
         default = 4500;
         description = ''
           The base color temperature used by sctd, which should be between 2500 and 9000.
@@ -22,9 +20,9 @@ with lib;
     };
   };
 
-  config = mkIf config.services.sctd.enable {
+  config = lib.mkIf config.services.sctd.enable {
     assertions =
-      [ (hm.assertions.assertPlatform "services.sctd" pkgs platforms.linux) ];
+      [ (lib.hm.assertions.assertPlatform "services.sctd" pkgs lib.platforms.linux) ];
 
     systemd.user.services.sctd = {
       Unit = {

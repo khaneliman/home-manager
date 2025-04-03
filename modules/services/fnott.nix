@@ -1,11 +1,10 @@
 { config, lib, pkgs, ... }:
-
-with lib;
-
 let
+  inherit (lib) mkOption types;
+
   cfg = config.services.fnott;
 
-  concatStringsSep' = sep: list: concatStringsSep sep (remove "" list);
+  concatStringsSep' = sep: list: lib.concatStringsSep sep (lib.remove "" list);
 
   iniFormat = pkgs.formats.ini { };
 in {
@@ -13,14 +12,14 @@ in {
 
   options = {
     services.fnott = {
-      enable = mkEnableOption ''
+      enable = lib.mkEnableOption ''
         fnott, a lightweight Wayland notification daemon for wlroots-based compositors
       '';
 
       package = mkOption {
         type = types.package;
         default = pkgs.fnott;
-        defaultText = literalExpression "pkgs.fnott";
+        defaultText = lib.literalExpression "pkgs.fnott";
         description = "Package providing {command}`fnott`.";
       };
 
@@ -61,7 +60,7 @@ in {
           {manpage}`fnott.ini(5)` for a list of available options and <https://codeberg.org/dnkl/fnott/src/branch/master/fnott.ini>
           for an example configuration.
         '';
-        example = literalExpression ''
+        example = lib.literalExpression ''
           {
             main = {
               notification-margin = 5;
@@ -78,9 +77,11 @@ in {
     };
   };
 
-  config = mkIf cfg.enable {
-    assertions =
-      [ (hm.assertions.assertPlatform "services.fnott" pkgs platforms.linux) ];
+  config = lib.mkIf cfg.enable {
+    assertions = [
+      (lib.hm.assertions.assertPlatform "services.fnott" pkgs
+        lib.platforms.linux)
+    ];
 
     home.packages = [ cfg.package ];
 
@@ -98,8 +99,8 @@ in {
         BusName = "org.freedesktop.Notifications";
         ExecStart = concatStringsSep' " " [
           "${cfg.package}/bin/fnott"
-          "-c ${escapeShellArg cfg.configFile}"
-          (escapeShellArgs cfg.extraFlags)
+          "-c ${lib.escapeShellArg cfg.configFile}"
+          (lib.escapeShellArgs cfg.extraFlags)
         ];
       };
     };

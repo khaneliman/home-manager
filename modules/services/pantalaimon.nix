@@ -1,32 +1,29 @@
 { config, lib, pkgs, ... }:
-
-with lib;
-
 let
   cfg = config.services.pantalaimon;
 
   iniFmt = pkgs.formats.ini { };
 in {
-  meta.maintainers = [ maintainers.jojosch ];
+  meta.maintainers = [ lib.maintainers.jojosch ];
 
   options = {
     services.pantalaimon = {
-      enable = mkEnableOption
+      enable = lib.mkEnableOption
         "Pantalaimon, an E2EE aware proxy daemon for matrix clients";
 
-      package = mkOption {
-        type = types.package;
+      package = lib.mkOption {
+        type = lib.types.package;
         default = pkgs.pantalaimon;
-        defaultText = literalExpression "pkgs.pantalaimon";
+        defaultText = lib.literalExpression "pkgs.pantalaimon";
         description =
           "Package providing the {command}`pantalaimon` executable to use.";
       };
 
-      settings = mkOption {
+      settings = lib.mkOption {
         type = iniFmt.type;
         default = { };
-        defaultText = literalExpression "{ }";
-        example = literalExpression ''
+        defaultText = lib.literalExpression "{ }";
+        example = lib.literalExpression ''
           {
             Default = {
               LogLevel = "Debug";
@@ -51,7 +48,7 @@ in {
     };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     assertions = [
       (lib.hm.assertions.assertPlatform "services.pantalaimon" pkgs
         lib.platforms.linux)

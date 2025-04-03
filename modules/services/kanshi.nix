@@ -1,8 +1,7 @@
 { config, lib, pkgs, ... }:
-
-with lib;
-
 let
+  inherit (lib)
+    concatStringsSep literalExpression mkIf mkOption optionalString types;
 
   cfg = config.services.kanshi;
 
@@ -36,13 +35,13 @@ let
     else if x ? include then
       ''include "${x.include}"''
     else
-      throw "Unknown tags ${attrNames x}";
+      throw "Unknown tags ${lib.attrNames x}";
 
   directivesStr = concatStringsSep "\n" (map tagToStr cfg.settings);
 
   oldDirectivesStr = ''
     ${concatStringsSep "\n"
-    (mapAttrsToList (n: v: profileStr (v // { name = n; })) cfg.profiles)}
+    (lib.mapAttrsToList (n: v: profileStr (v // { name = n; })) cfg.profiles)}
     ${cfg.extraConfig}
   '';
 
@@ -195,10 +194,10 @@ let
   '';
 in {
 
-  meta.maintainers = [ hm.maintainers.nurelin ];
+  meta.maintainers = [ lib.hm.maintainers.nurelin ];
 
   options.services.kanshi = {
-    enable = mkEnableOption
+    enable = lib.mkEnableOption
       "kanshi, a Wayland daemon that automatically configures outputs";
 
     package = mkOption {
@@ -294,21 +293,21 @@ in {
     };
   };
 
-  config = mkIf cfg.enable (mkMerge [
+  config = mkIf cfg.enable (lib.mkMerge [
     {
       assertions = [
         (lib.hm.assertions.assertPlatform "services.kanshi" pkgs
           lib.platforms.linux)
         {
           assertion = (cfg.profiles == { } && cfg.extraConfig == "")
-            || (length cfg.settings) == 0;
+            || (lib.length cfg.settings) == 0;
           message =
             "Cannot mix kanshi.settings with kanshi.profiles or kanshi.extraConfig";
         }
         {
-          assertion = let profiles = filter (x: x ? profile) cfg.settings;
-          in length
-          (filter (x: any (a: a ? alias && a.alias != null) x.profile.outputs)
+          assertion = let profiles = lib.filter (x: x ? profile) cfg.settings;
+          in lib.length (lib.filter
+            (x: lib.any (a: a ? alias && a.alias != null) x.profile.outputs)
             profiles) == 0;
           message =
             "Output kanshi.*.output.alias can only be defined on global scope";

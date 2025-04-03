@@ -1,25 +1,23 @@
 { config, lib, pkgs, ... }:
-
-with lib;
-
 let
+  inherit (lib) mkOption types;
 
   cfg = config.services.mbsync;
 
-  mbsyncOptions = [ "--all" ] ++ optional (cfg.verbose) "--verbose"
-    ++ optional (cfg.configFile != null) "--config ${cfg.configFile}";
+  mbsyncOptions = [ "--all" ] ++ lib.optional (cfg.verbose) "--verbose"
+    ++ lib.optional (cfg.configFile != null) "--config ${cfg.configFile}";
 
 in {
-  meta.maintainers = [ maintainers.pjones ];
+  meta.maintainers = [ lib.maintainers.pjones ];
 
   options.services.mbsync = {
-    enable = mkEnableOption "mbsync";
+    enable = lib.mkEnableOption "mbsync";
 
     package = mkOption {
       type = types.package;
       default = pkgs.isync;
-      defaultText = literalExpression "pkgs.isync";
-      example = literalExpression "pkgs.isync";
+      defaultText = lib.literalExpression "pkgs.isync";
+      example = lib.literalExpression "pkgs.isync";
       description = "The package to use for the mbsync binary.";
     };
 
@@ -72,7 +70,7 @@ in {
     };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     assertions = [
       (lib.hm.assertions.assertPlatform "services.mbsync" pkgs
         lib.platforms.linux)
@@ -84,10 +82,10 @@ in {
       Service = {
         Type = "oneshot";
         ExecStart =
-          "${cfg.package}/bin/mbsync ${concatStringsSep " " mbsyncOptions}";
-      } // (optionalAttrs (cfg.postExec != null) {
+          "${cfg.package}/bin/mbsync ${lib.concatStringsSep " " mbsyncOptions}";
+      } // (lib.optionalAttrs (cfg.postExec != null) {
         ExecStartPost = cfg.postExec;
-      }) // (optionalAttrs (cfg.preExec != null) {
+      }) // (lib.optionalAttrs (cfg.preExec != null) {
         ExecStartPre = cfg.preExec;
       });
     };

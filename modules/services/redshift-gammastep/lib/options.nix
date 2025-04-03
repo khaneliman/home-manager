@@ -1,20 +1,18 @@
 { config, lib, pkgs, moduleName, mainSection, programName, defaultPackage
 , examplePackage, mainExecutable, appletExecutable, xdgConfigFilePath
 , serviceDocumentation }:
-
-with lib;
-
 let
+  inherit (lib) mkOption mkIf types;
 
   cfg = config.services.${moduleName};
   settingsFormat = pkgs.formats.ini { };
 
 in {
-  meta.maintainers = with maintainers; [ rycee thiagokokada ];
+  meta.maintainers = with lib.maintainers; [ rycee thiagokokada ];
 
   imports = let
     mkRenamed = old: new:
-      mkRenamedOptionModule ([ "services" moduleName ] ++ old) [
+      lib.mkRenamedOptionModule ([ "services" moduleName ] ++ old) [
         "services"
         moduleName
         "settings"
@@ -22,14 +20,14 @@ in {
         new
       ];
   in [
-    (mkRemovedOptionModule [ "services" moduleName "extraOptions" ]
+    (lib.mkRemovedOptionModule [ "services" moduleName "extraOptions" ]
       "All ${programName} configuration is now available through services.${moduleName}.settings instead.")
     (mkRenamed [ "brightness" "day" ] "brightness-day")
     (mkRenamed [ "brightness" "night" ] "brightness-night")
   ];
 
   options = {
-    enable = mkEnableOption programName;
+    enable = lib.mkEnableOption programName;
 
     dawnTime = mkOption {
       type = types.nullOr types.str;
@@ -104,13 +102,13 @@ in {
     package = mkOption {
       type = types.package;
       default = defaultPackage;
-      defaultText = literalExpression examplePackage;
+      defaultText = lib.literalExpression examplePackage;
       description = ''
         ${programName} derivation to use.
       '';
     };
 
-    enableVerboseLogging = mkEnableOption "verbose service logging";
+    enableVerboseLogging = lib.mkEnableOption "verbose service logging";
 
     tray = mkOption {
       type = types.bool;
@@ -124,7 +122,7 @@ in {
     settings = mkOption {
       type = types.submodule { freeformType = settingsFormat.type; };
       default = { };
-      example = literalExpression ''
+      example = lib.literalExpression ''
         {
           ${mainSection} = {
             adjustment-method = "randr";
@@ -144,8 +142,8 @@ in {
 
   config = {
     assertions = [
-      (hm.assertions.assertPlatform "services.${moduleName}" pkgs
-        platforms.linux)
+      (lib.hm.assertions.assertPlatform "services.${moduleName}" pkgs
+        lib.platforms.linux)
 
       {
         assertion = (cfg.settings ? ${mainSection}.dawn-time || cfg.settings
@@ -200,7 +198,8 @@ in {
         ExecStart = let
           command = if cfg.tray then appletExecutable else mainExecutable;
           configFullPath = config.xdg.configHome + "/${xdgConfigFilePath}";
-        in "${cfg.package}/bin/${command} " + cli.toGNUCommandLineShell { } {
+        in "${cfg.package}/bin/${command} "
+        + lib.cli.toGNUCommandLineShell { } {
           v = cfg.enableVerboseLogging;
           c = configFullPath;
         };

@@ -1,11 +1,7 @@
-{ config, lib, pkgs, ... }:
-
-with lib;
-
-{
+{ config, lib, pkgs, ... }: {
   options = {
     services.blueman-applet = {
-      enable = mkEnableOption "" // {
+      enable = lib.mkEnableOption "" // {
         description = ''
           Whether to enable the Blueman applet.
 
@@ -20,10 +16,10 @@ with lib;
     };
   };
 
-  config = mkIf config.services.blueman-applet.enable {
+  config = lib.mkIf config.services.blueman-applet.enable {
     assertions = [
-      (hm.assertions.assertPlatform "services.blueman-applet" pkgs
-        platforms.linux)
+      (lib.hm.assertions.assertPlatform "services.blueman-applet" pkgs
+        lib.platforms.linux)
     ];
 
     systemd.user.services.blueman-applet = {

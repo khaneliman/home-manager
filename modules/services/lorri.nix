@@ -1,31 +1,28 @@
 { config, lib, pkgs, ... }:
-
-with lib;
-
 let
 
   cfg = config.services.lorri;
 
 in {
-  meta.maintainers = [ maintainers.gerschtli maintainers.nyarly ];
+  meta.maintainers = [ lib.maintainers.gerschtli lib.maintainers.nyarly ];
 
   options.services.lorri = {
-    enable = mkEnableOption "lorri build daemon";
+    enable = lib.mkEnableOption "lorri build daemon";
 
-    enableNotifications = mkEnableOption "lorri build notifications";
+    enableNotifications = lib.mkEnableOption "lorri build notifications";
 
     package = lib.mkPackageOption pkgs "lorri" { };
 
-    nixPackage = mkOption {
-      type = types.package;
+    nixPackage = lib.mkOption {
+      type = lib.types.package;
       default = pkgs.nix;
-      defaultText = literalExpression "pkgs.nix";
-      example = literalExpression "pkgs.nixVersions.unstable";
+      defaultText = lib.literalExpression "pkgs.nix";
+      example = lib.literalExpression "pkgs.nixVersions.unstable";
       description = "Which nix package to use.";
     };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     assertions = [
       (lib.hm.assertions.assertPlatform "services.lorri" pkgs
         lib.platforms.linux)
@@ -75,7 +72,7 @@ in {
         Install = { WantedBy = [ "sockets.target" ]; };
       };
 
-      services.lorri-notify = mkIf cfg.enableNotifications {
+      services.lorri-notify = lib.mkIf cfg.enableNotifications {
         Unit = {
           Description = "lorri build notifications";
           After = "lorri.service";
@@ -100,7 +97,7 @@ in {
           in toString notifyScript;
           Restart = "on-failure";
           Environment = let
-            path = makeSearchPath "bin"
+            path = lib.makeSearchPath "bin"
               (with pkgs; [ bash jq findutils libnotify cfg.package ]);
           in "PATH=${path}";
         };

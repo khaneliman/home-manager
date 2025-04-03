@@ -1,18 +1,15 @@
 { config, lib, pkgs, ... }:
-
-with lib;
-
 let
 
   cfg = config.services.mpris-proxy;
 
 in {
-  meta.maintainers = [ maintainers.thibautmarty ];
+  meta.maintainers = [ lib.maintainers.thibautmarty ];
 
-  options.services.mpris-proxy.enable = mkEnableOption
+  options.services.mpris-proxy.enable = lib.mkEnableOption
     "a proxy forwarding Bluetooth MIDI controls via MPRIS2 to control media players";
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     assertions = [
       (lib.hm.assertions.assertPlatform "services.mpris-proxy" pkgs
         lib.platforms.linux)

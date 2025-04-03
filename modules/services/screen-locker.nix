@@ -1,13 +1,13 @@
 { config, lib, pkgs, ... }:
 
-with lib;
-
 let
+  inherit (lib) mkIf mkRenamedOptionModule mkOption types;
 
   cfg = config.services.screen-locker;
 
 in {
-  meta.maintainers = [ hm.maintainers.jrobsonchase hm.maintainers.rszamszur ];
+  meta.maintainers =
+    [ lib.hm.maintainers.jrobsonchase lib.hm.maintainers.rszamszur ];
 
   imports = let
     origOpt = name: [ "services" "screen-locker" name ];
@@ -23,7 +23,7 @@ in {
   ];
 
   options.services.screen-locker = {
-    enable = mkEnableOption "screen locker for X session";
+    enable = lib.mkEnableOption "screen locker for X session";
 
     lockCmd = mkOption {
       type = types.str;
@@ -115,7 +115,7 @@ in {
     };
   };
 
-  config = mkIf cfg.enable (mkMerge [
+  config = mkIf cfg.enable (lib.mkMerge [
     {
       assertions = [
         (lib.hm.assertions.assertPlatform "services.screen-locker" pkgs
@@ -132,7 +132,7 @@ in {
         Install = { WantedBy = [ "graphical-session.target" ]; };
 
         Service = {
-          ExecStart = concatStringsSep " "
+          ExecStart = lib.concatStringsSep " "
             ([ "${cfg.xss-lock.package}/bin/xss-lock" "-s \${XDG_SESSION_ID}" ]
               ++ cfg.xss-lock.extraOptions ++ [ "-- ${cfg.lockCmd}" ]);
           Environment = cfg.lockCmdEnv;
@@ -157,11 +157,11 @@ in {
         Install = { WantedBy = [ "graphical-session.target" ]; };
 
         Service = {
-          ExecStart = concatStringsSep " " ([
+          ExecStart = lib.concatStringsSep " " ([
             "${cfg.xautolock.package}/bin/xautolock"
             "-time ${toString cfg.inactiveInterval}"
             "-locker '${pkgs.systemd}/bin/loginctl lock-session \${XDG_SESSION_ID}'"
-          ] ++ optional cfg.xautolock.detectSleep "-detectsleep"
+          ] ++ lib.optional cfg.xautolock.detectSleep "-detectsleep"
             ++ cfg.xautolock.extraOptions);
           Restart = "always";
         };

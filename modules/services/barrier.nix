@@ -1,13 +1,14 @@
 { config, lib, pkgs, ... }:
+let
+  inherit (lib) mkEnableOption mkOption types;
 
-with lib;
-let cfg = config.services.barrier;
+  cfg = config.services.barrier;
 in {
 
-  meta.maintainers = with maintainers; [ kritnich ];
+  meta.maintainers = with lib.maintainers; [ kritnich ];
 
   imports = [
-    (mkRemovedOptionModule [ "services" "barrier" "client" "tray" ] ''
+    (lib.mkRemovedOptionModule [ "services" "barrier" "client" "tray" ] ''
       The tray option is non-functional and has been removed.
     '')
   ];
@@ -44,7 +45,7 @@ in {
       extraFlags = mkOption {
         type = types.listOf types.str;
         default = [ "-f" ];
-        defaultText = literalExpression ''[ "-f" ]'';
+        defaultText = lib.literalExpression ''[ "-f" ]'';
         description = ''
           Additional flags to pass to {command}`barrierc`.
           See {command}`barrierc --help`.
@@ -54,7 +55,7 @@ in {
     };
   };
 
-  config = mkIf cfg.client.enable {
+  config = lib.mkIf cfg.client.enable {
     assertions = [
       (lib.hm.assertions.assertPlatform "services.barrier" pkgs
         lib.platforms.linux)
@@ -75,5 +76,4 @@ in {
           ++ [ server ]);
     };
   };
-
 }

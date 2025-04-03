@@ -1,18 +1,16 @@
 { config, lib, pkgs, ... }:
-
-with lib;
 let cfg = config.services.devilspie2;
 in {
-  meta.maintainers = [ maintainers.dawidsowa ];
+  meta.maintainers = [ lib.maintainers.dawidsowa ];
 
   options = {
     services.devilspie2 = {
-      enable = mkEnableOption ''
+      enable = lib.mkEnableOption ''
         Devilspie2, a window matching utility, allowing the user to
         perform scripted actions on windows as they are created'';
 
-      config = mkOption {
-        type = types.lines;
+      config = lib.mkOption {
+        type = lib.types.lines;
         default = "";
         description = ''
           Content of file placed in the devilspie2 config directory.
@@ -26,7 +24,7 @@ in {
     };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     assertions = [
       (lib.hm.assertions.assertPlatform "services.devilspie2" pkgs
         lib.platforms.linux)

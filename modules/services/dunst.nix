@@ -1,20 +1,18 @@
 { config, lib, pkgs, ... }:
-
-with lib;
-
 let
+  inherit (lib) literalExpression mkOption optional types;
 
   cfg = config.services.dunst;
 
   eitherStrBoolIntList = with types;
     either str (either bool (either int (listOf str)));
 
-  toDunstIni = generators.toINI {
+  toDunstIni = lib.generators.toINI {
     mkKeyValue = key: value:
       let
-        value' = if isBool value then
+        value' = if lib.isBool value then
           (lib.hm.booleans.yesNo value)
-        else if isString value then
+        else if lib.isString value then
           ''"${value}"''
         else
           toString value;
@@ -51,11 +49,11 @@ let
   };
 
 in {
-  meta.maintainers = [ maintainers.rycee ];
+  meta.maintainers = [ lib.maintainers.rycee ];
 
   options = {
     services.dunst = {
-      enable = mkEnableOption "the dunst notification daemon";
+      enable = lib.mkEnableOption "the dunst notification daemon";
 
       package = mkOption {
         type = types.package;
@@ -127,10 +125,11 @@ in {
     };
   };
 
-  config = mkIf cfg.enable (mkMerge [
+  config = lib.mkIf cfg.enable (lib.mkMerge [
     {
       assertions = [
-        (hm.assertions.assertPlatform "services.dunst" pkgs platforms.linux)
+        (lib.hm.assertions.assertPlatform "services.dunst" pkgs
+          lib.platforms.linux)
       ];
 
       home.packages = [ cfg.package ];
@@ -171,7 +170,7 @@ in {
 
         mkPath = { basePath, theme, category, }:
           "${basePath}/share/icons/${theme.name}/${theme.size}/${category}";
-      in concatMapStringsSep ":" mkPath (cartesianProduct {
+      in lib.concatMapStringsSep ":" mkPath (lib.cartesianProduct {
         basePath = basePaths;
         theme = themes;
         category = categories;
@@ -187,16 +186,19 @@ in {
         Service = {
           Type = "dbus";
           BusName = "org.freedesktop.Notifications";
-          ExecStart = escapeShellArgs ([ "${cfg.package}/bin/dunst" ] ++
+          ExecStart = lib.escapeShellArgs ([ "${cfg.package}/bin/dunst" ] ++
             # Using `-config` breaks dunst's drop-ins, so only use it when an alternative path is set
-            optionals (cfg.configFile != null) [ "-config" cfg.configFile ]);
-          Environment = optionalString (cfg.waylandDisplay != "")
+            lib.optionals (cfg.configFile != null) [
+              "-config"
+              cfg.configFile
+            ]);
+          Environment = lib.optionalString (cfg.waylandDisplay != "")
             "WAYLAND_DISPLAY=${cfg.waylandDisplay}";
         };
       };
     }
 
-    (mkIf (cfg.settings != { }) {
+    (lib.mkIf (cfg.settings != { }) {
       xdg.configFile."dunst/dunstrc" = {
         text = toDunstIni cfg.settings;
         onChange = ''

@@ -1,8 +1,6 @@
 { config, lib, pkgs, ... }:
-
-with lib;
-
 let
+  inherit (lib) mkOption optional types;
 
   cfg = config.services.cbatticon;
 
@@ -13,7 +11,7 @@ let
     (let cmd = pkgs.writeShellScript commandName commandArg;
     in "--${commandName} ${cmd}");
 
-  commandLine = concatStringsSep " " ([ "${package}/bin/cbatticon" ]
+  commandLine = lib.concatStringsSep " " ([ "${package}/bin/cbatticon" ]
     ++ makeCommand "command-critical-level" cfg.commandCriticalLevel
     ++ makeCommand "command-left-click" cfg.commandLeftClick
     ++ optional (cfg.iconType != null) "--icon-type ${cfg.iconType}"
@@ -27,11 +25,11 @@ let
     "--hide-notification" ++ optional (cfg.batteryId != null) cfg.batteryId);
 
 in {
-  meta.maintainers = [ maintainers.pmiddend ];
+  meta.maintainers = [ lib.maintainers.pmiddend ];
 
   options = {
     services.cbatticon = {
-      enable = mkEnableOption "cbatticon";
+      enable = lib.mkEnableOption "cbatticon";
 
       commandCriticalLevel = mkOption {
         type = types.nullOr types.lines;
@@ -106,7 +104,7 @@ in {
     };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     assertions = [
       (lib.hm.assertions.assertPlatform "services.cbatticon" pkgs
         lib.platforms.linux)

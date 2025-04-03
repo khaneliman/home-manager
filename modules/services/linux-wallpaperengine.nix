@@ -1,19 +1,17 @@
 { config, lib, pkgs, ... }:
-
-with lib;
-
 let
+  inherit (lib) mkOption types;
 
   cfg = config.services.linux-wallpaperengine;
 
 in {
-  meta.maintainers = [ hm.maintainers.ckgxrg ];
+  meta.maintainers = [ lib.hm.maintainers.ckgxrg ];
 
   options.services.linux-wallpaperengine = {
-    enable = mkEnableOption
+    enable = lib.mkEnableOption
       "linux-wallpaperengine, an implementation of Wallpaper Engine functionality";
 
-    package = mkPackageOption pkgs "linux-wallpaperengine" { };
+    package = lib.mkPackageOption pkgs "linux-wallpaperengine" { };
 
     assetsPath = mkOption {
       type = types.path;
@@ -85,7 +83,7 @@ in {
     };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     assertions = [
       (lib.hm.assertions.assertPlatform "services.linux-wallpaperengine" pkgs
         lib.platforms.linux)
@@ -94,8 +92,8 @@ in {
     home.packages = [ cfg.package ];
 
     systemd.user.services."linux-wallpaperengine" = let
-      args = lists.forEach cfg.wallpapers (each:
-        concatStringsSep " " (cli.toGNUCommandLine { } {
+      args = lib.lists.forEach cfg.wallpapers (each:
+        lib.concatStringsSep " " (lib.cli.toGNUCommandLine { } {
           screen-root = each.monitor;
           inherit (each) scaling fps;
           silent = each.audio.silent;
@@ -111,8 +109,9 @@ in {
         PartOf = [ "graphical-session.target" ];
       };
       Service = {
-        ExecStart = getExe cfg.package + " --assets-dir ${cfg.assetsPath} "
-          + "--clamping ${cfg.clamping} " + (strings.concatStringsSep " " args);
+        ExecStart = lib.getExe cfg.package + " --assets-dir ${cfg.assetsPath} "
+          + "--clamping ${cfg.clamping} "
+          + (lib.strings.concatStringsSep " " args);
         Restart = "on-failure";
       };
       Install = { WantedBy = [ "graphical-session.target" ]; };

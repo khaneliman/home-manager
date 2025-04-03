@@ -1,13 +1,11 @@
 { config, lib, pkgs, ... }:
-
-with lib;
-
 let
+  inherit (lib) mkOption types;
 
   cfg = config.services.gromit-mpx;
 
   # Select the appropriate hot key:
-  hotkey = if isInt cfg.hotKey then
+  hotkey = if lib.isInt cfg.hotKey then
     "--keycode ${toString cfg.hotKey}"
   else if cfg.hotKey != null then
     "--key ${cfg.hotKey}"
@@ -15,7 +13,7 @@ let
     "--key none";
 
   # Select the appropriate undo key:
-  undokey = if isInt cfg.undoKey then
+  undokey = if lib.isInt cfg.undoKey then
     "--undo-keycode ${toString cfg.undoKey}"
   else if cfg.undoKey != null then
     "--undo-key ${cfg.undoKey}"
@@ -23,13 +21,13 @@ let
     "--undo-key none";
 
   # The command line to send to gromit-mpx:
-  commandArgs = concatStringsSep " " [ hotkey undokey ];
+  commandArgs = lib.concatStringsSep " " [ hotkey undokey ];
 
   # Gromit reads and writes from this file to store it's run time
   # state.  That will break our config so we set it manually which,
   # thanks to the read-only Nix store, prevents Gromit from writing to
   # it.
-  keyFile = generators.toINI { } {
+  keyFile = lib.generators.toINI { } {
     General.ShowIntroOnStartup = false;
     Drawing.Opacity = cfg.opacity;
   };
@@ -39,21 +37,21 @@ let
 
   # Create a string of tool attributes:
   toolAttrs = tool:
-    concatStringsSep " " ([ "size=${toString tool.size}" ]
-      ++ optional (tool.type != "eraser") ''color="${tool.color}"''
-      ++ optional (tool.arrowSize != null)
+    lib.concatStringsSep " " ([ "size=${toString tool.size}" ]
+      ++ lib.optional (tool.type != "eraser") ''color="${tool.color}"''
+      ++ lib.optional (tool.arrowSize != null)
       "arrowsize=${toString tool.arrowSize}");
 
   # Optional tool modifier string:
   toolMod = tool:
     if tool.modifiers != [ ] then
-      "[" + concatStringsSep ", " tool.modifiers + "]"
+      "[" + lib.concatStringsSep ", " tool.modifiers + "]"
     else
       "";
 
   # A single tool configuration:
   toolToCfg = n: tool: ''
-    "tool-${toString n}" = ${toUpper tool.type} (${toolAttrs tool});
+    "tool-${toString n}" = ${lib.toUpper tool.type} (${toolAttrs tool});
     "${tool.device}"${toolMod tool} = "tool-${toString n}";
   '';
 
@@ -112,10 +110,10 @@ let
   };
 
 in {
-  meta.maintainers = [ maintainers.pjones ];
+  meta.maintainers = [ lib.maintainers.pjones ];
 
   options.services.gromit-mpx = {
-    enable = mkEnableOption "Gromit-MPX annotation tool";
+    enable = lib.mkEnableOption "Gromit-MPX annotation tool";
 
     package = mkOption {
       type = types.package;
@@ -200,7 +198,7 @@ in {
     };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     assertions = [
       (lib.hm.assertions.assertPlatform "services.gromit-mpx" pkgs
         lib.platforms.linux)
@@ -208,7 +206,7 @@ in {
 
     xdg.configFile."gromit-mpx.ini".text = keyFile;
     xdg.configFile."gromit-mpx.cfg".text =
-      concatStringsSep "\n" (imap1 toolToCfg cfg.tools);
+      lib.concatStringsSep "\n" (lib.imap1 toolToCfg cfg.tools);
 
     home.packages = [ cfg.package ];
 

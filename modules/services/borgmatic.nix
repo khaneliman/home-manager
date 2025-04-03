@@ -1,19 +1,16 @@
 { config, lib, pkgs, ... }:
-
-with lib;
-
 let
   serviceConfig = config.services.borgmatic;
   programConfig = config.programs.borgmatic;
 in {
-  meta.maintainers = [ maintainers.DamienCassou ];
+  meta.maintainers = [ lib.maintainers.DamienCassou ];
 
   options = {
     services.borgmatic = {
-      enable = mkEnableOption "Borgmatic service";
+      enable = lib.mkEnableOption "Borgmatic service";
 
-      frequency = mkOption {
-        type = types.str;
+      frequency = lib.mkOption {
+        type = lib.types.str;
         default = "hourly";
         description = ''
           How often to run borgmatic when
@@ -27,7 +24,7 @@ in {
     };
   };
 
-  config = mkIf serviceConfig.enable {
+  config = lib.mkIf serviceConfig.enable {
     assertions = [
       (lib.hm.assertions.assertPlatform "services.borgmatic" pkgs
         lib.platforms.linux)

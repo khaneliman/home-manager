@@ -1,7 +1,4 @@
 { config, lib, pkgs, ... }:
-
-with lib;
-
 let
 
   cfg = config.services.dropbox;
@@ -10,24 +7,24 @@ let
   homeBaseDir = "${config.home.homeDirectory}/${baseDir}";
 
 in {
-  meta.maintainers = [ maintainers.eyjhb ];
+  meta.maintainers = [ lib.maintainers.eyjhb ];
 
   options = {
     services.dropbox = {
-      enable = mkEnableOption "Dropbox daemon";
+      enable = lib.mkEnableOption "Dropbox daemon";
 
-      path = mkOption {
-        type = types.path;
+      path = lib.mkOption {
+        type = lib.types.path;
         default = "${config.home.homeDirectory}/Dropbox";
         defaultText =
-          literalExpression ''"''${config.home.homeDirectory}/Dropbox"'';
+          lib.literalExpression ''"''${config.home.homeDirectory}/Dropbox"'';
         apply = toString; # Prevent copies to Nix store.
         description = "Where to put the Dropbox directory.";
       };
     };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     assertions = [
       (lib.hm.assertions.assertPlatform "services.dropbox" pkgs
         lib.platforms.linux)
@@ -64,9 +61,9 @@ in {
               ${homeBaseDir}/.dropbox ${config.home.homeDirectory}/.dropbox
           fi
 
-          if [[ ! -d ${escapeShellArg cfg.path} ]]; then
+          if [[ ! -d ${lib.escapeShellArg cfg.path} ]]; then
             run ${pkgs.coreutils}/bin/ln $VERBOSE_ARG -s \
-              ${homeBaseDir}/Dropbox ${escapeShellArg cfg.path}
+              ${homeBaseDir}/Dropbox ${lib.escapeShellArg cfg.path}
           fi
 
           # get the dropbox bins if needed

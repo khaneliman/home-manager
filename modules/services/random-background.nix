@@ -1,8 +1,7 @@
 { config, lib, pkgs, ... }:
 
-with lib;
-
 let
+  inherit (lib) mkOption types;
 
   cfg = config.services.random-background;
 
@@ -11,11 +10,11 @@ let
       ++ lib.optional (!cfg.enableXinerama) "--no-xinerama");
 
 in {
-  meta.maintainers = [ maintainers.rycee ];
+  meta.maintainers = [ lib.maintainers.rycee ];
 
   options = {
     services.random-background = {
-      enable = mkEnableOption "" // {
+      enable = lib.mkEnableOption "" // {
         description = ''
           Whether to enable random desktop background.
 
@@ -66,11 +65,11 @@ in {
     };
   };
 
-  config = mkIf cfg.enable (mkMerge ([
+  config = lib.mkIf cfg.enable (lib.mkMerge [
     {
       assertions = [
-        (hm.assertions.assertPlatform "services.random-background" pkgs
-          platforms.linux)
+        (lib.hm.assertions.assertPlatform "services.random-background" pkgs
+          lib.platforms.linux)
       ];
 
       systemd.user.services.random-background = {
@@ -89,7 +88,7 @@ in {
         Install = { WantedBy = [ "graphical-session.target" ]; };
       };
     }
-    (mkIf (cfg.interval != null) {
+    (lib.mkIf (cfg.interval != null) {
       systemd.user.timers.random-background = {
         Unit = { Description = "Set random desktop background using feh"; };
 
@@ -98,5 +97,5 @@ in {
         Install = { WantedBy = [ "timers.target" ]; };
       };
     })
-  ]));
+  ]);
 }

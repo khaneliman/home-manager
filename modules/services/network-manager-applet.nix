@@ -1,21 +1,18 @@
 { config, lib, pkgs, ... }:
-
-with lib;
-
 let
 
   cfg = config.services.network-manager-applet;
 
 in {
-  meta.maintainers = [ maintainers.rycee maintainers.midirhee12 ];
+  meta.maintainers = [ lib.maintainers.rycee lib.maintainers.midirhee12 ];
 
   options = {
     services.network-manager-applet = {
-      enable = mkEnableOption "the Network Manager applet (nm-applet)";
+      enable = lib.mkEnableOption "the Network Manager applet (nm-applet)";
     };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     assertions = [
       (lib.hm.assertions.assertPlatform "services.network-manager-applet" pkgs
         lib.platforms.linux)
@@ -36,7 +33,8 @@ in {
 
       Service = {
         ExecStart = toString ([ "${pkgs.networkmanagerapplet}/bin/nm-applet" ]
-          ++ optional config.xsession.preferStatusNotifierItems "--indicator");
+          ++ lib.optional config.xsession.preferStatusNotifierItems
+          "--indicator");
       };
     };
   };

@@ -1,8 +1,6 @@
 { config, lib, pkgs, ... }:
-
-with lib;
-
 let
+  inherit (lib) mkOption mkIf types;
 
   cfg = config.services.grobi;
 
@@ -10,11 +8,11 @@ let
     either str (either bool (either int (listOf str)));
 
 in {
-  meta.maintainers = [ maintainers.mbrgm ];
+  meta.maintainers = [ lib.maintainers.mbrgm ];
 
   options = {
     services.grobi = {
-      enable = mkEnableOption "the grobi display setup daemon";
+      enable = lib.mkEnableOption "the grobi display setup daemon";
 
       executeAfter = mkOption {
         type = with types; listOf str;
@@ -31,7 +29,7 @@ in {
       rules = mkOption {
         type = with types; listOf (attrsOf eitherStrBoolIntList);
         default = [ ];
-        example = literalExpression ''
+        example = lib.literalExpression ''
           [
             {
               name = "Home";

@@ -1,11 +1,10 @@
 { config, lib, pkgs, ... }:
-
-with lib;
-
 # Documentation was partially copied from the muchsync manual.
 # See http://www.muchsync.org/muchsync.html
 
 let
+  inherit (lib) escapeShellArg mkOption optional types;
+
   cfg = config.services.muchsync;
   syncOptions = {
     options = {
@@ -126,13 +125,13 @@ let
   };
 
 in {
-  meta.maintainers = with maintainers; [ euxane ];
+  meta.maintainers = with lib.maintainers; [ euxane ];
 
   options.services.muchsync = {
     remotes = mkOption {
       type = with types; attrsOf (submodule syncOptions);
       default = { };
-      example = literalExpression ''
+      example = lib.literalExpression ''
         {
           server = {
             frequency = "*:0/10";
@@ -148,13 +147,14 @@ in {
 
   config = let
     mapRemotes = gen:
-      with attrsets;
+      with lib.attrsets;
       mapAttrs'
       (name: remoteCfg: nameValuePair "muchsync-${name}" (gen name remoteCfg))
       cfg.remotes;
-  in mkIf (cfg.remotes != { }) {
+  in lib.mkIf (cfg.remotes != { }) {
     assertions = [
-      (hm.assertions.assertPlatform "services.muchsync" pkgs platforms.linux)
+      (lib.hm.assertions.assertPlatform "services.muchsync" pkgs
+        lib.platforms.linux)
 
       {
         assertion = config.programs.notmuch.enable;
@@ -174,20 +174,21 @@ in {
           ''"NOTMUCH_CONFIG=${config.home.sessionVariables.NOTMUCH_CONFIG}"''
           ''"NMBGIT=${config.home.sessionVariables.NMBGIT}"''
         ];
-        ExecStart = concatStringsSep " " ([ "${pkgs.muchsync}/bin/muchsync" ]
-          ++ [ "-s ${escapeShellArg remoteCfg.sshCommand}" ]
-          ++ optional (!remoteCfg.upload) "--noup"
+        ExecStart = lib.concatStringsSep " "
+          ([ "${pkgs.muchsync}/bin/muchsync" ]
+            ++ [ "-s ${escapeShellArg remoteCfg.sshCommand}" ]
+            ++ optional (!remoteCfg.upload) "--noup"
 
-          # local configuration
-          ++ optional remoteCfg.local.checkForModifiedFiles "-F"
-          ++ optional (!remoteCfg.local.importNew) "--nonew"
+            # local configuration
+            ++ optional remoteCfg.local.checkForModifiedFiles "-F"
+            ++ optional (!remoteCfg.local.importNew) "--nonew"
 
-          # remote configuration
-          ++ [ (escapeShellArg remoteCfg.remote.host) ]
-          ++ optional (remoteCfg.remote.muchsyncPath != "")
-          "-r ${escapeShellArg remoteCfg.remote.muchsyncPath}"
-          ++ optional remoteCfg.remote.checkForModifiedFiles "-F"
-          ++ optional (!remoteCfg.remote.importNew) "--nonew");
+            # remote configuration
+            ++ [ (escapeShellArg remoteCfg.remote.host) ]
+            ++ optional (remoteCfg.remote.muchsyncPath != "")
+            "-r ${escapeShellArg remoteCfg.remote.muchsyncPath}"
+            ++ optional remoteCfg.remote.checkForModifiedFiles "-F"
+            ++ optional (!remoteCfg.remote.importNew) "--nonew");
       };
     });
 

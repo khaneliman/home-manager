@@ -1,6 +1,7 @@
 { config, lib, pkgs, ... }:
-with lib;
 let
+  inherit (lib) mkOption types;
+
   cfg = config.services.podman;
 
   podman-lib = import ./podman-lib.nix { inherit pkgs lib config; };
@@ -19,7 +20,7 @@ let
           TLSVerify = buildDef.tlsVerify;
         };
         Install = {
-          WantedBy = optionals buildDef.autoStart [
+          WantedBy = lib.optionals buildDef.autoStart [
             "default.target"
             "multi-user.target"
           ];
@@ -78,7 +79,7 @@ in let
       environment = mkOption {
         type = podman-lib.primitiveAttrs;
         default = { };
-        example = literalExpression ''
+        example = lib.literalExpression ''
           {
             VAR1 = "0:100";
             VAR2 = true;
@@ -91,7 +92,7 @@ in let
       extraConfig = mkOption {
         type = podman-lib.extraConfigType;
         default = { };
-        example = literalExpression ''
+        example = lib.literalExpression ''
           {
             Build = {
               Arch = "aarch64";
@@ -113,7 +114,7 @@ in let
 
       file = mkOption {
         type = types.str;
-        example = literalExpression ''
+        example = lib.literalExpression ''
           `"xdg.configFile."containerfiles/my-img/Containerfile"`
           or
           `"https://github.com/.../my-img/Containerfile"`
@@ -162,10 +163,10 @@ in {
     description = "Defines Podman build quadlet configurations.";
   };
 
-  config = let buildQuadlets = mapAttrsToList toQuadletInternal cfg.builds;
-  in mkIf cfg.enable {
+  config = let buildQuadlets = lib.mapAttrsToList toQuadletInternal cfg.builds;
+  in lib.mkIf cfg.enable {
     services.podman.internal.quadletDefinitions = buildQuadlets;
-    assertions = flatten (map (build: build.assertions) buildQuadlets);
+    assertions = lib.flatten (map (build: build.assertions) buildQuadlets);
 
     xdg.configFile."podman/images.manifest".text =
       podman-lib.generateManifestText buildQuadlets;

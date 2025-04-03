@@ -1,27 +1,25 @@
 { config, lib, pkgs, ... }:
-
-with lib;
-
 let
+  inherit (lib) mkOption types;
 
   cfg = config.services.mako;
 
 in {
-  meta.maintainers = [ maintainers.onny ];
+  meta.maintainers = [ lib.maintainers.onny ];
 
   imports =
-    [ (mkRenamedOptionModule [ "programs" "mako" ] [ "services" "mako" ]) ];
+    [ (lib.mkRenamedOptionModule [ "programs" "mako" ] [ "services" "mako" ]) ];
 
   options = {
     services.mako = {
-      enable = mkEnableOption ''
+      enable = lib.mkEnableOption ''
         Mako, lightweight notification daemon for Wayland
       '';
 
       package = mkOption {
         type = types.package;
         default = pkgs.mako;
-        defaultText = literalExpression "pkgs.mako";
+        defaultText = lib.literalExpression "pkgs.mako";
         description = "The mako package to use.";
       };
 
@@ -295,7 +293,7 @@ in {
       extraConfig = mkOption {
         default = "";
         type = types.lines;
-        example = literalExpression ''
+        example = lib.literalExpression ''
           [urgency=low]
           border-color=#b8bb26
         '';
@@ -312,9 +310,11 @@ in {
       lib.optionalString (val != null) "${name}=${toString val}";
     optionalString = name: val:
       lib.optionalString (val != null) "${name}=${val}";
-  in mkIf cfg.enable {
-    assertions =
-      [ (hm.assertions.assertPlatform "services.mako" pkgs platforms.linux) ];
+  in lib.mkIf cfg.enable {
+    assertions = [
+      (lib.hm.assertions.assertPlatform "services.mako" pkgs
+        lib.platforms.linux)
+    ];
 
     home.packages = [ cfg.package ];
 
