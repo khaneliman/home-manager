@@ -5,8 +5,6 @@
   ...
 }:
 
-with lib;
-
 let
 
   mergeSets = sets: lists.fold attrsets.recursiveUpdate { } sets;
