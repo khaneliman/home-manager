@@ -1,7 +1,5 @@
 { config, lib, pkgs, stdenv, ... }:
 
-with lib;
-
 let
 
   cfg = config.services.twmn;

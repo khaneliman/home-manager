@@ -1,7 +1,5 @@
 { config, lib, pkgs, ... }:
 
-with lib;
-
 {
   meta.maintainers = [ maintainers.rycee ];
 

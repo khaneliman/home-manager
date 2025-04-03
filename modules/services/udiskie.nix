@@ -1,7 +1,5 @@
 { config, lib, pkgs, ... }:
 
-with lib;
-
 let
 
   mergeSets = sets: lists.fold attrsets.recursiveUpdate { } sets;

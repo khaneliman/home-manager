@@ -1,7 +1,5 @@
 { config, lib, pkgs, ... }:
 
-with lib;
-
 let cfg = config.services.snixembed;
 in {
   meta.maintainers = [ maintainers.DamienCassou ];

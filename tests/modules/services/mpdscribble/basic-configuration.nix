@@ -1,7 +1,5 @@
 { config, lib, pkgs, ... }:
 
-with lib;
-
 {
   services.mpdscribble = {
     enable = true;
