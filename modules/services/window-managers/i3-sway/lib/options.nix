@@ -6,10 +6,9 @@
   pkgs,
   capitalModuleName ? moduleName,
 }:
-
-with lib;
-
 let
+  inherit (lib) literalExpression mkOption types;
+
   isI3 = moduleName == "i3";
   isSway = !isI3;
 
@@ -62,7 +61,7 @@ let
           description = "Whether to run command on each ${moduleName} restart.";
         };
       }
-      // optionalAttrs isI3 {
+      // lib.optionalAttrs isI3 {
         notification = mkOption {
           type = types.bool;
           default = true;
@@ -88,7 +87,7 @@ let
   barModule = types.submodule {
     options =
       let
-        versionAtLeast2009 = versionAtLeast stateVersion "20.09";
+        versionAtLeast2009 = lib.versionAtLeast stateVersion "20.09";
         mkNullableOption =
           { type, default, ... }@args:
           mkOption (
@@ -420,7 +419,8 @@ in
       options = {
         titlebar = mkOption {
           type = types.bool;
-          default = if versionOlder stateVersion "23.05" then (isI3 && (cfg.config.gaps == null)) else true;
+          default =
+            if lib.versionOlder stateVersion "23.05" then (isI3 && (cfg.config.gaps == null)) else true;
           defaultText =
             if isI3 then
               ''
@@ -488,7 +488,8 @@ in
       options = {
         titlebar = mkOption {
           type = types.bool;
-          default = if versionOlder stateVersion "23.05" then (isI3 && (cfg.config.gaps == null)) else true;
+          default =
+            if lib.versionOlder stateVersion "23.05" then (isI3 && (cfg.config.gaps == null)) else true;
           defaultText =
             if isI3 then
               ''
@@ -563,7 +564,7 @@ in
               types.bool;
           default = if isSway then "yes" else true;
           description = "Whether focus should follow the mouse.";
-          apply = val: if (isSway && isBool val) then (lib.hm.booleans.yesNo val) else val;
+          apply = val: if (isSway && lib.isBool val) then (lib.hm.booleans.yesNo val) else val;
         };
 
         wrapping = mkOption {
@@ -783,7 +784,7 @@ in
   bars = mkOption {
     type = types.listOf barModule;
     default =
-      if versionAtLeast stateVersion "20.09" then
+      if lib.versionAtLeast stateVersion "20.09" then
         [
           {
             mode = "dock";
