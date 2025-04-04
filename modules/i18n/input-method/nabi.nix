@@ -22,7 +22,7 @@ in
         Description = "Nabi input method editor";
         PartOf = [ "graphical-session.desktop" ];
       };
-      Service.ExecStart = "${pkgs.nabi}/bin/nabi";
+      Service.ExecStart = lib.getExe pkgs.nabi;
       Install.WantedBy = [ "graphical-session.target" ];
     };
   };

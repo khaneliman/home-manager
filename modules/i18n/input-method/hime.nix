@@ -22,7 +22,7 @@ in
         Description = "Hime input method editor";
         PartOf = [ "graphical-session.desktop" ];
       };
-      Service.ExecStart = "${pkgs.hime}/bin/hime";
+      Service.ExecStart = lib.getExe pkgs.hime;
       Install.WantedBy = [ "graphical-session.target" ];
     };
   };

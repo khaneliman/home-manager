@@ -66,7 +66,7 @@ in
       Service = {
         Type = "oneshot";
         RemainAfterExit = true;
-        ExecStart = "${pkgs.kime}/bin/kime";
+        ExecStart = lib.getExe pkgs.kime;
       };
       Install.WantedBy = [ "graphical-session.target" ];
     };

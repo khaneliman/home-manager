@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 {
   imports = [ ../../accounts/email-test-accounts.nix ];
@@ -13,7 +13,7 @@
         boxes = [ "Inbox" ];
         extraArgs = [ "--wait 1" ];
         onNotify = ''
-          ${pkgs.notmuch}/bin/notmuch new
+          ${lib.getExe pkgs.notmuch} new
         '';
       };
     };

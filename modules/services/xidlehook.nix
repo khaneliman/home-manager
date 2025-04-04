@@ -38,7 +38,7 @@ let
       lib.mapAttrsToList (name: value: "export ${name}=${value}") cfg.environment or { }
     )}
     ${lib.concatStringsSep " " (notEmpty [
-      "${cfg.package}/bin/xidlehook"
+      "${lib.getExe cfg.package}"
       (optionalString cfg.once "--once")
       (optionalString cfg.detect-sleep "--detect-sleep")
       (optionalString cfg.not-when-fullscreen "--not-when-fullscreen")

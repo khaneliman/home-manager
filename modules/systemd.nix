@@ -139,8 +139,9 @@ in
       };
 
       systemctlPath = mkOption {
-        default = "${pkgs.systemd}/bin/systemctl";
-        defaultText = literalExpression ''"''${pkgs.systemd}/bin/systemctl"'';
+        default = lib.getExe' pkgs.systemd "systemctl";
+        defaultText =
+          literalExpression ''"''${lib.getExe' pkgs.systemd "systemctl"}"'';
         type = types.str;
         description = ''
           Absolute path to the {command}`systemctl` tool. This

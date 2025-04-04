@@ -73,7 +73,9 @@ in
             if builtins.isAttrs value then
               lib.mapAttrsToList (group: value: toLine file (path ++ [ group ]) value) value
             else
-              "run ${pkgs.kdePackages.kconfig}/bin/kwriteconfig6 --file '${configHome}/${file}' ${
+              "run ${
+                lib.getExe' pkgs.kdePackages.kconfig "kwriteconfig6"
+              } --file '${configHome}/${file}' ${
                 lib.concatMapStringsSep " " (x: "--group ${lib.escapeShellArg x}") (lib.lists.init path)
               } --key ${lib.escapeShellArg (lib.lists.last path)} ${toValue value}";
           lines = lib.flatten (lib.mapAttrsToList (file: attrs: toLine file [ ] attrs) cfg);
@@ -82,11 +84,15 @@ in
       }
 
       # TODO: some way to only call the dbus calls needed
-      run ${pkgs.kdePackages.qttools}/bin/qdbus org.kde.KWin /KWin reconfigure || echo "KWin reconfigure failed"
+      run ${
+        lib.getExe' pkgs.kdePackages.qttools "qdbus"
+      } org.kde.KWin /KWin reconfigure || echo "KWin reconfigure failed"
       # the actual values are https://github.com/KDE/plasma-workspace/blob/c97dddf20df5702eb429b37a8c10b2c2d8199d4e/kcms/kcms-common_p.h#L13
       for changeType in {0..10}; do
         # even if one of those calls fails the others keep running
-        run ${pkgs.dbus}/bin/dbus-send /KGlobalSettings org.kde.KGlobalSettings.notifyChange int32:$changeType int32:0 || echo "KGlobalSettings.notifyChange $changeType failed"
+        run ${
+          lib.getExe' pkgs.dbus "dbus-send"
+        } /KGlobalSettings org.kde.KGlobalSettings.notifyChange int32:$changeType int32:0 || echo "KGlobalSettings.notifyChange $changeType failed"
       done
     '';
   };

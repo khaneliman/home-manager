@@ -133,7 +133,9 @@ in
           if [[ -v DBUS_SESSION_BUS_ADDRESS ]]; then
             export DCONF_DBUS_RUN_SESSION=""
           else
-            export DCONF_DBUS_RUN_SESSION="${pkgs.dbus}/bin/dbus-run-session --dbus-daemon=${pkgs.dbus}/bin/dbus-daemon"
+            export DCONF_DBUS_RUN_SESSION="${
+              lib.getExe' pkgs.dbus "dbus-run-session"
+            } --dbus-daemon=${lib.getExe' pkgs.dbus "dbus-daemon"}"
           fi
 
           if [[ -v oldGenPath ]]; then
@@ -142,7 +144,7 @@ in
               "$newGenPath/${statePath}"
           fi
 
-          run $DCONF_DBUS_RUN_SESSION ${pkgs.dconf}/bin/dconf load / < ${iniFile}
+          run $DCONF_DBUS_RUN_SESSION ${lib.getExe pkgs.dconf} load / < ${iniFile}
 
           unset DCONF_DBUS_RUN_SESSION
         ''

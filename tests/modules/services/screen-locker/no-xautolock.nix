@@ -1,10 +1,10 @@
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 
 {
   services.screen-locker = {
     enable = true;
     inactiveInterval = 5;
-    lockCmd = "${pkgs.i3lock}/bin/i3lock -n -c AA0000";
+    lockCmd = "${lib.getExe pkgs.i3lock} -n -c AA0000";
     xss-lock = {
       extraOptions = [ "-test" ];
       screensaverCycle = 5;
