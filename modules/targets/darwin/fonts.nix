@@ -22,7 +22,7 @@ in
       text = "${fontsEnv}";
       onChange = ''
         run mkdir -p ${lib.escapeShellArg installDir}
-        run ${pkgs.rsync}/bin/rsync $VERBOSE_ARG -acL --chmod=u+w --delete \
+        run ${lib.getExe pkgs.rsync} $VERBOSE_ARG -acL --chmod=u+w --delete \
           ${lib.escapeShellArgs [
             "${fonts}/"
             installDir

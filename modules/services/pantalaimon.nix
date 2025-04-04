@@ -62,7 +62,7 @@ in
         };
 
         Service = {
-          ExecStart = "${cfg.package}/bin/pantalaimon -c ${iniFmt.generate "pantalaimon.conf" cfg.settings}";
+          ExecStart = "${lib.getExe cfg.package} -c ${iniFmt.generate "pantalaimon.conf" cfg.settings}";
           Restart = "on-failure";
         };
 

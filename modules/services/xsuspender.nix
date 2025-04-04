@@ -195,7 +195,7 @@ in
       };
 
       Service = {
-        ExecStart = "${pkgs.xsuspender}/bin/xsuspender";
+        ExecStart = lib.getExe pkgs.xsuspender;
         Environment = lib.mkIf cfg.debug [ "G_MESSAGES_DEBUG=all" ];
       };
 

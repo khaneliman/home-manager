@@ -72,7 +72,7 @@ in
               let
                 systemctl = "XDG_RUNTIME_DIR=\${XDG_RUNTIME_DIR:-/run/user/$UID} systemctl";
 
-                sed = "${pkgs.gnused}/bin/sed";
+                sed = "${lib.getExe pkgs.gnused}";
 
                 exportedSystemdVariables = lib.concatStringsSep "|" [
                   "DBUS_SESSION_BUS_ADDRESS"

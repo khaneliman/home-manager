@@ -61,7 +61,7 @@ in
       };
 
       Service = {
-        ExecStart = "'${cfg.package}/bin/osmscout-server' --systemd --quiet";
+        ExecStart = "'${lib.getExe cfg.package}' --systemd --quiet";
       };
     };
 

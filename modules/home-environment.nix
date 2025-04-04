@@ -750,7 +750,7 @@ in
             if config.nix.enable && config.nix.package != null then
               ":${config.nix.package}/bin"
             else
-              ":$(${pkgs.coreutils}/bin/dirname $(${pkgs.coreutils}/bin/readlink -m $(type -p nix-env)))"
+              ":$(${lib.getExe' pkgs.coreutils "dirname"} $(${lib.getExe' pkgs.coreutils "readlink"} -m $(type -p nix-env)))"
           )
           + lib.optionalString (!cfg.emptyActivationPath) "\${PATH:+:}$PATH";
 

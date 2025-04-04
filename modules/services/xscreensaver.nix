@@ -55,7 +55,7 @@ in
       };
 
       Service = {
-        ExecStart = "${cfg.package}/bin/xscreensaver -no-splash";
+        ExecStart = "${lib.getExe cfg.package} -no-splash";
         Environment = [ "PATH=${lib.makeBinPath [ cfg.package ]}" ];
       };
 

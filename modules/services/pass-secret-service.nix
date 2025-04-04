@@ -51,7 +51,7 @@ in
 
     systemd.user.services.pass-secret-service =
       let
-        binPath = "${cfg.package}/bin/pass_secret_service";
+        binPath = lib.getExe cfg.package;
       in
       {
         Unit = {

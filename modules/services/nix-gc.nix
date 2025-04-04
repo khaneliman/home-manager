@@ -86,7 +86,7 @@ in
           Service = {
             Type = "oneshot";
             ExecStart = toString (
-              pkgs.writeShellScript "nix-gc" "exec ${nixPackage}/bin/nix-collect-garbage ${
+              pkgs.writeShellScript "nix-gc" "exec ${lib.getExe' nixPackage "nix-collect-garbage"} ${
                 lib.optionalString (cfg.options != null) cfg.options
               }"
             );
@@ -116,9 +116,10 @@ in
         launchd.agents.nix-gc = {
           enable = true;
           config = {
-            ProgramArguments = [
-              "${nixPackage}/bin/nix-collect-garbage"
-            ] ++ lib.optional (cfg.options != null) cfg.options;
+            ProgramArguments =
+              [
+                "${lib.getExe' nixPackage "nix-collect-garbage"}"
+              ] ++ lib.optional (cfg.options != null) cfg.options;
             StartCalendarInterval = lib.hm.darwin.mkCalendarInterval cfg.frequency;
           };
         };

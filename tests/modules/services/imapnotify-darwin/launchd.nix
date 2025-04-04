@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 {
   imports = [ ../../accounts/email-test-accounts.nix ];
@@ -12,7 +12,7 @@
         enable = true;
         boxes = [ "Inbox" ];
         onNotify = ''
-          ${pkgs.notmuch}/bin/notmuch new
+          ${lib.getExe pkgs.notmuch} new
         '';
       };
     };

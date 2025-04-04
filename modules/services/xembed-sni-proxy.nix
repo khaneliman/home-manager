@@ -41,7 +41,7 @@ in
 
       Service = {
         Environment = [ "PATH=${config.home.profileDirectory}/bin" ];
-        ExecStart = "${cfg.package}/bin/xembedsniproxy";
+        ExecStart = lib.getExe cfg.package;
         Restart = "on-abort";
       };
     };

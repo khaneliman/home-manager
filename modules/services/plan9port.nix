@@ -25,13 +25,13 @@ in
     systemd.user.services.fontsrv = lib.mkIf cfg.fontsrv.enable {
       Unit.Description = "the Plan 9 file system access to host fonts";
       Install.WantedBy = [ "default.target" ];
-      Service.ExecStart = "${pkgs.plan9port}/bin/9 fontsrv";
+      Service.ExecStart = "${lib.getExe' pkgs.plan9port "9"} fontsrv";
     };
 
     systemd.user.services.plumber = lib.mkIf cfg.plumber.enable {
       Unit.Description = "file system for interprocess messaging";
       Install.WantedBy = [ "default.target" ];
-      Service.ExecStart = "${pkgs.plan9port}/bin/9 plumber -f";
+      Service.ExecStart = "${lib.getExe' pkgs.plan9port "9"} plumber -f";
     };
 
   };

@@ -263,7 +263,7 @@ in
         PartOf = [ "graphical-session.target" ];
         After = [ "graphical-session.target" ];
       };
-      Service.ExecStart = "${fcitx5Package}/bin/fcitx5";
+      Service.ExecStart = lib.getExe fcitx5Package;
       Install.WantedBy = [ "graphical-session.target" ];
     };
   };

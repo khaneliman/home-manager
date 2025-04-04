@@ -60,7 +60,7 @@ in
               packages = self: [ self.xmonad-contrib self.taffybar ];
             };
           in
-            "''${xmonad}/bin/xmonad";
+            "''${lib.getExe xmonad}";
         '';
         default = ''test -n "$1" && eval "$@"'';
         description = ''
@@ -150,7 +150,7 @@ in
                   ++ [ "-option ''" ]
                   ++ map (v: "-option '${v}'") options;
               in
-              "${pkgs.xorg.setxkbmap}/bin/setxkbmap ${toString args}";
+              "${lib.getExe pkgs.xorg.setxkbmap} ${toString args}";
           };
         };
 
@@ -178,7 +178,7 @@ in
                   esac
                 '';
               in
-              "${pkgs.xplugd}/bin/xplugd ${script}";
+              "${lib.getExe pkgs.xplugd} ${script}";
           };
         };
       };

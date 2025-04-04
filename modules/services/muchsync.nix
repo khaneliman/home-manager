@@ -32,7 +32,7 @@ let
 
       sshCommand = mkOption {
         type = types.str;
-        default = "${pkgs.openssh}/bin/ssh -CTaxq";
+        default = "${lib.getExe pkgs.openssh} -CTaxq";
         defaultText = "ssh -CTaxq";
         description = ''
           Specifies a command line to pass to {command}`/bin/sh`
@@ -190,7 +190,7 @@ in
               ''"NMBGIT=${config.home.sessionVariables.NMBGIT}"''
             ];
             ExecStart = lib.concatStringsSep " " (
-              [ "${pkgs.muchsync}/bin/muchsync" ]
+              [ "${lib.getExe pkgs.muchsync}" ]
               ++ [ "-s ${escapeShellArg remoteCfg.sshCommand}" ]
               ++ optional (!remoteCfg.upload) "--noup"
 
