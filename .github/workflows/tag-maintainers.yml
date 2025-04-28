@@ -121,3 +121,4 @@ jobs:
           REVIEWERS_CSV=$(echo '${{ steps.find-maintainers.outputs.reviewers_json }}' | jq -r '. | join(",")')
           echo "Requesting reviews from maintainers: $REVIEWERS_CSV"
           gh pr edit ${{ github.event.pull_request.number }} --add-reviewer "$REVIEWERS_CSV"
+    if: github.repository_owner == 'nix-community'
