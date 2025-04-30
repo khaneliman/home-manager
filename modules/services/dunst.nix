@@ -68,10 +68,7 @@ in
     services.dunst = {
       enable = lib.mkEnableOption "the dunst notification daemon";
 
-      package = mkOption {
-        type = types.package;
-        default = pkgs.dunst;
-        defaultText = literalExpression "pkgs.dunst";
+      package = lib.mkPackageOption pkgs "dunst" {
         description = "Package providing {command}`dunst`.";
       };
 

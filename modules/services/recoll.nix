@@ -108,13 +108,7 @@ in
   options.services.recoll = {
     enable = lib.mkEnableOption "Recoll file index service";
 
-    package = mkOption {
-      type = types.package;
-      default = pkgs.recoll;
-      defaultText = literalExpression "pkgs.recoll";
-      description = ''
-        Package providing the {command}`recoll` binary.
-      '';
+    package = lib.mkPackageOption pkgs "recoll" {
       example = literalExpression "(pkgs.recoll.override { withGui = false; })";
     };
 
