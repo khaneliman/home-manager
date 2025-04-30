@@ -20,13 +20,8 @@ in
         '';
       };
 
-      package = mkOption {
-        type = types.package;
-        default = pkgs.mpd;
-        defaultText = "pkgs.mpd";
-        description = ''
-          The MPD package to run.
-        '';
+      package = lib.mkPackageOption pkgs "mpd" {
+        description = "The MPD package to run.";
       };
 
       musicDirectory = mkOption {
