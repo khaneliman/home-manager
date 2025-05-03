@@ -53,14 +53,13 @@ in
   options.services.emacs = {
     enable = lib.mkEnableOption "the Emacs daemon";
 
-    package = mkOption {
-      type = types.package;
+    package = lib.mkPackageOption pkgs "emacs" {
+      description = "The Emacs package to use.";
       default = if emacsCfg.enable then emacsCfg.finalPackage else pkgs.emacs;
       defaultText = lib.literalExpression ''
         if config.programs.emacs.enable then config.programs.emacs.finalPackage
         else pkgs.emacs
       '';
-      description = "The Emacs package to use.";
     };
 
     extraOptions = mkOption {

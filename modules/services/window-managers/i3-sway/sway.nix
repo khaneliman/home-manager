@@ -409,17 +409,16 @@ in
   options.wayland.windowManager.sway = {
     enable = lib.mkEnableOption "sway wayland compositor";
 
-    package = mkOption {
-      type = with types; nullOr package;
+    package = lib.mkPackageOption pkgs "sway" {
       default = pkgs.sway.override {
         extraSessionCommands = cfg.extraSessionCommands;
         extraOptions = cfg.extraOptions;
         withBaseWrapper = cfg.wrapperFeatures.base;
         withGtkWrapper = cfg.wrapperFeatures.gtk;
       };
-      defaultText = lib.literalExpression "${pkgs.sway}";
-      description = ''
-        Sway package to use. Will override the options
+      nullable = true;
+      extraDescription = ''
+        to use. Will override the options
         'wrapperFeatures', 'extraSessionCommands', and 'extraOptions'.
         Set to `null` to not add any Sway package to your
         path. This should be done if you want to use the NixOS Sway

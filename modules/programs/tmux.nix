@@ -19,8 +19,7 @@ let
 
   pluginModule = types.submodule {
     options = {
-      plugin = mkOption {
-        type = types.package;
+      plugin = lib.mkPackageOption pkgs "tmuxPlugins" {
         description = "Path of the configuration file to include.";
       };
 
