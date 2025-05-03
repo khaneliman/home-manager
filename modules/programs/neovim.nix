@@ -48,8 +48,7 @@ let
         description = "Don't load by default (load with :packadd)";
       };
 
-      plugin = mkOption {
-        type = types.package;
+      plugin = lib.mkPackageOption pkgs "vimPlugins" {
         description = "vim plugin";
       };
 
