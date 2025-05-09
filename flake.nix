@@ -57,6 +57,31 @@
           }
         );
 
+        devShells = forAllSystems (
+          system:
+          let
+            pkgs = nixpkgs.legacyPackages.${system};
+            createNewsScript = pkgs.writeShellScriptBin "create-news-entry" ''
+              ./modules/misc/news/create-news-entry.sh
+            '';
+          in
+          {
+            default = pkgs.mkShell {
+              buildInputs = with pkgs; [
+                bash
+                coreutils
+                createNewsScript
+              ];
+
+              shellHook = ''
+                echo "Home Manager development shell"
+                echo "Available commands:"
+                echo "  create-news-entry - Create a new news entry file"
+              '';
+            };
+          }
+        );
+
         packages = forAllSystems (
           system:
           let
