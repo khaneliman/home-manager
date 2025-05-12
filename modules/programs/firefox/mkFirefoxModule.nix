@@ -715,6 +715,32 @@ in
                                       this extension.
                                     '';
                                   };
+                                  name = mkOption {
+                                    type = types.str;
+                                    default = "";
+                                    example = "ublock-origin";
+                                    description = ''
+                                      The name of the extension package in the NUR repository.
+                                      This is used to look up the extension's permissions from 
+                                      the NUR repository. If not specified, the extension ID will be used.
+                                      
+                                      Example: For the extension ID "uBlock0@raymondhill.net", you would set
+                                      this to "ublock-origin" to match the NUR package name.
+                                    '';
+                                  };
+                                  permissions = mkOption {
+                                    type = types.listOf types.str;
+                                    default = [];
+                                    example = [ "activeTab" "storage" ];
+                                    description = ''
+                                      List of permissions that this extension is allowed to use.
+                                      If the extension requests permissions not in this list,
+                                      Home Manager will fail with an error message listing the
+                                      unaccepted permissions. This is useful to restrict extensions
+                                      to only use the permissions you want to grant them.
+                                      Leave empty to allow all permissions requested by the extension.
+                                    '';
+                                  };
                                 };
                               }
                             );
@@ -730,15 +756,40 @@ in
                   {
                     packages = with pkgs.nur.repos.rycee.firefox-addons; [
                       ublock-origin
+                      boring-rss
                     ];
-                    settings."uBlock0@raymondhill.net".settings = {
-                      selectedFilterLists = [
-                        "ublock-filters"
-                        "ublock-badware"
-                        "ublock-privacy"
-                        "ublock-unbreak"
-                        "ublock-quick-fixes"
-                      ];
+                    settings = {
+                      # Configure uBlock Origin settings
+                      "uBlock0@raymondhill.net" = {
+                        name = "ublock-origin";  # NUR package name for permission checking
+                        settings = {
+                          selectedFilterLists = [
+                            "ublock-filters"
+                            "ublock-badware"
+                            "ublock-privacy"
+                            "ublock-unbreak"
+                            "ublock-quick-fixes"
+                          ];
+                        };
+                        # Restrict permissions for better security
+                        permissions = [
+                          "contextMenus"
+                          "privacy" 
+                          "storage" 
+                          "webNavigation"
+                          "webRequest" 
+                          "webRequestBlocking"
+                        ];
+                      };
+                      
+                      # Configure Boring RSS with minimal permissions
+                      "{45d4d1a3-4faa-42b7-9747-bcf2153310cd}" = {
+                        name = "boring-rss";  # NUR package name for permission checking
+                        permissions = [
+                          "activeTab"
+                          "storage"
+                        ];
+                      };
                     };
                   }
                 '';
@@ -773,6 +824,108 @@ in
                         ]
                       )
                     }' to acknowledge this.
+                  '';
+                }
+                # Extension permissions assertion
+                {
+                  assertion = 
+                    let
+                      # Get NUR path if it exists
+                      nur = config.nur or {};
+                      # Get the rycee Firefox addons if they exist
+                      firefoxAddons = (nur.repos.rycee or {}).firefox-addons or {};
+                      
+                      # Filter to only extensions with permission restrictions
+                      extensionsWithPermissions = lib.filterAttrs (id: ext: ext.permissions != []) config.extensions.settings;
+                      
+                      # Function to get extension metadata
+                      getExtensionMetadata = id: ext:
+                        let
+                          # The extension name may be specified with the 'name' attribute, otherwise use ID
+                          extName = ext.name or id;
+                          # Check if this extension exists in NUR
+                          extensionPkg = firefoxAddons.${extName} or null;
+                          # Get the requested permissions if extension is in NUR and has metadata
+                          mozPermissions = if extensionPkg != null && extensionPkg ? meta && extensionPkg.meta ? mozPermissions
+                                          then extensionPkg.meta.mozPermissions
+                                          else [];
+                          # Get the allowed permissions for this extension
+                          allowedPermissions = ext.permissions;
+                          # Find unaccepted permissions (those in mozPermissions but not in allowedPermissions)
+                          unacceptedPermissions = lib.subtractLists allowedPermissions mozPermissions;
+                        in {
+                          inherit extName mozPermissions allowedPermissions unacceptedPermissions;
+                          # For display purposes
+                          displayName = if extensionPkg != null && extensionPkg ? meta && extensionPkg.meta ? name
+                                      then extensionPkg.meta.name
+                                      else extName;
+                          # Whether the extension is in NUR with mozPermissions data
+                          inNur = mozPermissions != [];
+                        };
+                      
+                      # Get metadata for each extension with permissions
+                      metadataByExtId = lib.mapAttrs getExtensionMetadata extensionsWithPermissions;
+                      
+                      # Check each extension
+                      allValid = lib.all (id: 
+                        let metadata = metadataByExtId.${id}; 
+                        in metadata.unacceptedPermissions == [] || !metadata.inNur
+                      ) (lib.attrNames extensionsWithPermissions);
+                    in allValid;
+                  
+                  message = let
+                    # Get NUR path if it exists
+                    nur = config.nur or {};
+                    # Get the rycee Firefox addons if they exist
+                    firefoxAddons = (nur.repos.rycee or {}).firefox-addons or {};
+                    
+                    # Filter to only extensions with permission restrictions
+                    extensionsWithPermissions = lib.filterAttrs (id: ext: ext.permissions != []) config.extensions.settings;
+                    
+                    # Function to get extension metadata - duplicate of above for message generation
+                    getExtensionMetadata = id: ext:
+                      let
+                        # The extension name may be specified with the 'name' attribute, otherwise use ID
+                        extName = ext.name or id;
+                        # Check if this extension exists in NUR
+                        extensionPkg = firefoxAddons.${extName} or null;
+                        # Get the requested permissions if extension is in NUR and has metadata
+                        mozPermissions = if extensionPkg != null && extensionPkg ? meta && extensionPkg.meta ? mozPermissions
+                                        then extensionPkg.meta.mozPermissions
+                                        else [];
+                        # Get the allowed permissions for this extension
+                        allowedPermissions = ext.permissions;
+                        # Find unaccepted permissions (those in mozPermissions but not in allowedPermissions)
+                        unacceptedPermissions = lib.subtractLists allowedPermissions mozPermissions;
+                      in {
+                        inherit extName mozPermissions allowedPermissions unacceptedPermissions;
+                        # For display purposes
+                        displayName = if extensionPkg != null && extensionPkg ? meta && extensionPkg.meta ? name
+                                    then extensionPkg.meta.name
+                                    else extName;
+                        # Whether the extension is in NUR with mozPermissions data
+                        inNur = mozPermissions != [];
+                      };
+                    
+                    # Get metadata for each extension with permissions
+                    metadataByExtId = lib.mapAttrs getExtensionMetadata extensionsWithPermissions;
+                    
+                    # Create error messages for extensions with unaccepted permissions
+                    extensionErrors = lib.concatStringsSep "\n" (lib.mapAttrsToList 
+                      (id: metadata: 
+                        if metadata.inNur && metadata.unacceptedPermissions != []
+                        then "  - Extension '${metadata.displayName}' has unaccepted permissions: ${builtins.toJSON metadata.unacceptedPermissions}"
+                        else ""
+                      ) 
+                      metadataByExtId
+                    );
+                  in ''
+                    Some Firefox extensions require permissions that you have not explicitly allowed.
+                    You can either add these permissions to the allowed list or choose not to install these extensions.
+                    
+                    ${extensionErrors}
+                    
+                    Note: This validation only works for extensions from the NUR rycee.firefox-addons collection.
                   '';
                 }
               ] ++ config.bookmarks.assertions;
