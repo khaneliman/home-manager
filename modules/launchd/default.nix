@@ -36,10 +36,38 @@ let
             Define a launchd job. See {manpage}`launchd.plist(5)` for details.
           '';
         };
+        environment = lib.mkOption {
+          type = with lib.types; attrsOf (either str (listOf str));
+          default = { };
+          example = {
+            PATH = "/foo/bar/bin";
+            LANG = "nl_NL.UTF-8";
+          };
+          description = "Environment variables passed to the service's processes.";
+          apply = lib.mapAttrs (k: v: if lib.isList v then lib.concatStringsSep ":" v else v);
+        };
+
+        path = lib.mkOption {
+          type = with lib.types; listOf (either path str);
+          default = [ ];
+          description = ''
+            Packages added to the service's {env}`PATH`
+            environment variable.  Only the {file}`bin`
+            and subdirectories of each package is added.
+          '';
+          apply = ps: lib.concatMapStringsSep ":" (p: if lib.isDerivation p then "${p}/bin" else p) ps;
+        };
       };
 
       config = {
-        config.Label = lib.mkDefault "${labelPrefix}${name}";
+        config =
+          let
+            env = config.environment // lib.optionalAttrs (config.path != "") { PATH = config.path; };
+          in
+          {
+            Label = lib.mkDefault "${labelPrefix}${name}";
+            EnvironmentVariables = lib.mkIf (env != { }) env;
+          };
       };
     };
 
