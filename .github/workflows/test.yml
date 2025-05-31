@@ -21,7 +21,7 @@ jobs:
       - run: nix run .#home-manager -- init --switch --no-flake
       - run: yes | nix run . -- uninstall
       - name: Run tests
-        run: nix build -j auto --show-trace --option allow-import-from-derivation false --reference-lock-file flake.lock "./tests#test-all"
+        run: nix build -j auto --show-trace --argstr enableBig false --option allow-import-from-derivation false --reference-lock-file flake.lock "./tests#test-all"
         env:
           GC_INITIAL_HEAP_SIZE: 4294967296
       - name: Run tests (with IFD)
