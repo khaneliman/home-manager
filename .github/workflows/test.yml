@@ -33,9 +33,11 @@ jobs:
         nix run .#home-manager -- init --switch --override-input home-manager .
       # FIXME: nix broken on darwin
       if: matrix.os != 'macos-latest'
+      # FIXME: nix broken on darwin on unstable
     - run: yes | nix run . -- uninstall
       # FIXME: nix broken on darwin
       if: matrix.os != 'macos-latest'
+      # FIXME: nix broken on darwin on unstable
     - name: Run tests
       run: nix build -j auto --show-trace --option allow-import-from-derivation false --reference-lock-file flake.lock "./tests#test-all-no-big"
       env:
