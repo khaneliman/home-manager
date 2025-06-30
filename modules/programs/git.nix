@@ -22,7 +22,7 @@ let
   gitIniType =
     with types;
     let
-      primitiveType = either str (either bool int);
+      primitiveType = nullOr (either str (either bool int));
       multipleType = either primitiveType (listOf primitiveType);
       sectionType = attrsOf multipleType;
       supersectionType = attrsOf (either multipleType sectionType);
