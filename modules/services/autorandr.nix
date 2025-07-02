@@ -16,6 +16,7 @@ in
   options = {
     services.autorandr = {
       enable = lib.mkEnableOption "" // {
+
         description = ''
           Whether to enable the Autorandr systemd service.
           This module is complementary to {option}`programs.autorandr`
