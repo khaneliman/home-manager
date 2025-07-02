@@ -1,7 +1,7 @@
 name: Tag Module Maintainers
 on:
   pull_request_target:
-    types: [ready_for_review]
+    types: [opened, synchronize, reopened, ready_for_review]
 permissions:
   contents: read
   pull-requests: write
@@ -13,7 +13,6 @@ jobs:
     steps:
       - name: Create GitHub App token
         uses: actions/create-github-app-token@v2
-        if: github.event_name == 'pull_request_target' && vars.CI_APP_ID
         id: app-token
         with:
           app-id: ${{ vars.CI_APP_ID }}
@@ -21,8 +20,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          path: trusted
-          fetch-depth: 0
+          ref: ${{ github.event.pull_request.base.sha }}
       - name: Get Nixpkgs revision from flake.lock
         id: get-nixpkgs
         run: |
@@ -35,8 +33,10 @@ jobs:
             experimental-features = nix-command flakes
       - name: Get changed files
         id: changed-files
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
-          CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep '^modules/' | grep -v '^modules/\(po\|.*\/news\)/' || true)
+          CHANGED_FILES=$(gh pr diff ${{ github.event.pull_request.number }} --name-only | grep '^modules/' | grep -v '^modules/\(po\|.*\/news\)/' || true)
           echo "Changed module files:"
           echo "$CHANGED_FILES"
           echo "module_files<<EOF" >> $GITHUB_OUTPUT
@@ -63,26 +63,7 @@ jobs:
             fi
 
             echo "Processing file: $FILE"
-
-            # Try different path formats to find the right one that matches the JSON
-            for PATH_FORMAT in \
-              "$FILE" \
-              "$GITHUB_WORKSPACE/$FILE" \
-              "/$PWD/$FILE" \
-              "$PWD/$FILE"
-            do
-              echo "Trying path format: $PATH_FORMAT"
-
-              # Get maintainers for this file using the current path format
-              MAINTAINERS=$(jq -r ".[\"$PATH_FORMAT\"] | if . != null then .[].github else empty end" <<< "$MODULE_MAINTAINERS" 2>/dev/null || true)
-
-              if [[ -n "$MAINTAINERS" ]]; then
-                echo "Found maintainers using path format: $PATH_FORMAT"
-                break
-              fi
-            done
-
-            # If no maintainers were found, try basename approach as fallback
+            MAINTAINERS=$(jq -r ".[\"$FILE\"] | if . != null then .[].github else empty end" <<< "$MODULE_MAINTAINERS" 2>/dev/null || true)
             if [[ -z "$MAINTAINERS" ]]; then
               MODULE_NAME=$(basename "$FILE" .nix)
               echo "Trying basename approach with: $MODULE_NAME"
@@ -114,36 +95,18 @@ jobs:
             # Check if maintainers are collaborators
             REPO="${{ github.repository }}"
             VALID_MAINTAINERS=()
-
             for MAINTAINER in "${!MAINTAINERS_TO_NOTIFY[@]}"; do
               echo "Checking if $MAINTAINER is a collaborator..."
-
-              if gh api \
-                -H "Accept: application/vnd.github+json" \
-                -H "X-GitHub-Api-Version: 2022-11-28" \
-                "/repos/$REPO/collaborators/$MAINTAINER" &>/dev/null; then
+              if gh api "/repos/$REPO/collaborators/$MAINTAINER" --silent; then
                 echo "User $MAINTAINER is a collaborator, adding to reviewers list"
                 VALID_MAINTAINERS+=("$MAINTAINER")
               else
                 echo "User $MAINTAINER is not a repository collaborator, probably missed the automated invite to the maintainers team, ignoring"
               fi
             done
-
             # Only proceed if we have valid maintainers who are collaborators
             if [[ ${#VALID_MAINTAINERS[@]} -gt 0 ]]; then
-              # Create JSON array of reviewers
-              REVIEWERS_JSON="["
-              first=true
-              for MAINTAINER in "${VALID_MAINTAINERS[@]}"; do
-                if [ "$first" = true ]; then
-                  REVIEWERS_JSON="$REVIEWERS_JSON\"$MAINTAINER\""
-                  first=false
-                else
-                  REVIEWERS_JSON="$REVIEWERS_JSON,\"$MAINTAINER\""
-                fi
-              done
-              REVIEWERS_JSON="$REVIEWERS_JSON]"
-
+              REVIEWERS_JSON=$(printf '%s\n' "${VALID_MAINTAINERS[@]}" | jq -R . | jq -s .)
               echo "Found valid maintainers to notify: $(echo $REVIEWERS_JSON | tr -d '[]\"')"
               echo "reviewers_json=$REVIEWERS_JSON" >> $GITHUB_OUTPUT
               echo "has_maintainers=true" >> $GITHUB_OUTPUT
@@ -160,19 +123,6 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
-          # Create full payload for GitHub API
-          PAYLOAD="{\"reviewers\":${{ steps.find-maintainers.outputs.reviewers_json }}}"
-
-          # Add maintainers as reviewers to the PR using GitHub API
-          REPO="${{ github.repository }}"
-          PR_NUMBER="${{ github.event.pull_request.number }}"
-
-          echo "Requesting reviews from maintainers: $(echo ${{ steps.find-maintainers.outputs.reviewers_json }} | tr -d '[]\"')"
-
-          # Request reviewers via GitHub API
-          gh api \
-            --method POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            "/repos/$REPO/pulls/$PR_NUMBER/requested_reviewers" \
-            --input <(echo "$PAYLOAD")
+          REVIEWERS_CSV=$(echo '${{ steps.find-maintainers.outputs.reviewers_json }}' | jq -r '. | join(",")')
+          echo "Requesting reviews from maintainers: $REVIEWERS_CSV"
+          gh pr edit ${{ github.event.pull_request.number }} --add-reviewer "$REVIEWERS_CSV"
