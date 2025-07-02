@@ -8,7 +8,7 @@ permissions:
 jobs:
   tag-maintainers:
     runs-on: ubuntu-latest
-    if: github.repository_owner == 'nix-community'
+    # if: github.repository_owner == 'nix-community'
     steps:
       - name: Create GitHub App token
         uses: actions/create-github-app-token@v2
