@@ -10,7 +10,6 @@ in
 {
   meta.maintainers = [
     lib.maintainers.GaetanLepage
-
     lib.hm.maintainers.lowlevl
   ];
 
