@@ -101,6 +101,17 @@ jobs:
             echo "Complete list of users to exclude:"
             echo "$USERS_TO_EXCLUDE"
 
+            # Remove outdated review requests
+            CURRENT_MAINTAINERS=$(printf "%s\n" "${!MAINTAINERS_TO_NOTIFY[@]}" | sort -u)
+            OUTDATED_REVIEWERS=$(comm -23 <(echo "$PENDING_REVIEWERS" | sort) <(echo "$CURRENT_MAINTAINERS" | sort))
+            if [[ -n "$OUTDATED_REVIEWERS" ]]; then
+              for REVIEWER in $OUTDATED_REVIEWERS; do
+                echo "Removing review request from $REVIEWER (no longer a maintainer of changed files)"
+                gh api --method DELETE "/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/requested_reviewers" \
+                  -f reviewers="[\"$REVIEWER\"]"
+              done
+            fi
+
             # Check if maintainers are collaborators and not already reviewers
             REPO="${{ github.repository }}"
             NEW_REVIEWERS=()
