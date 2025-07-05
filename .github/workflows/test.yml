@@ -45,6 +45,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
+        test-chunk: [1, 2, 3, 4]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -58,15 +59,17 @@ jobs:
           nix_path: nixpkgs=https://github.com/NixOS/nixpkgs/archive/${{ steps.get-nixpkgs.outputs.rev }}.tar.gz
           extra_nix_config: |
             experimental-features = nix-command flakes
+            max-jobs = auto
+            cores = 0
       - name: Build docs
-        if: github.event_name == 'schedule' || needs.changes.outputs.docs == 'true'
+        if: matrix.test-chunk == 1 && (github.event_name == 'schedule' || needs.changes.outputs.docs == 'true')
         run: nix build --show-trace .#docs-jsonModuleMaintainers
       - name: Format Check
-        if: github.event_name == 'schedule' || needs.changes.outputs.format == 'true'
+        if: matrix.test-chunk == 1 && (github.event_name == 'schedule' || needs.changes.outputs.format == 'true')
         run: nix fmt -- --ci
       - name: Test init --switch with locked inputs
         # FIXME: nix broken on darwin on unstable
-        if: matrix.os != 'macos-latest' && (github.event_name == 'schedule' || needs.changes.outputs.hm == 'true')
+        if: matrix.os != 'macos-latest' && matrix.test-chunk == 1 && (github.event_name == 'schedule' || needs.changes.outputs.hm == 'true')
         run: |
           # Copy lock file to home directory for consistent testing
           mkdir -p ~/.config/home-manager
@@ -74,16 +77,30 @@ jobs:
           nix run .#home-manager -- init --switch --override-input home-manager .
       - name: Uninstall
         # FIXME: nix broken on darwin on unstable
-        if: matrix.os != 'macos-latest' && (github.event_name == 'schedule' || needs.changes.outputs.hm == 'true')
+        if: matrix.os != 'macos-latest' && matrix.test-chunk == 1 && (github.event_name == 'schedule' || needs.changes.outputs.hm == 'true')
         run: yes | nix run . -- uninstall
-      - name: Run tests
+      - name: Run tests (chunk ${{ matrix.test-chunk }})
         if: github.event_name == 'schedule' || needs.changes.outputs.tests == 'true'
-        run: nix build -j auto --show-trace --option allow-import-from-derivation false --reference-lock-file flake.lock "./tests#test-all-no-big"
+        run: |
+          # Build tests in chunks for better parallelization
+          case ${{ matrix.test-chunk }} in
+            1) nix build -j auto --show-trace --option allow-import-from-derivation false --reference-lock-file flake.lock "./tests#test-chunk-1" --option restrict-eval false ;;
+            2) nix build -j auto --show-trace --option allow-import-from-derivation false --reference-lock-file flake.lock "./tests#test-chunk-2" --option restrict-eval false ;;
+            3) nix build -j auto --show-trace --option allow-import-from-derivation false --reference-lock-file flake.lock "./tests#test-chunk-3" --option restrict-eval false ;;
+            4) nix build -j auto --show-trace --option allow-import-from-derivation false --reference-lock-file flake.lock "./tests#test-chunk-4" --option restrict-eval false ;;
+          esac
         env:
           GC_INITIAL_HEAP_SIZE: 4294967296
-      - name: Run tests (with IFD)
+      - name: Run tests with IFD (chunk ${{ matrix.test-chunk }})
         if: github.event_name == 'schedule' || needs.changes.outputs.tests == 'true'
-        run: nix build -j auto --show-trace --reference-lock-file flake.lock "./tests#test-all-no-big"
+        run: |
+          # Build tests with IFD enabled in chunks
+          case ${{ matrix.test-chunk }} in
+            1) nix build -j auto --show-trace --reference-lock-file flake.lock "./tests#test-chunk-1" --option restrict-eval false ;;
+            2) nix build -j auto --show-trace --reference-lock-file flake.lock "./tests#test-chunk-2" --option restrict-eval false ;;
+            3) nix build -j auto --show-trace --reference-lock-file flake.lock "./tests#test-chunk-3" --option restrict-eval false ;;
+            4) nix build -j auto --show-trace --reference-lock-file flake.lock "./tests#test-chunk-4" --option restrict-eval false ;;
+          esac
         env:
           GC_INITIAL_HEAP_SIZE: 4294967296
       - name: Generate Job Summary
