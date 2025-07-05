@@ -81,8 +81,13 @@
               allTests = lib.attrNames tests.build;
               # Remove 'all' from the test list as it's a meta-package
               filteredTests = lib.filter (name: name != "all") allTests;
-              # Split tests into 4 chunks
-              chunkSize = builtins.ceil ((builtins.length filteredTests) / 4.0);
+              # Auto-calculate optimal chunk count based on test count
+              # Target ~200-300 tests per chunk for optimal performance
+              targetTestsPerChunk = 250;
+              numChunks = lib.max 1 (
+                builtins.ceil ((builtins.length filteredTests) / (targetTestsPerChunk * 1.0))
+              );
+              chunkSize = builtins.ceil ((builtins.length filteredTests) / (numChunks * 1.0));
 
               makeChunk =
                 chunkNum: testList:
@@ -100,7 +105,7 @@
             lib.listToAttrs (
               lib.genList (
                 i: lib.nameValuePair "test-chunk-${toString (i + 1)}" (makeChunk (i + 1) filteredTests)
-              ) 4
+              ) numChunks
             );
         in
         testPackages
