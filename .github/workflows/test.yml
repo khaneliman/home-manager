@@ -68,6 +68,19 @@ jobs:
 
           echo "test-matrix=$matrix" >> $GITHUB_OUTPUT
           echo "Generated matrix: $matrix"
+
+          # Verify test coverage for Linux (Darwin verification happens during Darwin eval)
+          echo "Verifying Linux test coverage..."
+          coverage=$(nix eval --json ./tests#packages.x86_64-linux.coverage-check --apply 'pkg: builtins.fromJSON (builtins.readFile pkg)')
+          echo "Linux test coverage: $coverage"
+          all_covered=$(echo "$coverage" | jq -r '.allTestsCovered')
+          if [[ "$all_covered" != "true" ]]; then
+            echo "ERROR: Not all Linux tests are covered by chunks!"
+            echo "Missing tests: $(echo "$coverage" | jq -r '.missingTests')"
+            echo "Duplicate tests: $(echo "$coverage" | jq -r '.duplicateTests')"
+            exit 1
+          fi
+          echo "✅ All Linux tests are properly covered by chunks"
   tests:
     needs: [changes, get-test-chunks]
     strategy:

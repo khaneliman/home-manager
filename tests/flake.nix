@@ -106,7 +106,44 @@
               lib.genList (
                 i: lib.nameValuePair "test-chunk-${toString (i + 1)}" (makeChunk (i + 1) filteredTests)
               ) numChunks
-            );
+            )
+            // {
+              # Verification: ensure all tests are covered
+              coverage-check = pkgs.writeTextFile {
+                name = "test-coverage-verification";
+                text =
+                  let
+                    # Get all tests assigned to chunks (using exact same logic as makeChunk)
+                    allChunkTests = lib.concatLists (
+                      lib.genList (
+                        i:
+                        let
+                          chunkNum = i + 1;
+                          start = (chunkNum - 1) * chunkSize;
+                          end = lib.min (start + chunkSize) (builtins.length filteredTests);
+                        in
+                        lib.sublist start (end - start) filteredTests
+                      ) numChunks
+                    );
+
+                    # Verify coverage
+                    missingTests = lib.subtractLists allChunkTests filteredTests;
+                    duplicateTests = lib.subtractLists (lib.unique allChunkTests) allChunkTests;
+                    duplicateCount = builtins.length duplicateTests;
+
+                    coverageReport = {
+                      totalTests = builtins.length filteredTests;
+                      numChunks = numChunks;
+                      chunkSize = chunkSize;
+                      assignedTests = builtins.length allChunkTests;
+                      missingTests = missingTests;
+                      duplicateTests = duplicateCount;
+                      allTestsCovered = missingTests == [ ] && duplicateCount == 0;
+                    };
+                  in
+                  builtins.toJSON coverageReport;
+              };
+            };
         in
         testPackages
         // integrationTestPackages
