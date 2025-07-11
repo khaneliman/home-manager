@@ -8,242 +8,226 @@ including checking for manually requested reviewers and managing removals.
 
 import argparse
 import json
+import logging
 import subprocess
 import sys
+from typing import Final
+
+# Configure logging to output to stderr
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(levelname)s: %(message)s",
+    stream=sys.stderr,
+)
+
+# A reusable GraphQL query to find who manually requested reviews.
+MANUAL_REVIEW_REQUEST_QUERY: Final[str] = """
+query($owner: String!, $repo: String!, $prNumber: Int!) {
+  repository(owner: $owner, name: $repo) {
+    pullRequest(number: $prNumber) {
+      timelineItems(first: 100, itemTypes: [REVIEW_REQUESTED_EVENT]) {
+        nodes {
+          ... on ReviewRequestedEvent {
+            actor {
+              __typename
+              login
+            }
+            requestedReviewer {
+              ... on User { login }
+              ... on Bot { login }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+"""
 
 
-def run_gh_command(args: list[str]) -> str:
-    """Run a GitHub CLI command and return the result."""
+class GHError(Exception):
+    """Custom exception for errors related to 'gh' CLI commands."""
+    pass
+
+
+def run_gh_command(args: list[str], input_data: str | None = None) -> str:
+    """Runs a GitHub CLI command and returns its stdout."""
+    command = ["gh"] + args
     try:
         result = subprocess.run(
-            ["gh"] + args,
+            command,
+            input=input_data,
             capture_output=True,
             text=True,
             check=True,
         )
         return result.stdout.strip()
     except subprocess.CalledProcessError as e:
-        print(f"Error running gh command: {e}", file=sys.stderr)
-        print(f"Stderr: {e.stderr}", file=sys.stderr)
-        return ""
+        # Log the specific error from stderr for better debugging.
+        logging.error("Error running command: %s", " ".join(command))
+        logging.error("Stderr: %s", e.stderr.strip())
+        raise GHError(f"Failed to execute gh command: {e}") from e
 
 
-def get_manually_requested_reviewers(owner: str, repo: str, pr_number: int) -> list[str]:
-    """Get reviewers who were manually requested by human users."""
-    query = """
-    query($owner: String!, $repo: String!, $prNumber: Int!) {
-      repository(owner: $owner, name: $repo) {
-        pullRequest(number: $prNumber) {
-          timelineItems(first: 100, itemTypes: [REVIEW_REQUESTED_EVENT]) {
-            nodes {
-              ... on ReviewRequestedEvent {
-                actor {
-                  __typename
-                  login
-                }
-                requestedReviewer {
-                  ... on User {
-                    login
-                  }
-                  ... on Bot {
-                    login
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    """
-
+def get_manually_requested_reviewers(
+    owner: str, repo: str, pr_number: int
+) -> set[str]:
+    """Fetches a set of reviewers who were manually requested by a human."""
     try:
         result = run_gh_command([
             "api", "graphql",
-            "-f", f"query={query}",
+            "-f", f"query={MANUAL_REVIEW_REQUEST_QUERY}",
             "-F", f"owner={owner}",
             "-F", f"repo={repo}",
-            "-F", f"prNumber={pr_number}"
+            "-F", f"prNumber={pr_number}",
         ])
-
-        if not result:
-            return []
-
         data = json.loads(result)
+        nodes = data.get("data", {}).get("repository", {}).get("pullRequest", {}).get("timelineItems", {}).get("nodes", [])
 
-        # Extract manually requested reviewers (exclude bots)
-        manually_requested = []
-        for node in data.get("data", {}).get("repository", {}).get("pullRequest", {}).get("timelineItems", {}).get("nodes", []):
-            if not node or not node.get("actor", {}).get("login") or not node.get("requestedReviewer", {}).get("login"):
-                continue
-
-            actor_type = node["actor"]["__typename"]
-            actor_login = node["actor"]["login"]
-            reviewer = node["requestedReviewer"]["login"]
-
-            # Only keep requests from User types (humans), skip all Bot types
-            if actor_type == "User":
-                manually_requested.append(reviewer)
-
-        return sorted(set(manually_requested))
-
-    except (json.JSONDecodeError, KeyError) as e:
-        print(f"Error parsing GraphQL response: {e}", file=sys.stderr)
-        return []
+        manually_requested = {
+            node["requestedReviewer"]["login"]
+            for node in nodes
+            if node and node.get("actor", {}).get("__typename") == "User" and node.get("requestedReviewer")
+        }
+        return manually_requested
+    except (GHError, json.JSONDecodeError, KeyError) as e:
+        logging.error("Could not determine manually requested reviewers: %s", e)
+        return set()
 
 
-def get_pending_reviewers(pr_number: int) -> list[str]:
-    """Get current pending reviewers for a PR."""
+def get_users_from_gh(args: list[str], error_message: str) -> set[str]:
+    """A generic helper to get a set of users from a 'gh' command."""
     try:
-        result = run_gh_command([
-            "pr", "view", str(pr_number),
-            "--json", "reviewRequests",
-            "--jq", ".reviewRequests[].login"
-        ])
-        return [r.strip() for r in result.split("\n") if r.strip()]
-    except Exception as e:
-        print(f"Error getting pending reviewers: {e}", file=sys.stderr)
-        return []
+        result = run_gh_command(args)
+        return {user.strip() for user in result.split("\n") if user.strip()}
+    except GHError as e:
+        logging.error("%s: %s", error_message, e)
+        return set()
 
 
-def get_past_reviewers(owner: str, repo: str, pr_number: int) -> list[str]:
-    """Get users who have already reviewed the PR."""
-    try:
-        result = run_gh_command([
-            "api", f"repos/{owner}/{repo}/pulls/{pr_number}/reviews",
-            "--jq", ".[].user.login"
-        ])
-        return sorted(set(r.strip() for r in result.split("\n") if r.strip()))
-    except Exception as e:
-        print(f"Error getting past reviewers: {e}", file=sys.stderr)
-        return []
+def get_pending_reviewers(pr_number: int) -> set[str]:
+    """Gets the set of currently pending reviewers for a PR."""
+    return get_users_from_gh(
+        ["pr", "view", str(pr_number), "--json", "reviewRequests", "--jq", ".reviewRequests[].login"],
+        "Error getting pending reviewers",
+    )
 
 
-def remove_reviewers(owner: str, repo: str, pr_number: int, reviewers: list[str], reason: str) -> bool:
-    """Remove reviewers from a PR."""
-    if not reviewers:
-        return True
-
-    for reviewer in reviewers:
-        print(f"Removing review request from {reviewer} ({reason})", file=sys.stderr)
-        try:
-            payload = json.dumps({"reviewers": [reviewer]})
-            result = subprocess.run([
-                "gh", "api", "--method", "DELETE",
-                f"repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers",
-                "--input", "-"
-            ], input=payload, text=True, check=True, capture_output=True)
-        except subprocess.CalledProcessError as e:
-            print(f"Error removing reviewer {reviewer}: {e}", file=sys.stderr)
-            return False
-
-    return True
+def get_past_reviewers(owner: str, repo: str, pr_number: int) -> set[str]:
+    """Gets the set of users who have already reviewed the PR."""
+    return get_users_from_gh(
+        ["api", f"repos/{owner}/{repo}/pulls/{pr_number}/reviews", "--jq", ".[].user.login"],
+        "Error getting past reviewers",
+    )
 
 
 def is_collaborator(owner: str, repo: str, username: str) -> bool:
-    """Check if a user is a collaborator on the repository."""
+    """Checks if a user is a collaborator on the repository."""
     try:
-        result = subprocess.run([
-            "gh", "api", f"repos/{owner}/{repo}/collaborators/{username}",
-            "--silent"
-        ], capture_output=True, check=True)
+        # The `--silent` flag makes `gh` exit with 0 on success (2xx) and 1 on error (e.g., 404)
+        run_gh_command(["api", f"repos/{owner}/{repo}/collaborators/{username}", "--silent"])
         return True
-    except subprocess.CalledProcessError as e:
-        # HTTP 404 means user is not a collaborator or doesn't exist
-        if e.returncode == 1:
-            return False
-        # Other errors should be logged
-        print(f"Error checking collaborator status for {username}: {e}", file=sys.stderr)
+    except GHError:
+        # A non-zero exit code (GHError) implies the user is not a collaborator (404) or another issue.
         return False
 
 
-def add_reviewers(pr_number: int, reviewers: list[str]) -> bool:
-    """Add reviewers to a PR."""
-    if not reviewers:
-        return True
+def update_reviewers(
+    pr_number: int,
+    reviewers_to_add: set[str] | None = None,
+    reviewers_to_remove: set[str] | None = None,
+    owner: str | None = None,
+    repo: str | None = None,
+) -> None:
+    """Adds or removes reviewers from a PR in a single operation per action."""
+    if reviewers_to_add:
+        logging.info("Requesting reviews from: %s", ", ".join(reviewers_to_add))
+        try:
+            run_gh_command([
+                "pr", "edit", str(pr_number),
+                "--add-reviewer", ",".join(reviewers_to_add)
+            ])
+        except GHError as e:
+            logging.error("Failed to add reviewers: %s", e)
 
-    reviewers_csv = ",".join(reviewers)
-    print(f"Requesting reviews from: {reviewers_csv}", file=sys.stderr)
-
-    try:
-        run_gh_command([
-            "pr", "edit", str(pr_number),
-            "--add-reviewer", reviewers_csv
-        ])
-        return True
-    except subprocess.CalledProcessError as e:
-        print(f"Error adding reviewers: {e}", file=sys.stderr)
-        return False
+    if reviewers_to_remove and owner and repo:
+        logging.info("Removing review requests from: %s", ", ".join(reviewers_to_remove))
+        payload = json.dumps({"reviewers": list(reviewers_to_remove)})
+        try:
+            run_gh_command(
+                [
+                    "api", "--method", "DELETE",
+                    f"repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers",
+                    "--input", "-",
+                ],
+                input_data=payload,
+            )
+        except GHError as e:
+            logging.error("Failed to remove reviewers: %s", e)
 
 
 def main() -> None:
-    """Main function to handle command line arguments and run reviewer management."""
-    parser = argparse.ArgumentParser(
-        description="Manage pull request reviewers for Home Manager"
-    )
-    parser.add_argument("--owner", required=True, help="Repository owner")
-    parser.add_argument("--repo", required=True, help="Repository name")
-    parser.add_argument("--pr-number", type=int, required=True, help="Pull request number")
-    parser.add_argument("--pr-author", required=True, help="PR author username")
-    parser.add_argument("--current-maintainers", help="Space-separated list of current maintainers")
-    parser.add_argument("--no-module-files", action="store_true", help="No module files changed")
-
+    """Main function to handle command-line arguments and manage reviewers."""
+    parser = argparse.ArgumentParser(description="Manage pull request reviewers for Home Manager.")
+    parser.add_argument("--owner", required=True, help="Repository owner.")
+    parser.add_argument("--repo", required=True, help="Repository name.")
+    parser.add_argument("--pr-number", type=int, required=True, help="Pull request number.")
+    parser.add_argument("--pr-author", required=True, help="PR author's username.")
+    parser.add_argument("--current-maintainers", default="", help="Space-separated list of current maintainers.")
+    parser.add_argument("--no-module-files", action="store_true", help="Flag if no module files were changed.")
     args = parser.parse_args()
 
-    current_maintainers = args.current_maintainers.split() if args.current_maintainers else []
-
-    # Get current state
+    # --- 1. Fetch current state from GitHub ---
+    maintainers: set[str] = set(args.current_maintainers.split())
     pending_reviewers = get_pending_reviewers(args.pr_number)
     past_reviewers = get_past_reviewers(args.owner, args.repo, args.pr_number)
     manually_requested = get_manually_requested_reviewers(args.owner, args.repo, args.pr_number)
 
-    print(f"Pending reviewers: {' '.join(pending_reviewers)}", file=sys.stderr)
-    print(f"Past reviewers: {' '.join(past_reviewers)}", file=sys.stderr)
-    print(f"Manually requested: {' '.join(manually_requested)}", file=sys.stderr)
+    logging.info("Current Maintainers: %s", ' '.join(maintainers) or "None")
+    logging.info("Pending Reviewers: %s", ' '.join(pending_reviewers) or "None")
+    logging.info("Past Reviewers: %s", ' '.join(past_reviewers) or "None")
+    logging.info("Manually Requested: %s", ' '.join(manually_requested) or "None")
 
-    # Handle case where no module files changed
+    # --- 2. Determine reviewers to remove ---
+    reviewers_to_remove: set[str] = set()
     if args.no_module_files:
-        if pending_reviewers:
-            # Remove only bot-requested reviewers
-            reviewers_to_remove = [r for r in pending_reviewers if r not in manually_requested]
-            if reviewers_to_remove:
-                print(f"Removing bot-requested reviewers: {' '.join(reviewers_to_remove)}", file=sys.stderr)
-                remove_reviewers(args.owner, args.repo, args.pr_number, reviewers_to_remove, "no module files changed")
-            else:
-                print("No reviewers to remove (all were manually requested)", file=sys.stderr)
-        return
+        reviewers_to_remove = pending_reviewers - manually_requested
+        logging.info("No module files changed. Removing bot-requested reviewers.")
+    else:
+        outdated_reviewers = pending_reviewers - maintainers
+        reviewers_to_remove = outdated_reviewers - manually_requested
+        logging.info("Removing outdated bot-requested reviewers.")
 
-    # Remove outdated reviewers (preserve manually requested ones)
-    if current_maintainers and pending_reviewers:
-        outdated_reviewers = [r for r in pending_reviewers if r not in current_maintainers]
-        if outdated_reviewers:
-            print(f"Found outdated reviewers: {' '.join(outdated_reviewers)}", file=sys.stderr)
-            # Only remove outdated reviewers that weren't manually requested
-            safe_to_remove = [r for r in outdated_reviewers if r not in manually_requested]
-            if safe_to_remove:
-                print(f"Removing outdated bot-requested reviewers: {' '.join(safe_to_remove)}", file=sys.stderr)
-                remove_reviewers(args.owner, args.repo, args.pr_number, safe_to_remove, "no longer a maintainer of changed files")
-            else:
-                print("No outdated reviewers to remove (all were manually requested)", file=sys.stderr)
+    if reviewers_to_remove:
+        update_reviewers(
+            args.pr_number,
+            owner=args.owner,
+            repo=args.repo,
+            reviewers_to_remove=reviewers_to_remove
+        )
+    else:
+        logging.info("No reviewers to remove.")
 
-    # Add new reviewers
-    if current_maintainers:
-        users_to_exclude = set(pending_reviewers + past_reviewers)
-        new_reviewers = []
+    # --- 3. Determine new reviewers to add ---
+    reviewers_to_add: set[str] = set()
+    if not args.no_module_files and maintainers:
+        users_to_exclude = {args.pr_author} | past_reviewers | pending_reviewers
+        potential_reviewers = maintainers - users_to_exclude
 
-        for maintainer in current_maintainers:
-            if maintainer in users_to_exclude or maintainer == args.pr_author:
-                continue
+        # Filter to ensure we only add valid repository collaborators.
+        reviewers_to_add = {
+            user for user in potential_reviewers if is_collaborator(args.owner, args.repo, user)
+        }
 
-            if is_collaborator(args.owner, args.repo, maintainer):
-                new_reviewers.append(maintainer)
-            else:
-                print(f"User {maintainer} is not a repository collaborator, ignoring", file=sys.stderr)
+        non_collaborators = potential_reviewers - reviewers_to_add
+        if non_collaborators:
+            logging.warning("Ignoring non-collaborators: %s", ", ".join(non_collaborators))
 
-        if new_reviewers:
-            add_reviewers(args.pr_number, new_reviewers)
-        else:
-            print("No new reviewers to add", file=sys.stderr)
+
+    if reviewers_to_add:
+        update_reviewers(args.pr_number, reviewers_to_add=reviewers_to_add)
+    else:
+        logging.info("No new reviewers to add.")
 
 
 if __name__ == "__main__":
