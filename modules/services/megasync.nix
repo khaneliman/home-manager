@@ -11,7 +11,6 @@ in
   meta.maintainers = [ lib.maintainers.GaetanLepage ];
 
   options = {
-
     services.megasync = {
       enable = lib.mkEnableOption "Megasync client";
 
