@@ -485,6 +485,11 @@
     githubId = 64027365;
     name = "Erin Pletches";
   };
+  FriedrichAltheide = {
+    github = "FriedrichAltheide";
+    githubId = 11352905;
+    name = "Friedrich Altheide";
+  };
   GaetanLepage = {
     email = "gaetan@glepage.com";
     github = "GaetanLepage";
