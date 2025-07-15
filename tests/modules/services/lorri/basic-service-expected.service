@@ -1,0 +1,17 @@
+[Service]
+CacheDirectory=lorri
+Environment=PATH=@nix@/bin:@git-minimal@/bin:@gnutar@/bin:@gzip@/bin
+ExecStart=@lorri@/bin/lorri daemon
+PrivateTmp=true
+ProtectHome=read-only
+ProtectSystem=strict
+ReadWritePaths=%t
+ReadWritePaths=%C/lorri
+ReadWritePaths=%C/nix
+Restart=on-failure
+
+[Unit]
+After=lorri.socket
+Description=lorri build daemon
+RefuseManualStart=true
+Requires=lorri.socket

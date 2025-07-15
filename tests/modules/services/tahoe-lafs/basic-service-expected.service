@@ -1,0 +1,5 @@
+[Unit]
+Description=Tahoe-LAFS
+
+[Service]
+ExecStart=@tahoelafs@/bin/tahoe run -C %h/.tahoe
