@@ -1,0 +1,6 @@
+{
+  "base_url": "https://bitwarden.example.com/",
+  "email": "user@example.com",
+  "identity_url": "https://identity.example.com/",
+  "lock_timeout": 600
+}
