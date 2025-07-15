@@ -1,0 +1,11 @@
+audio_cache = true
+audio_cache_size = 1024
+backend = "pulseaudio"
+gapless = true
+shuffle = true
+use_nerdfont = true
+
+[keybindings]
+q = "quit"
+r = "repeat"
+s = "shuffle"

@@ -1,0 +1,3 @@
+{
+  urxvt-basic = ./basic.nix;
+}

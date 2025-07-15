@@ -1,0 +1,9 @@
+[Service]
+Environment=PATH=@bash-interactive@/bin:@jq@/bin:/nix/store/00000000000000000000000000000000-findutils/bin:@libnotify@/bin:@lorri@/bin
+ExecStart=/nix/store/00000000000000000000000000000000-lorri-notify
+Restart=on-failure
+
+[Unit]
+After=lorri.service
+Description=lorri build notifications
+Requires=lorri.service

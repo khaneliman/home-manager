@@ -1,4 +1,5 @@
 {
-  ripgrep-default-arguments = ./default-arguments.nix;
-  ripgrep-custom-arguments = ./custom-arguments.nix;
+  ripgrep-basic-configuration = ./basic-configuration.nix;
+  ripgrep-with-arguments = ./with-arguments.nix;
+  ripgrep-null-package = ./null-package.nix;
 }
