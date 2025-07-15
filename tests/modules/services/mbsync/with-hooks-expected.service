@@ -1,0 +1,8 @@
+[Service]
+ExecStart=@isync@/bin/mbsync --all --verbose
+ExecStartPost=mu index
+ExecStartPre=mkdir -p %h/mail
+Type=oneshot
+
+[Unit]
+Description=mbsync mailbox synchronization

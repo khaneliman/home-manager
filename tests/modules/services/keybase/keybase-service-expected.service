@@ -1,0 +1,10 @@
+[Unit]
+Description=Keybase service
+
+[Service]
+ExecStart=@keybase@/bin/keybase service --auto-forked
+PrivateTmp=true
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

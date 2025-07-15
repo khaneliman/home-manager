@@ -1,4 +1,5 @@
 {
-  tealdeer-default-settings = ./default-settings.nix;
-  tealdeer-custom-settings = ./custom-settings.nix;
+  tealdeer-basic-configuration = ./basic-configuration.nix;
+  tealdeer-settings-configuration = ./settings-configuration.nix;
+  tealdeer-auto-updates-disabled = ./auto-updates-disabled.nix;
 }
