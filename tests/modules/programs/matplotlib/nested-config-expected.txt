@@ -1,0 +1,7 @@
+axes.edgecolor: FF9900
+axes.facecolor: black
+axes.grid: True
+backend: Qt5Agg
+font.family: serif
+font.size: 14
+grid.color: FF9900

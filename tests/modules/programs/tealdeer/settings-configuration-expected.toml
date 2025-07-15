@@ -1,0 +1,13 @@
+[display]
+compact = false
+use_pager = true
+
+[style.code]
+foreground = "green"
+
+[style.description]
+foreground = "white"
+
+[updates]
+auto_update = false
+auto_update_interval_hours = 24

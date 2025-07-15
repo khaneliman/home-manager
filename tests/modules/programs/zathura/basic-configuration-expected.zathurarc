@@ -1,0 +1,19 @@
+# Additional custom configuration
+set window-title-basename true
+set adjust-open width
+
+set default-bg	"#000000"
+set default-fg	"#FFFFFF"
+set inputbar-bg	"#222222"
+set pages-per-row	"2"
+set recolor	"true"
+set scroll-hstep	"50"
+set selection-clipboard	"clipboard"
+set statusbar-bg	"#333333"
+set zoom-step	"0.100000"
+map <Left>   navigate previous
+map <Right>   navigate next
+map D   toggle_page_mode
+map [fullscreen] <C-i>   zoom in
+map [normal] <C-b>   scroll left
+map gr   reload
