@@ -1,0 +1,25 @@
+directory: ~/Music
+import:
+  copy: false
+  incremental: true
+  move: true
+  quiet_fallback: skip
+  resume: true
+  write: true
+library: ~/.config/beets/musiclibrary.db
+lyrics:
+  auto: true
+  fallback: ''''''
+paths:
+  comp: Compilations/$album%aunique{}/$track $title
+  default: '%the{$albumartist}/$album%aunique{}/$track $title'
+  singleton: Non-Album/$artist - $title
+plugins:
+- lyrics
+- duplicates
+- replaygain
+- web
+web:
+  cors: true
+  host: 127.0.0.1
+  port: 8337

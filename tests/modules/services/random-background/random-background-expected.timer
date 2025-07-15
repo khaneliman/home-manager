@@ -1,0 +1,8 @@
+[Install]
+WantedBy=timers.target
+
+[Timer]
+OnUnitActiveSec=30m
+
+[Unit]
+Description=Set random desktop background using feh
