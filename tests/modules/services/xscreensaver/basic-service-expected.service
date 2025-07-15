@@ -1,0 +1,12 @@
+[Unit]
+Description=XScreenSaver
+After=graphical-session.target
+PartOf=graphical-session.target
+X-Restart-Triggers=@xscreensaverHash@
+
+[Service]
+ExecStart=@xscreensaver@/bin/xscreensaver -no-splash
+Environment=PATH=@xscreensaver@/bin
+
+[Install]
+WantedBy=graphical-session.target

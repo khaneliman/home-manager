@@ -1,0 +1,12 @@
+[Install]
+WantedBy=graphical-session.target
+
+[Service]
+ExecStart=@feh@/bin/dummy --bg-scale --no-fehbg --randomize --no-xinerama /usr/share/backgrounds
+IOSchedulingClass=idle
+Type=oneshot
+
+[Unit]
+After=graphical-session.target
+Description=Set random desktop background using feh
+PartOf=graphical-session.target

@@ -1,0 +1,3 @@
+{
+  xplr-basic = ./basic.nix;
+}
