@@ -1,0 +1,3 @@
+{
+  timidity-basic = ./basic.nix;
+}

@@ -1,0 +1,3 @@
+{
+  tiny-basic = ./basic.nix;
+}

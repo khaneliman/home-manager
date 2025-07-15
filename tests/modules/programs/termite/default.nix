@@ -1,0 +1,3 @@
+{
+  termite-basic = ./basic.nix;
+}
