@@ -1,0 +1,9 @@
+smol = true
+telemetry = false
+
+[install.lockfile]
+print = "yarn"
+
+[test]
+coverage = true
+coverageThreshold = 0.9
