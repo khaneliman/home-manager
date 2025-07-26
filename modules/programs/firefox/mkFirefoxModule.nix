@@ -50,6 +50,7 @@ let
 
   # The extensions path shared by all profiles; will not be supported
   # by future browser versions.
+
   extensionPath = "extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}";
 
   profiles =
