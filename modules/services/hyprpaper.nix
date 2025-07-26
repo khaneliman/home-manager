@@ -10,6 +10,7 @@ in
 {
   meta.maintainers = with lib.maintainers; [
     khaneliman
+
     fufexan
   ];
 
