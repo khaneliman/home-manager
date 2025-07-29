@@ -1,0 +1,11 @@
+[Service]
+CPUSchedulingPolicy=idle
+Environment=UNISON='/home/user/.unison'
+ExecStart=@unison@/bin/unison \
+  '-auto=true' '-batch=true' '-log=false' '-repeat=10' '-silent=true' '-sshcmd=@openssh@/bin/ssh' '-times=1' '-ui=text' \
+  /home/user/sync /mnt/backup/sync
+
+IOSchedulingClass=idle
+
+[Unit]
+Description=Unison pair sync (custom-sync)
