@@ -237,4 +237,102 @@ rec {
           ) defs
         );
     };
+
+  /**
+    * A generic type representing the content of a file.
+    *
+    * This type can be satisfied in two ways:
+    * 1. A raw string (`types.lines`) for inline text content.
+    * 2. An attribute set with the following options:
+    * - `source`: The path to a source file.
+    * - `text`: Inline text content (an alternative to `source`).
+    * - `executable`: (Optional) A boolean to indicate if the file should be executable.
+  */
+  fileContent =
+    let
+      fileSpecType = types.submodule {
+        options = {
+          source = mkOption {
+            type = types.nullOr types.path;
+            default = null;
+            description = "The path to the source file.";
+          };
+          text = mkOption {
+            type = types.nullOr types.lines;
+            default = null;
+            description = "Inline text content for the file.";
+          };
+          executable = mkOption {
+            type = types.bool;
+            default = false;
+            description = "Whether the resulting file should be executable.";
+          };
+        };
+      };
+
+    in
+    types.either types.lines fileSpecType
+    // {
+      name = "file-content";
+
+      merge =
+        loc: defs:
+        fileSpecType.merge loc (
+          map (
+            def:
+            if types.lines.check def.value then
+              {
+                inherit (def) file;
+                value = {
+                  text = def.value;
+                  source = null;
+                  executable = false;
+                };
+              }
+            else if
+              def.value ? source && def.value ? text && def.value.source != null && def.value.text != null
+            then
+              throw "A file cannot have both `source` and `text` defined at the same time."
+            else
+              def
+          ) defs
+        );
+    };
+
+  /**
+    A helper function to create a complete file management configuration.
+
+    This function takes path information and a `fileContent`-compatible value
+    and returns a normalized attribute set containing the derived `target` path
+    and the file's content specification.
+
+    It intelligently determines if the target should be the directory itself
+    (if the source is a directory) or a file within that directory.
+
+    @param targetDir   The base directory for the target.
+    @param fileName    The name of the file within the target directory.
+    @param content     A value compatible with the `fileContent` type (a string or an attrset).
+
+    @return An attribute set: `{ target, source, text, executable, ... }`
+  */
+  mkManagedFile =
+    targetDir: fileName: content:
+    let
+      normalizedContent =
+        if lib.isAttrs content then
+          content
+        else
+          {
+            text = content;
+            source = null;
+            executable = false;
+          };
+
+      targetPath =
+        if normalizedContent.source != null && lib.pathIsDirectory normalizedContent.source then
+          targetDir
+        else
+          "${targetDir}/${fileName}";
+    in
+    { target = targetPath; } // normalizedContent;
 }
