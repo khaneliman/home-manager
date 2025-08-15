@@ -1,0 +1,15 @@
+{
+  "filesystem": {
+    "command": "npx -y @anthropic-ai/mcp-server-filesystem /home/user/projects",
+    "scope": "project",
+    "transport": "stdio"
+  },
+  "github": {
+    "env": {
+      "GITHUB_TOKEN": "ghp_your_token_here"
+    },
+    "scope": "user",
+    "transport": "sse",
+    "url": "https://mcp.github.com/sse"
+  }
+}

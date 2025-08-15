@@ -1,0 +1,6 @@
+{
+  "user-prompt-submit-hook": {
+    "command": "echo 'User submitted: $CLAUDE_USER_PROMPT'",
+    "description": "Log user prompts"
+  }
+}
