@@ -1,0 +1,17 @@
+attrsOfPathOrLines: 1
+directoryOrFileAttr: 1
+directoryOrFileString: 1
+normalizeAttr: 1
+normalizePath: 1
+normalizeSettings: 1
+normalizeString: 1
+pathOrLinesInvalid: 
+pathOrLinesPath: 1
+pathOrLinesString: 1
+settingsPath: 1
+settingsString: 1
+settingsSubmodule: 1
+ultraFlexAttr: 1
+ultraFlexAttrsOf: 1
+ultraFlexPath: 1
+ultraFlexString: 1
