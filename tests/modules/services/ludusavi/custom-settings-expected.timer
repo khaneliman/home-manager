@@ -1,0 +1,8 @@
+[Install]
+WantedBy=timers.target
+
+[Timer]
+OnCalendar=*-*-* 8:00:00
+
+[Unit]
+Description=Run a game save backup with Ludusavi
