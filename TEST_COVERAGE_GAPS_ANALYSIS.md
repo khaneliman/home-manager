@@ -7,16 +7,16 @@ This report provides a comprehensive analysis of Home Manager modules that lack 
 ## Statistics Overview
 
 ### Services
-- **Total service modules**: 149 (-5)
-- **Total service test directories**: 124 (+4)
-- **Untested service modules**: 25 (-9)
-- **Service test coverage**: 83.2% (+5.3%)
+- **Total service modules**: 159 (+10)
+- **Total service test directories**: 129 (+5)
+- **Untested service modules**: 37 (+12)
+- **Service test coverage**: 81.1% (-2.1%)
 
 ### Programs
-- **Total program modules**: 287 (-18)
-- **Total program test directories**: 251 (+4)
-- **Untested program modules**: 36 (-22)
-- **Program test coverage**: 87.5% (+6.5%)
+- **Total program modules**: 293 (+6)
+- **Total program test directories**: 257 (+6)
+- **Untested program modules**: 49 (+13)
+- **Program test coverage**: 87.7% (+0.2%)
 
 ### Recent Progress
 - **35 new modules** with comprehensive test coverage added (+10 since last update)
@@ -49,7 +49,7 @@ This report provides a comprehensive analysis of Home Manager modules that lack 
 
 ### Complete List of Untested Service Modules
 
-cbatticon, dwm-status, etesync-dav, getmail, grobi, hound, kbfs, keybase, keynav, librespot, listenbrainz-mpd, lorri, ludusavi, megasync, mpd-discord-rpc, mpris-proxy, muchsync, notify-osd, opensnitch-ui, owncloud-client, plan9port, plex-mpv-shim, poweralertd, psd, pueue, pulseeffects, sctd, stalonetray, status-notifier-watcher, systembus-notify, taffybar, tahoe-lafs, unclutter, window-managers, wluma, xcape, xembed-sni-proxy, xidlehook, xscreensaver, xsuspender
+cbatticon, dwm-status, etesync-dav, getmail, grobi, hound, kbfs, keybase, keynav, librespot, listenbrainz-mpd, ludusavi, megasync, mpd-discord-rpc, mpris-proxy, muchsync, notify-osd, opensnitch-ui, owncloud-client, plan9port, plex-mpv-shim, poweralertd, psd, pulseeffects, sctd, stalonetray, status-notifier-watcher, systembus-notify, taffybar, tahoe-lafs, unclutter, wluma, xcape, xembed-sni-proxy, xidlehook, xscreensaver, xsuspender
 
 **Recently Added Tests**: autorandr, kdeconnect, network-manager-applet, nextcloud-client, mbsync, batsignal, vdirsyncer, taskwarrior-sync, unison, spotifyd, rsibreak, safeeyes, random-background, betterlockscreen, clipmenu
 
@@ -78,7 +78,7 @@ cbatticon, dwm-status, etesync-dav, getmail, grobi, hound, kbfs, keybase, keynav
 
 ### Complete List of Untested Program Modules
 
-afew, astroid, bashmount, chromium, command-not-found, discocss, eclipse, floorp, gcc, grep, havoc, home-manager, hstr, iamb, info, ion, java, jetbrains-remote, joshuto, jq, just, keychain, librewolf, mercurial, mr, msmtp, noti, notmuch, obsidian, obs-studio, octant, offlineimap, opam, password-store, pazi, pidgin, piston-cli, pylint, pywal, quickshell, rbenv, rclone, rtorrent, script-directory, skim, sqls, termite, timidity, tint2, tiny, urxvt, vdirsyncer, waylogout, xplr, z-lua
+afew, bashmount, chromium, discocss, eclipse, floorp, gcc, grep, havoc, home-manager, hstr, hyprshot, iamb, info, ion, java, jetbrains-remote, joshuto, jq, jrnl, just, keychain, librewolf, mr, noti, obsidian, obs-studio, octant, opam, password-store, pazi, pidgin, piston-cli, pylint, pywal, quickshell, rbenv, rtorrent, script-directory, skim, sqls, termite, timidity, tint2, tiny, urxvt, waylogout, xplr, z-lua
 
 **Recently Added Tests**: fzf, fd, vim, zoxide, lazygit, bun, mcfly, navi, rbw, starship, direnv, tealdeer, ripgrep, ncspot, chawan, gitui, matplotlib, zathura
 
@@ -220,7 +220,7 @@ Focus areas for continued expansion:
 - Multi-format configuration modules
 - Additional shell integration testing
 
-**61 modules remain** without tests, but the foundation is now solid for continued expansion, with all high-priority phases completed and test coverage significantly improved.
+**86 modules remain** without tests (37 services + 49 programs), providing opportunities for continued expansion and improved reliability.
 
 ---
 
