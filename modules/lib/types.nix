@@ -170,6 +170,113 @@ rec {
     in
     valueType;
 
+  # We can't reuse fileType directly because it requires pkgs, so define our own
+  # that matches the same structure but is compatible with our use case
+  fileSpec = types.submodule {
+    options = {
+      text = mkOption {
+        type = types.nullOr types.lines;
+        default = null;
+        description = "Inline text content for the file.";
+      };
+      source = mkOption {
+        type = types.nullOr types.path;
+        default = null;
+        description = "The path to the source file.";
+      };
+      executable = mkOption {
+        type = types.bool;
+        default = false;
+        description = "Whether the resulting file should be executable.";
+      };
+      recursive = mkOption {
+        type = types.bool;
+        default = false;
+        description = "Whether to recursively link/copy the directory from `source`.";
+      };
+    };
+  };
+
+  fileContent = mkOptionType {
+    name = "fileContent";
+    description = "string, path, or file specification";
+    check = value: types.lines.check value || types.path.check value || fileSpec.check value;
+    merge =
+      loc: defs:
+      let
+        convertDef =
+          def:
+          if lib.isString def.value then
+            { text = def.value; }
+          else if lib.isPath def.value then
+            { source = def.value; }
+          else
+            # For attribute sets, only include non-null values to match home.file expectations
+            lib.optionalAttrs (def.value ? text && def.value.text != null) {
+              inherit (def.value) text;
+            }
+            // lib.optionalAttrs (def.value ? source && def.value.source != null) {
+              inherit (def.value) source;
+            }
+            // lib.optionalAttrs (def.value ? executable) {
+              inherit (def.value) executable;
+            }
+            // lib.optionalAttrs (def.value ? recursive) {
+              inherit (def.value) recursive;
+            };
+      in
+      if lib.length defs == 1 then
+        convertDef (lib.head defs)
+      else
+        throw "fileContent cannot merge multiple definitions at ${lib.showOption loc}";
+  };
+
+  textOrFile = types.either types.lines types.path;
+
+  attrsOfTextOrFile = types.attrsOf textOrFile;
+
+  textOrPathOrDirectory = types.oneOf [
+    types.lines
+    types.path
+    (types.submodule {
+      options = {
+        source = mkOption {
+          type = types.path;
+          description = "Path to the source directory.";
+        };
+        recursive = lib.mkEnableOption "recursively copying directory contents";
+      };
+    })
+  ];
+
+  textOrFileToHomeFile =
+    content: if lib.isString content then { text = content; } else { source = content; };
+
+  attrsOfTextOrFileToHomeFiles =
+    targetDir: content:
+    lib.mapAttrs' (
+      name: value:
+      lib.nameValuePair "${targetDir}/${name}" (
+        if lib.isString value then { text = value; } else { source = value; }
+      )
+    ) content;
+
+  textOrPathOrDirectoryToHomeFile =
+    content:
+    if lib.isString content then
+      {
+        text = content;
+      }
+    else if lib.isPath content then
+      {
+        source = content;
+      }
+      // lib.optionalAttrs (lib.pathIsDirectory content) { recursive = true; }
+    else
+      {
+        inherit (content) source recursive;
+      };
+
   sourceFile =
     targetDir: fileName:
     let

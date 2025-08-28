@@ -3,4 +3,5 @@
   lib-types-dag-merge = ./dag-merge.nix;
 
   lib-types-gvariant-merge = ./gvariant-merge.nix;
+  lib-types-fileContent = ./fileContent.nix;
 }
