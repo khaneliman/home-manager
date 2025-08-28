@@ -278,70 +278,18 @@ rec {
       };
 
   sourceFile =
-    targetDir: fileName:
-    let
-      targetFile = "${targetDir}/${fileName}";
-    in
-    types.submodule (
-      { config, ... }:
-      {
-        options = {
-          target = mkOption {
-            type = types.singleLineStr;
-            internal = true;
-            readOnly = true;
-          };
-          source = mkOption {
-            type = types.nullOr types.path;
-            default = null;
-            description = ''
-              The path to be linked to `${targetDir}` if {option}`source` is a directory,
-              or to `${targetFile}` if it is a file.
-            '';
-          };
-          text = mkOption {
-            type = types.lines;
-            default = "";
-            description = ''
-              Text to be included in `${targetFile}`.
-            '';
-          };
-          recursive = lib.mkEnableOption ''
-            Whether to recursively link files from {option}`source` (if it is a directory) in `${targetDir}`.
-          '';
-        };
-        config = {
-          target =
-            if config.source != null && lib.pathIsDirectory config.source then targetDir else targetFile;
-        };
-      }
-    );
+    _: _:
+    lib.warn ''
+      The function `sourceFile` is deprecated and will be removed in a future release.
+      Please use the `fileSpec` type directly. The `targetDir` and `fileName`
+      arguments are now ignored, as the target path should be handled by the module's implementation.
+    '' fileSpec;
 
   sourceFileOrLines =
-    targetDir: fileName:
-    let
-      fileType = sourceFile targetDir fileName;
-      union = types.either types.lines fileType;
-    in
-    union
-    // {
-      merge =
-        loc: defs:
-        fileType.merge loc (
-          map (
-            def:
-            if types.lines.check def.value then
-              {
-                inherit (def) file;
-                value = {
-                  text = def.value;
-                  source = null;
-                  recursive = false;
-                };
-              }
-            else
-              def
-          ) defs
-        );
-    };
+    _: _:
+    lib.warn ''
+      The function `sourceFileOrLines` is deprecated and will be removed in a future release.
+      Please use the `fileContent` type directly. The `targetDir` and `fileName` arguments are now ignored,
+      as the target path should be handled by the module's implementation.
+    '' fileContent;
 }
