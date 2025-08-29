@@ -7,6 +7,19 @@
       name = "swaync";
       outPath = "@swaync@";
     };
+
+    # Test string input (should become { text = "..."; })
+    style = ''
+      .notification-row {
+        outline: none;
+        background: #333;
+      }
+
+      .notification {
+        border-radius: 12px;
+        margin: 6px 12px;
+      }
+    '';
   };
 
   nmt.script = ''
@@ -32,6 +45,19 @@
         Documentation=https://github.com/ErikReider/SwayNotificationCenter
         PartOf=graphical-session.target
         X-Restart-Triggers=/nix/store/00000000000000000000000000000000-config.json
+        X-Restart-Triggers=/nix/store/00000000000000000000000000000000-hm_swayncstyle.css
       ''}
+
+    # Test that the style.css file was created with text content
+    styleFile=home-files/.config/swaync/style.css
+
+    assertFileExists $styleFile
+    assertFileContains $styleFile ".notification-row"
+    assertFileContains $styleFile "background: #333"
+    assertFileContains $styleFile "border-radius: 12px"
+
+    # Test that config.json was also created
+    configFile=home-files/.config/swaync/config.json
+    assertFileExists $configFile
   '';
 }
