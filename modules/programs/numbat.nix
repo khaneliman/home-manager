@@ -40,7 +40,7 @@ in
     };
 
     initFile = lib.mkOption {
-      type = lib.types.nullOr (lib.types.either lib.types.lines lib.types.path);
+      type = lib.types.nullOr lib.hm.types.fileContent;
       default = null;
       example = ''
         unit kohm: ElectricResistance = kV/A
@@ -55,9 +55,7 @@ in
   config = mkIf cfg.enable {
     home.packages = mkIf (cfg.package != null) [ cfg.package ];
 
-    home.file."${configDir}/init.nbt" = mkIf (cfg.initFile != null) {
-      source = if lib.isString cfg.initFile then pkgs.writeText "init.nbt" cfg.initFile else cfg.initFile;
-    };
+    home.file."${configDir}/init.nbt" = mkIf (cfg.initFile != null) cfg.initFile;
 
     home.file."${configDir}/config.toml" = mkIf (cfg.settings != { }) {
       source = tomlFormat.generate "numbat-config" cfg.settings;
