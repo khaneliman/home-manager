@@ -19,7 +19,7 @@ in
     package = lib.mkPackageOption pkgs "gitui" { };
 
     keyConfig = mkOption {
-      type = types.either types.path types.lines;
+      type = lib.hm.types.fileContent;
       default = "";
       example = ''
         exit: Some(( code: Char('c'), modifiers: ( bits: 2,),)),
@@ -33,7 +33,7 @@ in
     };
 
     theme = mkOption {
-      type = types.either types.path types.lines;
+      type = lib.hm.types.fileContent;
       default = ''
         (
           selected_tab: Reset,
@@ -69,16 +69,7 @@ in
   config = lib.mkIf cfg.enable {
     home.packages = [ cfg.package ];
 
-    xdg.configFile."gitui/theme.ron".source =
-      if builtins.isPath cfg.theme || lib.isStorePath cfg.theme then
-        cfg.theme
-      else
-        pkgs.writeText "gitui-theme.ron" cfg.theme;
-
-    xdg.configFile."gitui/key_bindings.ron".source =
-      if builtins.isPath cfg.keyConfig || lib.isStorePath cfg.keyConfig then
-        cfg.keyConfig
-      else
-        pkgs.writeText "gitui-key-config.ron" cfg.keyConfig;
+    xdg.configFile."gitui/theme.ron" = cfg.theme;
+    xdg.configFile."gitui/key_bindings.ron" = cfg.keyConfig;
   };
 }
