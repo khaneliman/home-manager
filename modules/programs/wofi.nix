@@ -42,7 +42,7 @@ in
 
     style = mkOption {
       default = null;
-      type = with types; nullOr (either lines path);
+      type = lib.types.nullOr lib.hm.types.fileContent;
       example = ''
         * {
             font-family: monospace;
@@ -70,12 +70,9 @@ in
       (mkIf (cfg.settings != { }) {
         "wofi/config".text = toConfig cfg.settings;
       })
-      (
-        let
-          styleFile = if lib.isString cfg.style then pkgs.writeText "wofi-style" cfg.style else cfg.style;
-        in
-        mkIf (cfg.style != null) { "wofi/style.css".source = styleFile; }
-      )
+      (mkIf (cfg.style != null) {
+        "wofi/style.css" = cfg.style;
+      })
     ];
   };
 }
