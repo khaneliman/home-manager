@@ -7,7 +7,6 @@
 let
   inherit (lib)
     types
-    isString
     mkIf
     mkEnableOption
     mkPackageOption
@@ -23,7 +22,7 @@ in
     enable = mkEnableOption "Nyxt";
     package = mkPackageOption pkgs "nyxt" { nullable = true; };
     config = mkOption {
-      type = with types; either lines path;
+      type = lib.hm.types.fileContent;
       default = "";
       example = ''
         (in-package #:nyxt-user)
@@ -71,12 +70,6 @@ in
 
   config = mkIf cfg.enable {
     home.packages = mkIf (cfg.package != null) [ cfg.package ];
-    xdg.configFile."nyxt/config.lisp" = mkIf (cfg.config != "") {
-      source =
-        let
-          configSource = if isString cfg.config then pkgs.writeText "nyxt-config" cfg.config else cfg.config;
-        in
-        configSource;
-    };
+    xdg.configFile."nyxt/config.lisp" = mkIf (cfg.config != "") cfg.config;
   };
 }
