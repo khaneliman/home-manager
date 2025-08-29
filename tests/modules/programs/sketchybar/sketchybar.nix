@@ -39,6 +39,7 @@
 
       # Update the bar
       sketchybar --update
+
     '';
   };
 
