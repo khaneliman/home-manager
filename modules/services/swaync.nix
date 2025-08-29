@@ -24,7 +24,7 @@ in
     package = lib.mkPackageOption pkgs "swaynotificationcenter" { };
 
     style = lib.mkOption {
-      type = lib.types.nullOr (lib.types.either lib.types.path lib.types.lines);
+      type = lib.types.nullOr lib.hm.types.fileContent;
       default = null;
       example = ''
         .notification-row {
@@ -94,13 +94,7 @@ in
 
     xdg.configFile = {
       "swaync/config.json".source = jsonFormat.generate "config.json" cfg.settings;
-      "swaync/style.css" = lib.mkIf (cfg.style != null) {
-        source =
-          if builtins.isPath cfg.style || lib.isStorePath cfg.style then
-            cfg.style
-          else
-            pkgs.writeText "swaync/style.css" cfg.style;
-      };
+      "swaync/style.css" = lib.mkIf (cfg.style != null) cfg.style;
     };
 
     systemd.user.services.swaync = lib.mkIf (cfg.package != null) {
