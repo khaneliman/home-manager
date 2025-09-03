@@ -170,8 +170,31 @@ rec {
     in
     valueType;
 
-  # We can't reuse fileType directly because it requires pkgs, so define our own
-  # that matches the same structure but is compatible with our use case
+  # fileSpec :: optionType
+  #
+  # Core file specification type providing the foundation for all filesystem
+  # configuration in Home Manager. This type defines a comprehensive schema
+  # for specifying file content, permissions, and generation options.
+  #
+  # The type supports multiple content sources (inline text or external files),
+  # permission control, and template-based generation with automatic shebang
+  # insertion for various script types.
+  #
+  # Parameters
+  #
+  # This is a submodule type with the following options:
+  #
+  # `text`: Optional inline text content as lines
+  # `source`: Optional path to source file or directory
+  # `executable`: Boolean flag for executable permission (default: false)
+  # `recursive`: Boolean flag for recursive directory handling (default: false)
+  # `scriptType`: Optional script type for automatic shebang generation
+  # `template`: Optional template configuration for header/footer wrapping
+  #
+  # Return value
+  #
+  # An attribute set conforming to the file specification schema, suitable
+  # for conversion to Home Manager's home.file format via fileContentToHomeFile.
   fileSpec = types.submodule {
     options = {
       text = mkOption {
@@ -182,7 +205,7 @@ rec {
       source = mkOption {
         type = types.nullOr types.path;
         default = null;
-        description = "The path to the source file.";
+        description = "The path to the source file or directory.";
       };
       executable = mkOption {
         type = types.bool;
@@ -194,9 +217,84 @@ rec {
         default = false;
         description = "Whether to recursively link/copy the directory from `source`.";
       };
+
+      # Enhanced options for script generation
+      scriptType = mkOption {
+        type = types.nullOr (
+          types.enum [
+            "bash"
+            "sh"
+            "lua"
+            "python"
+            "perl"
+            "ruby"
+          ]
+        );
+        default = null;
+        description = "Script type - automatically adds appropriate shebang and sets executable = true.";
+      };
+      template = mkOption {
+        type = types.nullOr (
+          types.submodule {
+            options = {
+              header = mkOption {
+                type = types.nullOr types.lines;
+                default = null;
+                description = "Header comment to add at the top of generated files.";
+              };
+              footer = mkOption {
+                type = types.nullOr types.lines;
+                default = null;
+                description = "Footer comment to add at the end of generated files.";
+              };
+            };
+          }
+        );
+        default = null;
+        description = "Template options for wrapping generated content.";
+      };
     };
   };
 
+  # fileContent :: optionType
+  #
+  # Flexible file content type that accepts string, path, or full file specification.
+  # This is the recommended type for most filesystem configuration use cases in
+  # Home Manager as it provides maximum convenience while maintaining type safety.
+  #
+  # The type automatically converts between different input formats:
+  # - Strings become inline text content
+  # - Paths become file sources (with automatic recursive detection for directories)
+  # - Attribute sets are treated as full file specifications
+  #
+  # Parameters
+  #
+  #     fileContent value
+  #
+  # `value`: One of the following:
+  #   - String: Inline text content
+  #   - Path: Source file or directory path
+  #   - Attribute set: Full file specification matching fileSpec schema
+  #
+  # Return value
+  #
+  # A normalized file specification attribute set. Multiple definitions cannot
+  # be merged - this type enforces a single definition per option location.
+  #
+  # Example usage
+  #
+  #     # String input
+  #     content = "Hello, world!";
+  #
+  #     # Path input
+  #     content = ./my-config.conf;
+  #
+  #     # Full specification
+  #     content = {
+  #       text = "#!/usr/bin/env bash\necho hello";
+  #       executable = true;
+  #       scriptType = "bash";
+  #     };
   fileContent = mkOptionType {
     name = "fileContent";
     description = "string, path, or file specification";
@@ -209,9 +307,15 @@ rec {
           if lib.isString def.value then
             { text = def.value; }
           else if lib.isPath def.value then
-            { source = def.value; }
+            let
+              isDir = lib.pathIsDirectory def.value;
+            in
+            {
+              source = def.value;
+            }
+            // lib.optionalAttrs isDir { recursive = true; }
           else
-            # For attribute sets, only include non-null values to match home.file expectations
+            # For attribute sets, only include non-null values
             lib.optionalAttrs (def.value ? text && def.value.text != null) {
               inherit (def.value) text;
             }
@@ -223,6 +327,12 @@ rec {
             }
             // lib.optionalAttrs (def.value ? recursive) {
               inherit (def.value) recursive;
+            }
+            // lib.optionalAttrs (def.value ? scriptType && def.value.scriptType != null) {
+              inherit (def.value) scriptType;
+            }
+            // lib.optionalAttrs (def.value ? template && def.value.template != null) {
+              inherit (def.value) template;
             };
       in
       if lib.length defs == 1 then
@@ -231,117 +341,134 @@ rec {
         throw "fileContent cannot merge multiple definitions at ${lib.showOption loc}";
   };
 
-  textOrFile = types.either types.lines types.path;
+  # Script type to shebang mapping
+  scriptShebangs = {
+    bash = "#!/usr/bin/env bash";
+    sh = "#!/bin/sh";
+    lua = "#!/usr/bin/env lua";
+    python = "#!/usr/bin/env python3";
+    perl = "#!/usr/bin/env perl";
+    ruby = "#!/usr/bin/env ruby";
+  };
 
-  attrsOfTextOrFile = types.attrsOf textOrFile;
-
-  textOrPathOrDirectory = types.oneOf [
-    types.lines
-    types.path
-    (types.submodule {
-      options = {
-        source = mkOption {
-          type = types.path;
-          description = "Path to the source directory.";
-        };
-        recursive = lib.mkEnableOption "recursively copying directory contents";
-      };
-    })
-  ];
-
-  textOrFileToHomeFile =
-    content: if lib.isString content then { text = content; } else { source = content; };
-
-  attrsOfTextOrFileToHomeFiles =
-    targetDir: content:
-    lib.mapAttrs' (
-      name: value:
-      lib.nameValuePair "${targetDir}/${name}" (
-        if lib.isString value then { text = value; } else { source = value; }
-      )
-    ) content;
-
-  textOrPathOrDirectoryToHomeFile =
+  # fileContentToHomeFile :: fileContent -> homeFileAttrs
+  #
+  # Converts a fileContent value into Home Manager's home.file attribute format.
+  # This function handles the transformation from the flexible fileContent type
+  # to the specific attribute structure expected by Home Manager's file management.
+  #
+  # The function processes script types by adding appropriate shebangs, handles
+  # template wrapping with headers and footers, and manages file permissions
+  # and directory recursion settings.
+  #
+  # Parameters
+  #
+  #     fileContentToHomeFile content
+  #
+  # `content`: A fileContent value (string, path, or file specification)
+  #
+  # Return value
+  #
+  # An attribute set suitable for use in home.file, containing:
+  # - `text`: Generated or passed-through text content (if applicable)
+  # - `source`: Source path (if applicable)
+  # - `executable`: Boolean permission flag (if needed)
+  # - `recursive`: Boolean directory flag (if needed)
+  #
+  # The function automatically:
+  # - Adds shebangs for recognized script types
+  # - Wraps content with template headers/footers
+  # - Sets executable permissions for scripts
+  # - Enables recursive mode for directory paths
+  fileContentToHomeFile =
     content:
     if lib.isString content then
-      {
-        text = content;
-      }
+      { text = content; }
     else if lib.isPath content then
-      {
-        source = content;
-      }
-      // lib.optionalAttrs (lib.pathIsDirectory content) { recursive = true; }
+      let
+        isDir = lib.pathIsDirectory content;
+      in
+      { source = content; } // lib.optionalAttrs isDir { recursive = true; }
     else
-      {
-        inherit (content) source recursive;
-      };
+      let
+        hasScriptType = content ? scriptType && content.scriptType != null;
+        hasTemplate = content ? template && content.template != null;
+        hasText = content ? text && content.text != null;
 
-  sourceFile =
-    targetDir: fileName:
-    let
-      targetFile = "${targetDir}/${fileName}";
-    in
-    types.submodule (
-      { config, ... }:
-      {
-        options = {
-          target = mkOption {
-            type = types.singleLineStr;
-            internal = true;
-            readOnly = true;
-          };
-          source = mkOption {
-            type = types.nullOr types.path;
-            default = null;
-            description = ''
-              The path to be linked to `${targetDir}` if {option}`source` is a directory,
-              or to `${targetFile}` if it is a file.
-            '';
-          };
-          text = mkOption {
-            type = types.lines;
-            default = "";
-            description = ''
-              Text to be included in `${targetFile}`.
-            '';
-          };
-          recursive = lib.mkEnableOption ''
-            Whether to recursively link files from {option}`source` (if it is a directory) in `${targetDir}`.
-          '';
-        };
-        config = {
-          target =
-            if config.source != null && lib.pathIsDirectory config.source then targetDir else targetFile;
-        };
-      }
-    );
+        shebang = lib.optionalString hasScriptType scriptShebangs.${content.scriptType};
 
-  sourceFileOrLines =
-    targetDir: fileName:
-    let
-      fileType = sourceFile targetDir fileName;
-      union = types.either types.lines fileType;
-    in
-    union
-    // {
-      merge =
-        loc: defs:
-        fileType.merge loc (
-          map (
-            def:
-            if types.lines.check def.value then
-              {
-                inherit (def) file;
-                value = {
-                  text = def.value;
-                  source = null;
-                  recursive = false;
-                };
-              }
-            else
-              def
-          ) defs
-        );
-    };
+        header = lib.optionalString (
+          hasTemplate && content.template ? header && content.template.header != null
+        ) content.template.header;
+
+        footer = lib.optionalString (
+          hasTemplate && content.template ? footer && content.template.footer != null
+        ) content.template.footer;
+
+        generatedText =
+          if hasText && (hasScriptType || hasTemplate) then
+            lib.concatStringsSep "\n" (
+              lib.filter (x: x != "") [
+                shebang
+                header
+                content.text
+                footer
+              ]
+            )
+          else if hasText then
+            content.text
+          else
+            null;
+
+        baseAttrs =
+          lib.optionalAttrs (content ? source && content.source != null) {
+            inherit (content) source;
+          }
+          // lib.optionalAttrs (content ? recursive) {
+            inherit (content) recursive;
+          }
+          // lib.optionalAttrs (content ? executable || hasScriptType) {
+            executable = content.executable or hasScriptType;
+          };
+
+      in
+      if generatedText != null then baseAttrs // { text = generatedText; } else baseAttrs;
+
+  # attrsOfFileContentToHomeFiles :: str -> attrsOf fileContent -> attrsOf homeFileAttrs
+  #
+  # Converts an attribute set of fileContent values into Home Manager's home.file
+  # format with proper path prefixing. This is a convenience function for bulk
+  # conversion of configuration files within a specific target directory.
+  #
+  # Parameters
+  #
+  #     attrsOfFileContentToHomeFiles targetDir content
+  #
+  # `targetDir`: String path prefix to prepend to all file names
+  # `content`: Attribute set where keys are filenames and values are fileContent
+  #
+  # Return value
+  #
+  # An attribute set suitable for merging into home.file, where:
+  # - Keys are full paths: "${targetDir}/${name}"
+  # - Values are converted homeFileAttrs from fileContentToHomeFile
+  #
+  # Example usage
+  #
+  #     # Input
+  #     attrsOfFileContentToHomeFiles ".config/app" {
+  #       "config.ini" = "key=value";
+  #       "script.sh" = { text = "echo hello"; executable = true; };
+  #     }
+  #
+  #     # Output
+  #     {
+  #       ".config/app/config.ini".text = "key=value";
+  #       ".config/app/script.sh" = { text = "echo hello"; executable = true; };
+  #     }
+  attrsOfFileContentToHomeFiles =
+    targetDir: content:
+    lib.mapAttrs' (
+      name: value: lib.nameValuePair "${targetDir}/${name}" (fileContentToHomeFile value)
+    ) content;
 }
