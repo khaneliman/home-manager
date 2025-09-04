@@ -1,0 +1,93 @@
+name: Test Coverage Analysis
+
+on:
+  schedule:
+    # Run weekly on Monday at 6 AM UTC
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'modules/**'
+      - 'tests/**'
+
+jobs:
+  coverage-analysis:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Generate current coverage report
+        run: |
+          python3 scripts/generate-test-coverage-report.py --output coverage-current.md
+      
+      - name: Check coverage changes (PR only)
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "## Test Coverage Analysis" >> $GITHUB_STEP_SUMMARY
+          python3 scripts/generate-test-coverage-report.py --output coverage-pr.md
+          
+          # Extract key statistics
+          SERVICES_TESTED=$(grep "Service test coverage" coverage-pr.md | grep -o '[0-9.]*%' || echo "N/A")
+          PROGRAMS_TESTED=$(grep "Program test coverage" coverage-pr.md | grep -o '[0-9.]*%' || echo "N/A")
+          
+          echo "### Current Coverage Statistics" >> $GITHUB_STEP_SUMMARY
+          echo "- **Services**: $SERVICES_TESTED" >> $GITHUB_STEP_SUMMARY
+          echo "- **Programs**: $PROGRAMS_TESTED" >> $GITHUB_STEP_SUMMARY
+          
+          # Check if new modules were added without tests
+          NEW_MODULES=$(git diff --name-only origin/master...HEAD | grep "^modules/" | grep "\.nix$" | wc -l)
+          NEW_TESTS=$(git diff --name-only origin/master...HEAD | grep "^tests/" | grep "\.nix$" | wc -l)
+          
+          if [ "$NEW_MODULES" -gt 0 ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Changes Detected" >> $GITHUB_STEP_SUMMARY
+            echo "- **New/modified modules**: $NEW_MODULES" >> $GITHUB_STEP_SUMMARY
+            echo "- **New/modified tests**: $NEW_TESTS" >> $GITHUB_STEP_SUMMARY
+            
+            if [ "$NEW_TESTS" -eq 0 ] && [ "$NEW_MODULES" -gt 0 ]; then
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "⚠️ **Warning**: New modules added without corresponding tests" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+      
+      - name: Update coverage analysis (scheduled/manual)
+        if: github.event_name != 'pull_request'
+        run: |
+          cp coverage-current.md TEST_COVERAGE_GAPS_ANALYSIS.md
+      
+      - name: Create Pull Request for coverage updates
+        if: github.event_name != 'pull_request'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: "chore: update test coverage analysis"
+          body: |
+            ## Automated Test Coverage Analysis Update
+            
+            This PR updates the test coverage analysis report with the latest statistics.
+            
+            ### Summary
+            - Updated module and test counts
+            - Refreshed priority recommendations
+            - Current coverage statistics included
+            
+            Generated automatically by the test coverage analysis workflow.
+          branch: update-coverage-analysis-${{ github.run_number }}
+          commit-message: "chore: update test coverage analysis report"
+          delete-branch: true
+      
+      - name: Upload coverage report as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-coverage-report
+          path: coverage-current.md
+          retention-days: 30
