@@ -21,6 +21,7 @@ let
     showFiles
     showOption
     types
+    optionalString
     ;
 
   typesDag = import ./types-dag.nix { inherit lib; };
@@ -263,66 +264,142 @@ rec {
   #
   # An attribute set conforming to the file specification schema, suitable
   # for conversion to Home Manager's home.file format via fileContentToHomeFile.
-  fileSpec = types.submodule {
-    options = {
-      text = mkOption {
-        type = types.nullOr types.lines;
-        default = null;
-        description = "Inline text content for the file.";
-      };
-      source = mkOption {
-        type = types.nullOr types.path;
-        default = null;
-        description = "The path to the source file or directory.";
-      };
-      executable = mkOption {
-        type = types.nullOr types.bool;
-        default = null;
-        description = "Whether the resulting file should be executable.";
-      };
-      recursive = mkOption {
-        type = types.bool;
-        default = false;
-        description = "Whether to recursively link/copy the directory from `source`.";
-      };
+  fileSpec = types.submodule (
+    { config, ... }:
+    {
+      _file = "hm-file-spec";
+      options = {
+        text = mkOption {
+          type = types.nullOr types.lines;
+          default = null;
+          description = "Inline text content for the file.";
+        };
+        source = mkOption {
+          type = types.nullOr types.path;
+          default = null;
+          description = "The path to the source file or directory.";
+        };
+        executable = mkOption {
+          type = types.nullOr types.bool;
+          default = null;
+          description = "Whether the resulting file should be executable.";
+        };
+        recursive = mkOption {
+          type = types.bool;
+          default = false;
+          description = "Whether to recursively link/copy the directory from `source`.";
+        };
 
-      # Enhanced options for script generation
-      scriptType = mkOption {
-        type = types.nullOr (
-          types.enum [
-            "bash"
-            "sh"
-            "lua"
-            "python"
-            "perl"
-            "ruby"
-          ]
-        );
-        default = null;
-        description = "Script type - automatically adds appropriate shebang and sets executable = true.";
-      };
-      template = mkOption {
-        type = types.nullOr (
-          types.submodule {
-            options = {
-              header = mkOption {
-                type = types.nullOr types.lines;
-                default = null;
-                description = "Header comment to add at the top of generated files.";
+        # Enhanced options for script generation
+        scriptType = mkOption {
+          type = types.nullOr (
+            types.enum [
+              "bash"
+              "sh"
+              "lua"
+              "python"
+              "perl"
+              "ruby"
+            ]
+          );
+          default = null;
+          description = "Script type - automatically adds appropriate shebang and sets executable = true.";
+        };
+        template = mkOption {
+          type = types.nullOr (
+            types.submodule {
+              options = {
+                header = mkOption {
+                  type = types.nullOr types.lines;
+                  default = null;
+                  description = "Header comment to add at the top of generated files.";
+                };
+                footer = mkOption {
+                  type = types.nullOr types.lines;
+                  default = null;
+                  description = "Footer comment to add at the end of generated files.";
+                };
               };
-              footer = mkOption {
-                type = types.nullOr types.lines;
-                default = null;
-                description = "Footer comment to add at the end of generated files.";
-              };
-            };
-          }
-        );
-        default = null;
-        description = "Template options for wrapping generated content.";
+            }
+          );
+          default = null;
+          description = "Template options for wrapping generated content.";
+        };
       };
-    };
-  };
+      config =
+        let
+          # Script type to shebang mapping
+          scriptShebangs = {
+            bash = "#!/usr/bin/env bash";
+            sh = "#!/bin/sh";
+            lua = "#!/usr/bin/env lua";
+            python = "#!/usr/bin/env python3";
+            perl = "#!/usr/bin/env perl";
+            ruby = "#!/usr/bin/env ruby";
+          };
+
+          scriptCommentStyles = {
+            bash = "#";
+            sh = "#";
+            python = "#";
+            lua = "--";
+            perl = "#";
+            ruby = "#";
+          };
+        in
+        {
+          _module.args.check =
+            cfg:
+            let
+              hasSource = cfg.source != null;
+              hasText = cfg.text != null;
+            in
+            # Assert that `source` and `text` are not used at the same time.
+            if hasSource && hasText then
+              throw ''
+                The `source` and `text` options are mutually exclusive. Please choose one.
+                Source: ${toString cfg.source}
+              ''
+            else
+              true;
+
+          template = lib.mkIf (config.scriptType != null) (
+            lib.mkDefault {
+              header =
+                let
+                  commentChar = scriptCommentStyles.${config.scriptType};
+                in
+                "${commentChar} Generated by home-manager";
+              footer = null;
+            }
+          );
+
+          # This text-generation logic now automatically picks up our default header,
+          # or a user-provided one if it exists. No changes needed here!
+          text = lib.mkIf (config.scriptType != null || config.template != null) (
+            let
+              shebang = optionalString (config.scriptType != null) (scriptShebangs.${config.scriptType});
+              header = optionalString (
+                config.template != null && config.template.header != null
+              ) config.template.header;
+              body = config.text;
+              footer = optionalString (
+                config.template != null && config.template.footer != null
+              ) config.template.footer;
+              allParts = lib.filter (s: s != null && s != "") [
+                shebang
+                header
+                body
+                footer
+              ];
+            in
+            lib.concatStringsSep "\n\n" allParts
+          );
+
+          executable = lib.mkIf (config.scriptType != null) true;
+        };
+    }
+  );
 
   # fileContent :: optionType
   #
@@ -363,51 +440,35 @@ rec {
   #       executable = true;
   #       scriptType = "bash";
   #     };
-  fileContent = mkOptionType {
-    name = "fileContent";
-    description = "string, path, or file specification";
-    check = value: types.lines.check value || types.path.check value || fileSpec.check value;
-    merge =
-      loc: defs:
-      let
-        convertDef =
-          def:
-          if lib.isString def.value then
-            { text = def.value; }
-          else if lib.isPath def.value then
-            let
-              isDir = lib.pathIsDirectory def.value;
-            in
-            {
-              source = def.value;
-            }
-            // lib.optionalAttrs isDir { recursive = true; }
-          else
-            # For attribute sets, only include non-null values
-            lib.optionalAttrs (def.value ? text && def.value.text != null) {
-              inherit (def.value) text;
-            }
-            // lib.optionalAttrs (def.value ? source && def.value.source != null) {
-              inherit (def.value) source;
-            }
-            // lib.optionalAttrs (def.value ? executable) {
-              inherit (def.value) executable;
-            }
-            // lib.optionalAttrs (def.value ? recursive) {
-              inherit (def.value) recursive;
-            }
-            // lib.optionalAttrs (def.value ? scriptType && def.value.scriptType != null) {
-              inherit (def.value) scriptType;
-            }
-            // lib.optionalAttrs (def.value ? template && def.value.template != null) {
-              inherit (def.value) template;
-            };
-      in
-      if lib.length defs == 1 then
-        convertDef (lib.head defs)
-      else
-        throw "fileContent cannot merge multiple definitions at ${lib.showOption loc}";
-  };
+  fileContent =
+    types.oneOf [
+      types.lines
+      types.path
+      fileSpec
+    ]
+    // {
+      name = "fileContent";
+      description = "a string, a path, or a file specification set";
+
+      merge =
+        loc: defs:
+        let
+          normalize =
+            value:
+            if lib.isString value then
+              { text = value; }
+            else if lib.isPath value then
+              {
+                source = value;
+                recursive = lib.pathIsDirectory value;
+              }
+            else
+              value;
+
+          normalizedDefs = map (def: def // { value = normalize def.value; }) defs;
+        in
+        fileSpec.merge loc normalizedDefs;
+    };
 
   # extractFileSpecOptions :: optionType -> attrSet
   #
@@ -433,15 +494,17 @@ rec {
     in
     userOptions;
 
-  # Script type to shebang mapping
-  scriptShebangs = {
-    bash = "#!/usr/bin/env bash";
-    sh = "#!/bin/sh";
-    lua = "#!/usr/bin/env lua";
-    python = "#!/usr/bin/env python3";
-    perl = "#!/usr/bin/env perl";
-    ruby = "#!/usr/bin/env ruby";
-  };
+  fileSpecToHomeFileAttrs =
+    fileSpecValue:
+    lib.filterAttrs (
+      name: _:
+      lib.elem name [
+        "text"
+        "source"
+        "executable"
+        "recursive"
+      ]
+    ) fileSpecValue;
 
   # fileContentToHomeFile :: fileContent -> homeFileAttrs
   #
@@ -483,6 +546,16 @@ rec {
       { source = content; } // lib.optionalAttrs isDir { recursive = true; }
     else
       let
+        # Script type to shebang mapping
+        scriptShebangs = {
+          bash = "#!/usr/bin/env bash";
+          sh = "#!/bin/sh";
+          lua = "#!/usr/bin/env lua";
+          python = "#!/usr/bin/env python3";
+          perl = "#!/usr/bin/env perl";
+          ruby = "#!/usr/bin/env ruby";
+        };
+
         hasScriptType = content ? scriptType && content.scriptType != null;
         hasTemplate = content ? template && content.template != null;
         hasText = content ? text && content.text != null;
@@ -560,9 +633,10 @@ rec {
   #       ".config/app/config.ini".text = "key=value";
   #       ".config/app/script.sh" = { text = "echo hello"; executable = true; };
   #     }
-  attrsOfFileContentToHomeFiles =
-    targetDir: content:
+  mkHomeFiles =
+    targetDir: contentMap:
     lib.mapAttrs' (
-      name: value: lib.nameValuePair "${targetDir}/${name}" (fileContentToHomeFile value)
-    ) content;
+      fileName: fileContentValue:
+      lib.nameValuePair "${targetDir}/${fileName}" (fileSpecToHomeFileAttrs fileContentValue)
+    ) contentMap;
 }

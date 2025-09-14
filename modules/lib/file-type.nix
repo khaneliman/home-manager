@@ -87,13 +87,13 @@ in
                 type = types.lines;
                 default = "";
                 description = ''
-                  Shell commands to run when file has changed between
-                generations. The script will be run
-                *after* the new files have been linked
-                into place.
+                    Shell commands to run when file has changed between
+                  generations. The script will be run
+                  *after* the new files have been linked
+                  into place.
 
-                Note, this code is always run when `recursive` is
-                enabled.
+                  Note, this code is always run when `recursive` is
+                  enabled.
                 '';
               };
 
