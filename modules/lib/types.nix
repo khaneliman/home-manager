@@ -496,110 +496,18 @@ rec {
 
   fileSpecToHomeFileAttrs =
     fileSpecValue:
-    lib.filterAttrs (
-      name: _:
-      lib.elem name [
-        "text"
-        "source"
-        "executable"
-        "recursive"
-      ]
-    ) fileSpecValue;
-
-  # fileContentToHomeFile :: fileContent -> homeFileAttrs
-  #
-  # Converts a fileContent value into Home Manager's home.file attribute format.
-  # This function handles the transformation from the flexible fileContent type
-  # to the specific attribute structure expected by Home Manager's file management.
-  #
-  # The function processes script types by adding appropriate shebangs, handles
-  # template wrapping with headers and footers, and manages file permissions
-  # and directory recursion settings.
-  #
-  # Parameters
-  #
-  #     fileContentToHomeFile content
-  #
-  # `content`: A fileContent value (string, path, or file specification)
-  #
-  # Return value
-  #
-  # An attribute set suitable for use in home.file, containing:
-  # - `text`: Generated or passed-through text content (if applicable)
-  # - `source`: Source path (if applicable)
-  # - `executable`: Boolean permission flag (if needed)
-  # - `recursive`: Boolean directory flag (if needed)
-  #
-  # The function automatically:
-  # - Adds shebangs for recognized script types
-  # - Wraps content with template headers/footers
-  # - Sets executable permissions for scripts
-  # - Enables recursive mode for directory paths
-  fileContentToHomeFile =
-    content:
-    if lib.isString content then
-      { text = content; }
-    else if lib.isPath content then
-      let
-        isDir = lib.pathIsDirectory content;
-      in
-      { source = content; } // lib.optionalAttrs isDir { recursive = true; }
-    else
-      let
-        # Script type to shebang mapping
-        scriptShebangs = {
-          bash = "#!/usr/bin/env bash";
-          sh = "#!/bin/sh";
-          lua = "#!/usr/bin/env lua";
-          python = "#!/usr/bin/env python3";
-          perl = "#!/usr/bin/env perl";
-          ruby = "#!/usr/bin/env ruby";
-        };
-
-        hasScriptType = content ? scriptType && content.scriptType != null;
-        hasTemplate = content ? template && content.template != null;
-        hasText = content ? text && content.text != null;
-
-        shebang = lib.optionalString hasScriptType scriptShebangs.${content.scriptType};
-        header = lib.optionalString (
-          hasTemplate && content.template ? header && content.template.header != null
-        ) content.template.header;
-
-        footer = lib.optionalString (
-          hasTemplate && content.template ? footer && content.template.footer != null
-        ) content.template.footer;
-
-        generatedText =
-          if hasText && (hasScriptType || hasTemplate) then
-            let
-              parts = lib.filter (x: x != "") [
-                shebang
-                header
-                content.text
-                footer
-              ];
-              joined = lib.concatStringsSep "\n" parts;
-            in
-            # Ensure trailing newline if we generated content
-            if joined != "" && !lib.hasSuffix "\n" joined then joined + "\n" else joined
-          else if hasText then
-            content.text
-          else
-            null;
-
-        baseAttrs =
-          lib.optionalAttrs (content ? source && content.source != null) {
-            inherit (content) source;
-          }
-          // lib.optionalAttrs (content ? recursive) {
-            inherit (content) recursive;
-          }
-          // lib.optionalAttrs (content ? executable || hasScriptType) {
-            executable = content.executable or hasScriptType;
-          };
-
-      in
-      if generatedText != null then baseAttrs // { text = generatedText; } else baseAttrs;
+    # Unconditionally include executable and recursive, since `false` is a valid value.
+    {
+      inherit (fileSpecValue) executable recursive;
+    }
+    # ONLY include the `text` attribute if it's not null.
+    // lib.optionalAttrs (fileSpecValue.text != null) {
+      text = fileSpecValue.text;
+    }
+    # ONLY include the `source` attribute if it's not null.
+    // lib.optionalAttrs (fileSpecValue.source != null) {
+      source = fileSpecValue.source;
+    };
 
   # attrsOfFileContentToHomeFiles :: str -> attrsOf fileContent -> attrsOf homeFileAttrs
   #
