@@ -61,7 +61,8 @@ in
       sbar:subscribe("cpu", "system_woke")
 
       -- Update the bar
-      sbar:update()'';
+      sbar:update()
+    '';
   };
 
   nmt.script = ''

@@ -466,8 +466,12 @@ rec {
               value;
 
           normalizedDefs = map (def: def // { value = normalize def.value; }) defs;
+          baseResult = fileSpec.merge loc normalizedDefs;
+
+          # Note: Script processing removed - should be handled by individual modules
+          processedResult = baseResult;
         in
-        fileSpec.merge loc normalizedDefs;
+        processedResult;
     };
 
   # extractFileSpecOptions :: optionType -> attrSet
