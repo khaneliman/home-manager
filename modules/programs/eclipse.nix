@@ -49,6 +49,10 @@ in
   };
 
   config = mkIf cfg.enable {
+    assertions = [
+      (lib.hm.assertions.assertPlatform "programs.eclipse" pkgs lib.platforms.linux)
+    ];
+
     home.packages = [
       (pkgs.eclipses.eclipseWithPlugins {
         eclipse = cfg.package;
