@@ -1,0 +1,13 @@
+[Install]
+WantedBy=graphical-session.target
+
+[Service]
+ExecStart=@safeeyes@/bin/dummy
+Restart=on-failure
+RestartSec=3
+
+[Unit]
+Description=Safe Eyes
+PartOf=graphical-session.target
+StartLimitBurst=30
+StartLimitIntervalSec=350

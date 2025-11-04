@@ -1,0 +1,9 @@
+[Install]
+WantedBy=timers.target
+
+[Timer]
+OnCalendar=hourly
+Unit=taskwarrior-sync.service
+
+[Unit]
+Description=Taskwarrior periodic sync

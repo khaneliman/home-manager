@@ -1,0 +1,11 @@
+[Service]
+CPUSchedulingPolicy=idle
+Environment=UNISON='/home/hm-user/.local/share/unison'
+ExecStart=@unison@/bin/unison \
+  '-auto=true' '-batch=true' '-log=false' '-repeat=watch' '-sshcmd=@openssh@/bin/ssh' '-ui=text' \
+  /home/user/documents ssh://remote/documents
+
+IOSchedulingClass=idle
+
+[Unit]
+Description=Unison pair sync (my-documents)

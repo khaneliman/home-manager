@@ -1,0 +1,7 @@
+[Service]
+CPUSchedulingPolicy=idle
+ExecStart=@taskwarrior@/bin/task synchronize
+IOSchedulingClass=idle
+
+[Unit]
+Description=Taskwarrior sync

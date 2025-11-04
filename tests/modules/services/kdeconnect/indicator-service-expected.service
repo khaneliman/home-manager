@@ -1,0 +1,14 @@
+[Install]
+WantedBy=graphical-session.target
+
+[Service]
+Environment=PATH=/home/hm-user/.nix-profile/bin
+ExecStart=@kdeconnect-kde@/bin/kdeconnect-indicator
+Restart=on-abort
+
+[Unit]
+After=graphical-session.target
+After=tray.target
+Description=kdeconnect-indicator
+PartOf=graphical-session.target
+Requires=tray.target

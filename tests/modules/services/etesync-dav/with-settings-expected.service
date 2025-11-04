@@ -1,0 +1,9 @@
+[Install]
+WantedBy=default.target
+
+[Service]
+Environment=ETESYNC_DEBUG=true ETESYNC_LISTEN_ADDRESS=localhost ETESYNC_LISTEN_PORT=37358 ETESYNC_URL=https://api.etebase.com/partner/etesync/
+ExecStart=@etesync-dav@/bin/etesync-dav
+
+[Unit]
+Description=etesync-dav

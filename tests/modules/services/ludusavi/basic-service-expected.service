@@ -1,0 +1,6 @@
+[Service]
+ExecStart=@ludusavi@/bin/ludusavi backup --force
+Type=oneshot
+
+[Unit]
+Description=Run a game save backup with Ludusavi

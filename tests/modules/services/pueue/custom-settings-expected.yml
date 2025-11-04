@@ -1,0 +1,7 @@
+client:
+  restart_in_place: false
+daemon:
+  default_parallel_tasks: 2
+  host: 127.0.0.1
+  port: 6924
+shared: {}

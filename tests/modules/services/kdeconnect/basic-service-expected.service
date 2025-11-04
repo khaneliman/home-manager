@@ -1,0 +1,12 @@
+[Install]
+WantedBy=graphical-session.target
+
+[Service]
+Environment=PATH=/home/hm-user/.nix-profile/bin
+ExecStart=@kdeconnect-kde@/bin/kdeconnectd
+Restart=on-abort
+
+[Unit]
+After=graphical-session.target
+Description=Adds communication between your desktop and your smartphone
+PartOf=graphical-session.target

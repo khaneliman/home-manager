@@ -1,0 +1,8 @@
+[Service]
+ExecStart=@vdirsyncer@/bin/vdirsyncer --verbosity DEBUG metasync
+ExecStart=@vdirsyncer@/bin/vdirsyncer --verbosity DEBUG sync
+Type=oneshot
+
+[Unit]
+Description=vdirsyncer calendar&contacts synchronization
+PartOf=network-online.target

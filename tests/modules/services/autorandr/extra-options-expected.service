@@ -1,0 +1,11 @@
+[Install]
+WantedBy=graphical-session.target
+
+[Service]
+ExecStart=@autorandr@/bin/autorandr --change --force --verbose
+Type=oneshot
+
+[Unit]
+After=graphical-session.target
+Description=Auto-detect the connected display hardware and load the appropriate X11 setup using xrandr
+PartOf=graphical-session.target

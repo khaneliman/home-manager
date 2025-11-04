@@ -1,0 +1,9 @@
+[Install]
+WantedBy=default.target
+
+[Service]
+ExecStart=@pueue@/bin/pueued -v -c /nix/store/00000000000000000000000000000000-pueue.yaml
+Restart=on-failure
+
+[Unit]
+Description=Pueue Daemon - CLI process scheduler and manager

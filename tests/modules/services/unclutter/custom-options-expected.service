@@ -1,0 +1,12 @@
+[Unit]
+Description=unclutter
+After=graphical-session.target
+PartOf=graphical-session.target
+
+[Service]
+ExecStart=@unclutter-xfixes@/bin/unclutter --timeout 5 --jitter 9 --exclude-root --ignore-scrolling
+RestartSec=3
+Restart=always
+
+[Install]
+WantedBy=graphical-session.target

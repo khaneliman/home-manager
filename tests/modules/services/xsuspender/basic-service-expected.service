@@ -1,0 +1,11 @@
+[Unit]
+Description=XSuspender
+After=graphical-session.target
+PartOf=graphical-session.target
+X-Restart-Triggers=@xsuspenderConf@
+
+[Service]
+ExecStart=@xsuspender@/bin/xsuspender
+
+[Install]
+WantedBy=graphical-session.target

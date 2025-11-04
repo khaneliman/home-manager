@@ -1,0 +1,9 @@
+[Install]
+WantedBy=default.target
+
+[Service]
+Environment=ETESYNC_URL=https://api.etebase.com/partner/etesync/
+ExecStart=@etesync-dav@/bin/etesync-dav
+
+[Unit]
+Description=etesync-dav

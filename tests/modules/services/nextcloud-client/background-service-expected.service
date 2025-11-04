@@ -1,0 +1,11 @@
+[Install]
+WantedBy=graphical-session.target
+
+[Service]
+Environment=PATH=/home/hm-user/.nix-profile/bin
+ExecStart=@nextcloud-client@/bin/nextcloud --background
+
+[Unit]
+After=graphical-session.target
+Description=Nextcloud Client
+PartOf=graphical-session.target

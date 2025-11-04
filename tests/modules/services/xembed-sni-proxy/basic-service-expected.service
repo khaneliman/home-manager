@@ -1,0 +1,12 @@
+[Unit]
+Description=XEmbed SNI Proxy
+After=graphical-session.target
+PartOf=graphical-session.target
+
+[Install]
+WantedBy=graphical-session.target
+
+[Service]
+Environment=PATH=@homeProfileDir@/bin
+ExecStart=@plasma-workspace@/bin/xembedsniproxy
+Restart=on-abort

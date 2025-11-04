@@ -1,0 +1,13 @@
+[Install]
+WantedBy=graphical-session.target
+
+[Service]
+ExecStart=@amberol@/bin/amberol --gapplication-service
+Restart=on-failure
+RestartSec=5
+
+[Unit]
+After=graphical-session.target
+Description=Amberol music player daemon
+PartOf=graphical-session.target
+Requires=dbus.service

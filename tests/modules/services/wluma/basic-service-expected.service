@@ -1,0 +1,19 @@
+[Install]
+WantedBy=graphical-session.target
+
+[Service]
+ExecStart=@wluma@/bin/wluma
+LockPersonality=true
+MemoryDenyWriteExecute=true
+NoNewPrivileges=true
+PrivateUsers=true
+Restart=always
+RestrictNamespaces=true
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+
+[Unit]
+After=graphical-session.target
+ConditionEnvironment=WAYLAND_DISPLAY
+Description=Automatic brightness adjustment based on screen contents and ALS 
+PartOf=graphical-session.target

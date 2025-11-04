@@ -1,0 +1,11 @@
+[Install]
+WantedBy=default.target
+
+[Service]
+ExecStart=@spotifyd@/bin/spotifyd --no-daemon --config-path /nix/store/iqsiyz0vjs91m9dzwvhbbf708fggrsxg-spotifyd.conf
+Restart=always
+RestartSec=12
+
+[Unit]
+Description=spotify daemon
+Documentation=https://github.com/Spotifyd/spotifyd

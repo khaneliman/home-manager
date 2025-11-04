@@ -1,0 +1,11 @@
+[Unit]
+Description=xcape
+After=graphical-session.target
+PartOf=graphical-session.target
+
+[Service]
+Type=forking
+ExecStart=@xcape@/bin/xcape
+
+[Install]
+WantedBy=graphical-session.target

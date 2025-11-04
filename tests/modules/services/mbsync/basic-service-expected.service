@@ -1,0 +1,6 @@
+[Service]
+ExecStart=@isync@/bin/mbsync --all --verbose
+Type=oneshot
+
+[Unit]
+Description=mbsync mailbox synchronization

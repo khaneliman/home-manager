@@ -1,0 +1,11 @@
+[Install]
+WantedBy=graphical-session.target
+
+[Service]
+Environment=PATH=/home/hm-user/.nix-profile/bin
+ExecStart=@rsibreak@/bin/rsibreak
+
+[Unit]
+After=graphical-session.target
+Description=RSI break timer
+PartOf=graphical-session.target

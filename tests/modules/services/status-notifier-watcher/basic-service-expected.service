@@ -1,0 +1,12 @@
+[Unit]
+Description=SNI watcher
+PartOf=tray.target
+Before=taffybar.service
+
+[Service]
+Type=dbus
+BusName=org.kde.StatusNotifierWatcher
+ExecStart=@statusNotifierItem@/bin/status-notifier-watcher
+
+[Install]
+WantedBy=tray.target taffybar.service

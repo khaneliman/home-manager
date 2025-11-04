@@ -1,0 +1,12 @@
+[Install]
+WantedBy=graphical-session.target
+
+[Service]
+ExecStart=@blueman@/bin/blueman-applet
+
+[Unit]
+After=graphical-session.target
+After=tray.target
+Description=Blueman applet
+PartOf=graphical-session.target
+Requires=tray.target
