@@ -5,6 +5,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/systemd/user/cachix-agent.service
     assertFileContent \
       home-files/.config/systemd/user/cachix-agent.service \
       ${builtins.toFile "cachix-agent.service" ''

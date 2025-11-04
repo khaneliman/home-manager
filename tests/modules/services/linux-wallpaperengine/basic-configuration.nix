@@ -27,6 +27,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/systemd/user/linux-wallpaperengine.service
     assertFileContent \
         home-files/.config/systemd/user/linux-wallpaperengine.service \
         ${./basic-configuration-expected.service}

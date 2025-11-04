@@ -12,6 +12,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/systemd/user/swayosd.service
     assertFileContent \
       home-files/.config/systemd/user/swayosd.service \
       ${builtins.toFile "swayosd.service" ''

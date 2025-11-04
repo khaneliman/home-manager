@@ -26,6 +26,7 @@
   test.stubs.easyeffects = { };
 
   nmt.script = ''
+    assertFileExists home-files/.config/easyeffects/input/example-preset.json
     assertFileContent \
       home-files/.local/share/easyeffects/input/example-preset.json "${./example-preset.json}"
   '';

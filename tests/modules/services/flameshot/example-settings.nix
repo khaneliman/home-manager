@@ -11,6 +11,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/flameshot/flameshot.ini
     assertFileContent \
       home-files/.config/flameshot/flameshot.ini \
       ${builtins.toFile "expected.ini" ''

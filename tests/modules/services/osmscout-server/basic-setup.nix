@@ -12,6 +12,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/systemd/user/osmscout-server.service
     assertFileContent \
       home-files/.config/systemd/user/osmscout-server.service \
       ${builtins.toFile "osmscout-server.service" ''
@@ -21,6 +22,7 @@
         [Unit]
         Description=OSM Scout Server
       ''}
+    assertFileExists home-files/.config/systemd/user/osmscout-server.socket
     assertFileContent \
       home-files/.config/systemd/user/osmscout-server.socket \
       ${builtins.toFile "osmscout-server.socket" ''

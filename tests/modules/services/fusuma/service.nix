@@ -14,6 +14,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/systemd/user/fusuma.service
     assertFileContent \
       home-files/.config/systemd/user/fusuma.service \
         ${./expected-service.service}

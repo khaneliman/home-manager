@@ -19,6 +19,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/swaynag/config
     assertFileContent \
       home-files/.config/swaynag/config \
       ${./swaynag-example-settings-expected.conf}
