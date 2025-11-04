@@ -1,6 +1,7 @@
-{ lib, pkgs, ... }:
-lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
-  rbw-empty-settings = ./empty-settings.nix;
-  rbw-simple-settings = ./simple-settings.nix;
-  rbw-settings = ./settings.nix;
+{
+  rbw-basic-configuration = ./basic-configuration.nix;
+  rbw-settings-configuration = ./settings-configuration.nix;
+  rbw-self-hosted-configuration = ./self-hosted-configuration.nix;
+  rbw-with-pinentry = ./with-pinentry.nix;
+  rbw-null-package = ./null-package.nix;
 }

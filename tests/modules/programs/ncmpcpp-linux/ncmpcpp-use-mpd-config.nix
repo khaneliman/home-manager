@@ -5,6 +5,7 @@
   services.mpd.musicDirectory = "/home/user/music";
 
   nmt.script = ''
+    assertFileExists home-files/.config/ncmpcpp/config
     assertFileContent \
       home-files/.config/ncmpcpp/config \
       ${./ncmpcpp-use-mpd-config-expected-config}

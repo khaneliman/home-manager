@@ -65,6 +65,7 @@ in
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/sketchybar/sketchybarrc
     assertFileContent \
       home-files/.config/sketchybar/sketchybarrc \
       ${./sketchybarrc.lua}

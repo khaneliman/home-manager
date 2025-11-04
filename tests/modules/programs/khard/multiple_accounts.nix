@@ -14,6 +14,7 @@
   programs.khard.enable = true;
 
   nmt.script = ''
+    assertFileExists home-files/.config/khard/khard.conf
     assertFileContent \
       home-files/.config/khard/khard.conf \
       ${./multiple_accounts_expected}

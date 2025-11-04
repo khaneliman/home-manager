@@ -30,6 +30,7 @@
     };
 
     nmt.script = ''
+      assertFileExists home-files/.config/looking-glass/client.ini
       assertFileContent \
         home-files/.config/looking-glass/client.ini \
         ${./example-config.ini}

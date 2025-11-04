@@ -10,6 +10,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/git-cliff/cliff.toml
     assertFileContent \
       home-files/.config/git-cliff/cliff.toml \
       ${builtins.toFile "expected.toml" ''

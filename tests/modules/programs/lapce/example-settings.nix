@@ -27,6 +27,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/lapce-stable/settings.toml
     assertFileContent \
       home-files/.config/lapce-stable/settings.toml \
       ${./example-settings-expected.toml}

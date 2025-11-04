@@ -32,6 +32,7 @@
     assertFileContains \
       home-files/.config/oh-my-posh/config.json \
       '"final_space": true'
+    assertFileExists home-files/.bashrc
     assertFileContains \
       home-files/.bashrc \
       '/bin/oh-my-posh init bash --config /home/hm-user/.config/oh-my-posh/config.json'

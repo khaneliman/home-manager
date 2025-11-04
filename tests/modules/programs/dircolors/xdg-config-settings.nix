@@ -29,6 +29,7 @@
             "home-files/.config/nushell";
       in
       ''
+        assertFileExists home-files/.config/dir_colors
         assertFileContent \
           home-files/.config/dir_colors \
           ${./settings-expected.conf}

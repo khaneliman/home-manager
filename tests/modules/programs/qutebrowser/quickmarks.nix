@@ -19,6 +19,7 @@
           ".config/qutebrowser/quickmarks";
     in
     ''
+      assertFileExists home-files/${quickmarksFile}
       assertFileContent \
         home-files/${quickmarksFile} \
         ${builtins.toFile "qutebrowser-expected-quickmarks" ''

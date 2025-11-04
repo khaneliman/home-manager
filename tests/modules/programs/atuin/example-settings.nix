@@ -11,6 +11,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/atuin/config.toml
     assertFileContent \
       home-files/.config/atuin/config.toml \
       ${builtins.toFile "example-settings-expected.toml" ''

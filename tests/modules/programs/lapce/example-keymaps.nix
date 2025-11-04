@@ -13,6 +13,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/lapce-stable/keymaps.toml
     assertFileContent \
       home-files/.config/lapce-stable/keymaps.toml \
       ${./example-keymaps-expected.toml}

@@ -36,6 +36,7 @@
 
     nmt.script = ''
       assertPathNotExists home-files/.config/waybar/config
+      assertFileExists home-files/.config/waybar/style.css
       assertFileContent \
         home-files/.config/waybar/style.css \
         ${./styling-expected.css}

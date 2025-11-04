@@ -18,6 +18,7 @@
 
     nmt.script = ''
       assertPathNotExists home-files/.config/wleave/style.css
+      assertFileExists home-files/.config/wleave/layout.json
       assertFileContent \
         home-files/.config/wleave/layout.json \
         ${./layout-single-expected.json}

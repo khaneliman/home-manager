@@ -35,6 +35,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/hypr/hyprlock.conf
     assertFileContent \
       home-files/.config/hypr/hyprlock.conf \
       ${./basic-configuration.conf}

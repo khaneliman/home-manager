@@ -47,6 +47,7 @@
         ${./example-settings-expected.conf}
     ''
     + lib.optionalString pkgs.stdenv.hostPlatform.isDarwin ''
+      assertFileExists home-files/.config/kitty/macos-launch-services-cmdline
       assertFileContent \
         home-files/.config/kitty/macos-launch-services-cmdline \
         ${./example-macos-launch-services-cmdline}

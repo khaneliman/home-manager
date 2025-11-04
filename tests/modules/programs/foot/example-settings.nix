@@ -20,6 +20,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/foot/foot.ini
     assertFileContent \
       home-files/.config/foot/foot.ini \
       ${./example-settings-expected.ini}

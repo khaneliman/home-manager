@@ -14,6 +14,7 @@
     servicePath=home-files/.config/systemd/user/app-com.mitchellh.ghostty.service
     assertPathNotExists $servicePath
 
+    assertFileExists home-files/.config/ghostty/config
     assertFileContent \
       home-files/.config/ghostty/config \
       ${./example-config-expected}

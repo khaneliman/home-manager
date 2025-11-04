@@ -46,9 +46,11 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/hexchat/hexchat.conf
     assertFileContent \
        home-files/.config/hexchat/hexchat.conf \
        ${./basic-configuration-expected-main-config}
+    assertFileExists home-files/.config/hexchat/servlist.conf
     assertFileContent \
        home-files/.config/hexchat/servlist.conf \
        ${./basic-configuration-expected-serverlist-config}

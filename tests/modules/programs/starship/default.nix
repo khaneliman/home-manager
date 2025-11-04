@@ -1,7 +1,9 @@
 {
-  starship-settings = ./settings.nix;
-  starship-fish-with-transience = ./fish_with_transience.nix;
-  starship-fish-without-transience = ./fish_without_transience.nix;
-  starship-fish-with-interactive = ./fish_with_interactive.nix;
-  starship-fish-without-interactive = ./fish_without_interactive.nix;
+  starship-bash-integration = ./bash-integration.nix;
+  starship-fish-integration = ./fish-integration.nix;
+  starship-zsh-integration = ./zsh-integration.nix;
+  starship-null-package = ./null-package.nix;
+  starship-nushell-integration = ./nushell-integration.nix;
+  starship-toml-settings = ./toml-settings.nix;
+  starship-transience = ./transience.nix;
 }

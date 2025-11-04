@@ -18,6 +18,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/fuzzel/fuzzel.ini
     assertFileContent \
       home-files/.config/fuzzel/fuzzel.ini \
       ${./example-settings-expected.ini}

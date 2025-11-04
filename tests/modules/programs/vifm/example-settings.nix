@@ -10,6 +10,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/vifm/vifmrc
     assertFileContent \
       home-files/.config/vifm/vifmrc \
       ${builtins.toFile "vifm-expected.conf" ''

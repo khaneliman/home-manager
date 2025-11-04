@@ -10,6 +10,7 @@
   programs.khard.enable = true;
 
   nmt.script = ''
+    assertFileExists home-files/.config/khard/khard.conf
     assertFileContent \
       home-files/.config/khard/khard.conf \
       ${./empty_config_expected}

@@ -12,6 +12,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/rofi-pass/config
     assertFileContent \
       home-files/.config/rofi-pass/config \
       ${builtins.toFile "rofi-pass-expected-config" ''

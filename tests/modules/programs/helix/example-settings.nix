@@ -228,21 +228,27 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/helix/config.toml
     assertFileContent \
       home-files/.config/helix/config.toml \
       ${./settings-expected.toml}
+    assertFileExists home-files/.config/helix/languages.toml
     assertFileContent \
       home-files/.config/helix/languages.toml \
       ${./languages-expected.toml}
+    assertFileExists home-files/.config/helix/ignore
     assertFileContent \
       home-files/.config/helix/ignore \
       ${./ignore-expected}
+    assertFileExists home-files/.config/helix/themes/base16.toml
     assertFileContent \
       home-files/.config/helix/themes/base16.toml \
       ${./theme-base16-expected.toml}
+    assertFileExists home-files/.config/helix/themes/string.toml
     assertFileContent \
       home-files/.config/helix/themes/string.toml \
       ${./theme-base16-expected.toml}
+    assertFileExists home-files/.config/helix/themes/path.toml
     assertFileContent \
       home-files/.config/helix/themes/path.toml \
       ${./theme-base16-expected.toml}

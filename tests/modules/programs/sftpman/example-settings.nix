@@ -34,12 +34,15 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/sftpman/mounts/mount1.json
     assertFileContent \
       home-files/.config/sftpman/mounts/mount1.json \
       ${./expected-mount1.json}
+    assertFileExists home-files/.config/sftpman/mounts/mount2.json
     assertFileContent \
       home-files/.config/sftpman/mounts/mount2.json \
       ${./expected-mount2.json}
+    assertFileExists home-files/.config/sftpman/mounts/mount3.json
     assertFileContent \
       home-files/.config/sftpman/mounts/mount3.json \
       ${./expected-mount3.json}

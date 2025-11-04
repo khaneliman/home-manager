@@ -35,9 +35,11 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/rofi/config.rasi
     assertFileContent \
       home-files/.config/rofi/config.rasi \
       ${./custom-theme-config.rasi}
+    assertFileExists home-files/.local/share/rofi/themes/custom.rasi
     assertFileContent \
       home-files/.local/share/rofi/themes/custom.rasi \
       ${./custom-theme.rasi}

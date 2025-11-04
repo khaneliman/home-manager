@@ -39,6 +39,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/feh/themes
     assertFileContent \
       home-files/.config/feh/themes \
       ${./feh-themes-expected}

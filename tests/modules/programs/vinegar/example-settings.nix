@@ -22,6 +22,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/vinegar/config.toml
     assertFileContent \
       home-files/.config/vinegar/config.toml \
       ${./example-config-expected.toml}

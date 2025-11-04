@@ -38,6 +38,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/topgrade.toml
     assertFileContent \
       home-files/.config/topgrade.toml \
       ${./settings-expected.toml}
