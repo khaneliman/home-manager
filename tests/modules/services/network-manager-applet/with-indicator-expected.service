@@ -1,0 +1,12 @@
+[Install]
+WantedBy=graphical-session.target
+
+[Service]
+ExecStart=@networkmanagerapplet@/bin/nm-applet --indicator
+
+[Unit]
+After=graphical-session.target
+After=tray.target
+Description=Network Manager applet
+PartOf=graphical-session.target
+Requires=tray.target

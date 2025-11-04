@@ -1,0 +1,7 @@
+[Service]
+ExecStart=@ludusavi@/bin/ludusavi backup --force
+ExecStartPost=@libnotify@/bin/notify-send 'Ludusavi' 'Backup completed' -i com.mtkennerly.ludusavi -a 'Ludusavi'
+Type=oneshot
+
+[Unit]
+Description=Run a game save backup with Ludusavi
