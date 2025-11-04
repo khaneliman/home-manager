@@ -1,0 +1,4 @@
+{
+  "email": "user@example.com",
+  "pinentry": "@pinentry-gnome3@/bin/pinentry-gnome3"
+}

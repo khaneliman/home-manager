@@ -1,0 +1,8 @@
+cheats:
+  paths:
+    - ~/cheats/
+    - ~/.local/share/navi/cheats/
+finder:
+  command: fzf
+shell:
+  command: bash

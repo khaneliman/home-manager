@@ -1,0 +1,9 @@
+syntax: glob
+*.tmp
+*.log
+*~
+.DS_Store
+syntax: regexp
+^.*\.swp$
+^.*\.orig$
+^build/.*

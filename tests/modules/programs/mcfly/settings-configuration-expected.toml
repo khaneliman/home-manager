@@ -1,0 +1,10 @@
+[colors.darkmode]
+prompt = "cyan"
+results_selection_bg = "black"
+results_selection_fg = "cyan"
+results_selection_hl = "red"
+timing = "yellow"
+
+[colors.menubar]
+bg = "black"
+fg = "red"

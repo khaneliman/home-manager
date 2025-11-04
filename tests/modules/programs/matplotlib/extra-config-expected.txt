@@ -1,0 +1,6 @@
+backend: Agg
+figure.dpi: 100
+# Custom matplotlib configuration
+lines.linewidth: 2.0
+markers.fillstyle: full
+

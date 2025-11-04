@@ -1,0 +1,16 @@
+[buffer]
+autofocus = true
+images = true
+wordwrap = false
+
+[display]
+color_mode = "256"
+images = true
+
+[page]
+C-k = "() => pager.load('ddg:')"
+C-l = "() => pager.load('localhost:8080')"
+
+[search]
+case_insensitive = true
+engine = "duckduckgo"
