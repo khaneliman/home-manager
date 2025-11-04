@@ -21,6 +21,7 @@
   ];
 
   nmt.script = ''
+    assertFileExists home-files/.config/systemd/user/emacs.service
     assertFileContains \
       home-files/.config/systemd/user/emacs.service \
       "WantedBy=default.target"

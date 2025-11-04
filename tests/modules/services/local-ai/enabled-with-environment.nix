@@ -8,6 +8,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/systemd/user/local-ai.service
     assertFileContains \
       home-files/.config/systemd/user/local-ai.service \
       "Environment=MODELS_PATH=/tmp/models"

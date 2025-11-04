@@ -43,6 +43,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/picom/picom.conf
     assertFileContent \
         home-files/.config/picom/picom.conf \
         ${./picom-basic-configuration-expected.conf}

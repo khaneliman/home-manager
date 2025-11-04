@@ -17,6 +17,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/spectrwm/spectrwm.conf
     assertFileContent \
       home-files/.config/spectrwm/spectrwm.conf ${./spectrwm-simple-config-expected-spectrwm.conf}
   '';

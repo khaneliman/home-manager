@@ -31,6 +31,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/fusuma/config.yml
     assertFileContent \
       home-files/.config/fusuma/config.yml \
       ${./expected-settings.yaml}

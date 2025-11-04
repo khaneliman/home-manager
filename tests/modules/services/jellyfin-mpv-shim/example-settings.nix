@@ -29,9 +29,11 @@
     # assertFileContent \
     #    home-files/.config/jellyfin-mpv-shim/conf.json \
     #    ${./example-settings-expected-settings}
+    assertFileExists home-files/.config/jellyfin-mpv-shim/mpv.conf
     assertFileContent \
        home-files/.config/jellyfin-mpv-shim/mpv.conf \
        ${./example-settings-expected-config}
+    assertFileExists home-files/.config/jellyfin-mpv-shim/input.conf
     assertFileContent \
        home-files/.config/jellyfin-mpv-shim/input.conf \
        ${./example-settings-expected-bindings}

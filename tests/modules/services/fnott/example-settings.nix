@@ -24,6 +24,7 @@
     };
 
     nmt.script = ''
+      assertFileExists home-files/.config/fnott/fnott.ini
       assertFileContent \
         home-files/.config/fnott/fnott.ini \
         ${./example-settings-expected.ini}
