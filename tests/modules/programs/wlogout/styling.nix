@@ -28,6 +28,7 @@
 
     nmt.script = ''
       assertPathNotExists home-files/.config/wlogout/layout
+      assertFileExists home-files/.config/wlogout/style.css
       assertFileContent \
         home-files/.config/wlogout/style.css \
         ${./styling-expected.css}

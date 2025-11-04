@@ -7,6 +7,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/inputrc
     assertFileContent \
       home-files/.config/inputrc \
       ${builtins.toFile "readline-expected" ''
@@ -17,6 +18,7 @@
 
       ''}
 
+    assertFileExists home-path/etc/profile.d/hm-session-vars.sh
     assertFileContains \
       home-path/etc/profile.d/hm-session-vars.sh \
       'export INPUTRC="/home/hm-user/.config/inputrc"'

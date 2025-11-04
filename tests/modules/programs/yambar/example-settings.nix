@@ -12,6 +12,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/yambar/config.yml
     assertFileContent \
       home-files/.config/yambar/config.yml \
       ${builtins.toFile "yambar-expected.yml" ''

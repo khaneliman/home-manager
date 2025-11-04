@@ -27,6 +27,7 @@
 
     nmt.script = ''
       assertPathNotExists home-files/.config/waybar/style.css
+      assertFileExists home-files/.config/waybar/config
       assertFileContent \
         home-files/.config/waybar/config \
         ${./settings-complex-expected.json}

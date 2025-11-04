@@ -32,6 +32,7 @@
           ".config/qutebrowser/config.py";
     in
     ''
+      assertFileExists home-files/${qutebrowserConfig}
       assertFileContent \
         home-files/${qutebrowserConfig} \
         ${builtins.toFile "qutebrowser-expected-config.py" ''

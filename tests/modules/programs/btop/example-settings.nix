@@ -72,9 +72,11 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/btop/btop.conf
     assertFileContent \
       home-files/.config/btop/btop.conf \
       ${./example-settings-expected.conf}
+    assertFileExists home-files/.config/btop/themes/example.theme
     assertFileContent \
       home-files/.config/btop/themes/example.theme \
       ${./example-theme-expected.theme}

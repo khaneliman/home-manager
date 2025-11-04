@@ -21,6 +21,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.newsboat/urls
     assertFileContent \
       home-files/.newsboat/urls \
       ${./newsboat-basics-urls.txt}

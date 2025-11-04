@@ -27,6 +27,7 @@ in
           ".config/qutebrowser/greasemonkey";
     in
     ''
+      assertFileExists home-files/${scriptDir}/qutebrowser-greasemonkey.js
       assertFileContent \
         home-files/${scriptDir}/qutebrowser-greasemonkey.js \
         ${greasemonkeyScript}

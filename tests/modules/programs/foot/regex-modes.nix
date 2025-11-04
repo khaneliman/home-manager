@@ -22,6 +22,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/foot/foot.ini
     assertFileContent \
       home-files/.config/foot/foot.ini \
       ${./regex-modes-expected.ini}

@@ -13,6 +13,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.kodi/userdata/addon_data/service.xbmc.versioncheck/settings.xml
     assertFileContent \
       home-files/.kodi/userdata/addon_data/service.xbmc.versioncheck/settings.xml \
       ${./example-addon-settings-expected.xml}

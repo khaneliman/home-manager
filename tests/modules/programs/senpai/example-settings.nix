@@ -31,6 +31,7 @@
     };
 
     nmt.script = ''
+      assertFileExists home-files/.config/senpai/senpai.scfg
       assertFileContent \
         home-files/.config/senpai/senpai.scfg \
         ${./example-settings-expected.conf}

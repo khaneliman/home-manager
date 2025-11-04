@@ -28,6 +28,7 @@
 
     nmt.script = ''
       assertPathNotExists home-files/.config/wleave/layout.json
+      assertFileExists home-files/.config/wleave/style.css
       assertFileContent \
         home-files/.config/wleave/style.css \
         ${./styling-expected.css}

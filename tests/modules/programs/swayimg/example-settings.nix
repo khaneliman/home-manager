@@ -20,6 +20,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/swayimg/config
     assertFileContent \
       home-files/.config/swayimg/config \
       ${./example-settings-expected.ini}

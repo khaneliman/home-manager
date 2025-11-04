@@ -23,6 +23,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.kodi/userdata/sources.xml
     assertFileContent \
       home-files/.kodi/userdata/sources.xml \
       ${./example-sources-expected.xml}

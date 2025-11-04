@@ -32,6 +32,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/ghostty/themes/catppuccin-mocha
     assertFileContent \
       home-files/.config/ghostty/themes/catppuccin-mocha \
       ${./example-theme-expected}

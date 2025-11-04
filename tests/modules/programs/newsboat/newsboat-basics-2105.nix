@@ -24,6 +24,7 @@
 
   # The format didn't change since 20.03, just the location.
   nmt.script = ''
+    assertFileExists home-files/.config/newsboat/urls
     assertFileContent \
       home-files/.config/newsboat/urls \
       ${./newsboat-basics-urls-2003.txt}

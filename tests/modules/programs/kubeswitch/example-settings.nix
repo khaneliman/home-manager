@@ -19,6 +19,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.kube/switch-config.yaml
     assertFileContent \
       home-files/.kube/switch-config.yaml \
       ${builtins.toFile "example-settings-expected.yaml" ''

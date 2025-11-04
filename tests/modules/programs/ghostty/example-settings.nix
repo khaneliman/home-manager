@@ -11,6 +11,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/ghostty/config
     assertFileContent \
       home-files/.config/ghostty/config \
       ${./example-config-expected}

@@ -51,6 +51,7 @@
     assertFileContains $sessionVarsFile \
         'export STARSHIP_CONFIG="/home/hm-user/.config/starship.toml"'
 
+    assertFileExists home-files/.config/starship.toml
     assertFileContent \
       home-files/.config/starship.toml \
       ${./settings-expected.toml}

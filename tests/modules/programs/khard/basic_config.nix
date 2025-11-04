@@ -37,6 +37,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/khard/khard.conf
     assertFileContent \
       home-files/.config/khard/khard.conf \
       ${./basic_config_expected}

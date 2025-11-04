@@ -34,6 +34,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/i3status/config
     assertFileContent \
       home-files/.config/i3status/config \
       ${builtins.toFile "i3status-expected-config" ''

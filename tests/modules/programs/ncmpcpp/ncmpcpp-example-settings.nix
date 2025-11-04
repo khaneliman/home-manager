@@ -48,10 +48,12 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/ncmpcpp/config
     assertFileContent \
       home-files/.config/ncmpcpp/config \
       ${./ncmpcpp-example-settings-expected-config}
 
+    assertFileExists home-files/.config/ncmpcpp/bindings
     assertFileContent \
       home-files/.config/ncmpcpp/bindings \
       ${./ncmpcpp-example-settings-expected-bindings}

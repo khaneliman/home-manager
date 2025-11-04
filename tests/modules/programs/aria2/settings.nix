@@ -16,6 +16,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/aria2/aria2.conf
     assertFileContent \
       home-files/.config/aria2/aria2.conf \
       ${builtins.toFile "aria2-expected-config.conf" ''

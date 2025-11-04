@@ -25,6 +25,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/rofi/config.rasi
     assertFileContent \
       home-files/.config/rofi/config.rasi \
       ${./valid-config-expected.rasi}

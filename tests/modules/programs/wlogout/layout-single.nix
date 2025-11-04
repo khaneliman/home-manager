@@ -18,6 +18,7 @@
 
     nmt.script = ''
       assertPathNotExists home-files/.config/wlogout/style.css
+      assertFileExists home-files/.config/wlogout/layout
       assertFileContent \
         home-files/.config/wlogout/layout \
         ${./layout-single-expected.json}

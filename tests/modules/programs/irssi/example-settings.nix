@@ -17,6 +17,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.irssi/config
     assertFileContent \
       home-files/.irssi/config \
       ${./example-settings-expected.config}

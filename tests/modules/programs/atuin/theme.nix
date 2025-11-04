@@ -12,6 +12,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/atuin/themes/my-theme.toml
     assertFileContent \
       home-files/.config/atuin/themes/my-theme.toml \
       ${builtins.toFile "example-theme-expected.toml" ''

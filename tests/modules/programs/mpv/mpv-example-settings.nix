@@ -47,12 +47,15 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/mpv/mpv.conf
     assertFileContent \
        home-files/.config/mpv/mpv.conf \
        ${./mpv-example-settings-expected-config}
+    assertFileExists home-files/.config/mpv/input.conf
     assertFileContent \
        home-files/.config/mpv/input.conf \
        ${./mpv-example-settings-expected-bindings}
+    assertFileExists home-files/.config/mpv/script-opts/osc.conf
     assertFileContent \
        home-files/.config/mpv/script-opts/osc.conf \
        ${./mpv-example-settings-expected-osc-opts}

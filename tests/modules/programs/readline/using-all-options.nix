@@ -22,6 +22,7 @@
     };
 
     nmt.script = ''
+      assertFileExists home-files/.inputrc
       assertFileContent \
         home-files/.inputrc \
         ${./using-all-options.txt}

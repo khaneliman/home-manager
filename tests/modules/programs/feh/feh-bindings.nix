@@ -21,10 +21,12 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/feh/buttons
     assertFileContent \
       home-files/.config/feh/buttons \
       ${./feh-bindings-expected-buttons}
 
+    assertFileExists home-files/.config/feh/keys
     assertFileContent \
       home-files/.config/feh/keys \
       ${./feh-bindings-expected-keys}

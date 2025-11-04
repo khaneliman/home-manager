@@ -8,6 +8,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/helix/config.toml
     assertFileContent \
       home-files/.config/helix/config.toml \
       ${./only-extraconfig-expected.toml}

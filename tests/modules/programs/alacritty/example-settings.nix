@@ -18,6 +18,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.config/alacritty/alacritty.toml
     assertFileContent \
       home-files/.config/alacritty/alacritty.toml \
       ${./example-settings-expected.toml}

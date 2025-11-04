@@ -26,6 +26,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.pubsrc
     assertFileContent \
       home-files/.pubsrc ${./pubs-example-settings-expected-pubsrc}
   '';

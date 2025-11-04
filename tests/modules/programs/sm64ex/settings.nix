@@ -91,6 +91,7 @@
   };
 
   nmt.script = ''
+    assertFileExists home-files/.local/share/sm64pc/sm64config.txt
     assertFileContent \
       home-files/.local/share/sm64pc/sm64config.txt \
       ${builtins.toFile "sm64ex-expected-settings" ''
