@@ -40,13 +40,12 @@ in
       programs.git = {
         enable = mkEnableOption "Git";
 
-        package = lib.mkPackageOption pkgs "git" {
+        package = mkOption {
           nullable = true;
-          example = "pkgs.gitFull";
-          extraDescription = ''
-            Use {var}`pkgs.gitFull`
-            to gain access to {command}`git send-email` for instance.
-          '';
+          type = types.package;
+          default = config.home-manager.dependencies.git.package;
+          defaultText = literalExpression "config.home-manager.dependencies.git.package";
+          description = "The git package to use.";
         };
 
         signing = {

@@ -8,7 +8,6 @@
 let
   inherit (lib)
     generators
-    getBin
     getExe'
     last
     mapAttrsToList
@@ -34,7 +33,7 @@ let
 
   radicleHome = config.home.homeDirectory + "/.radicle";
 
-  gitPath = [ "PATH=${getBin pkgs.gitMinimal}/bin" ];
+  gitPath = [ "PATH=${lib.getBin config.programs.git.package}/bin" ];
   env = attrs: (mapAttrsToList (generators.mkKeyValueDefault { } "=") attrs) ++ gitPath;
 in
 {

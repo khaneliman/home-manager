@@ -88,7 +88,7 @@ in
           "PATH=${
             lib.makeBinPath [
               pkgs.mercurial
-              pkgs.git
+              config.programs.git.package
             ]
           }"
         ];
