@@ -450,7 +450,7 @@ in
     home.activation.vscodeProfiles = lib.hm.dag.entryAfter [ "writeBoundary" ] (
       let
         modifyGlobalStorage = pkgs.writeShellScript "vscode-global-storage-modify" ''
-           PATH=${lib.makeBinPath [ config.home-manager.dependencies.jq.package ]}''${PATH:+:}$PATH
+           PATH=${lib.makeBinPath [ config.programs.jq.package ]}''${PATH:+:}$PATH
           file="${userDir}/globalStorage/storage.json"
           file_write=""
           profiles=(${lib.escapeShellArgs (flatten (mapAttrsToList (n: v: n) allProfilesExceptDefault))})

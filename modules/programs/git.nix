@@ -43,8 +43,8 @@ in
         package = mkOption {
           nullable = true;
           type = types.package;
-          default = config.home-manager.dependencies.git.package;
-          defaultText = literalExpression "config.home-manager.dependencies.git.package";
+          default = pkgs.git;
+          defaultText = literalExpression "pkgs.git";
           description = "The git package to use.";
         };
 

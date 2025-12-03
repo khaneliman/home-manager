@@ -308,7 +308,7 @@ in
                   name = "rclone-config";
 
                   runtimeInputs = [
-                    pkgs.coreutils
+                    config.home-manager.dependencies.coreutils.package
                   ];
 
                   text = ''
@@ -370,7 +370,7 @@ in
                     ]
                     ++ lib.optional (mount.logLevel != null) "RCLONE_LOG_LEVEL=${mount.logLevel}";
 
-                    ExecStartPre = "${pkgs.coreutils}/bin/mkdir -p ${mount.mountPoint}";
+                    ExecStartPre = "${lib.getExe' config.home-manager.dependencies.coreutils.package "mkdir"} -p ${mount.mountPoint}";
                     ExecStart = lib.concatStringsSep " " [
                       (lib.getExe cfg.package)
                       "mount"

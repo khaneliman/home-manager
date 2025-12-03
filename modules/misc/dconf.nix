@@ -56,7 +56,7 @@ in
         # In the future, if someone gets dbus working, this _could_ be
         # re-enabled, unclear whether there's actual value in it though.
         # We can't do anything without jq
-        default = !pkgs.stdenv.hostPlatform.isDarwin && config.home-manager.dependencies.jq.package != null;
+        default = !pkgs.stdenv.hostPlatform.isDarwin && config.programs.jq.package != null;
         visible = false;
         description = ''
            Whether to enable dconf settings.
@@ -133,7 +133,7 @@ in
 
             PATH=${
               lib.makeBinPath [
-                config.home-manager.dependencies.jq.package
+                config.programs.jq.package
               ]
             }''${PATH:+:}$PATH
 
@@ -145,9 +145,9 @@ in
                exit 0
              fi
 
-             # Reset all keys that are present in the old generation but not the new
-             # one.
-             ${config.home-manager.dependencies.jq.package}/bin/jq -r -n \
+              # Reset all keys that are present in the old generation but not the new
+              # one.
+              ${config.programs.jq.package}/bin/jq -r -n \
                  --slurpfile old "$oldState" \
                  --slurpfile new "$newState" \
                  '($old[] - $new[])[]' \

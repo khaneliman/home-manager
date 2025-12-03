@@ -172,8 +172,8 @@ in
           // optionalAttrs needsSocketWorkaround {
             # Use read-only directory permissions to prevent emacs from
             # deleting systemd's socket file before exiting.
-            ExecStartPost = "${pkgs.coreutils}/bin/chmod --changes -w ${socketDir}";
-            ExecStopPost = "${pkgs.coreutils}/bin/chmod --changes +w ${socketDir}";
+            ExecStartPost = "${config.home-manager.dependencies.coreutils.package}/bin/chmod --changes -w ${socketDir}";
+            ExecStopPost = "${config.home-manager.dependencies.coreutils.package}/bin/chmod --changes +w ${socketDir}";
           };
         }
         // optionalAttrs (cfg.startWithUserSession != false) {

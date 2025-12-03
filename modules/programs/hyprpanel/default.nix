@@ -125,7 +125,7 @@ in
 
       Service = {
         ExecStart = "${cfg.package}/bin/hyprpanel";
-        ExecReload = "${pkgs.coreutils}/bin/kill -SIGUSR2 $MAINPID";
+        ExecReload = "${lib.getExe' config.home-manager.dependencies.coreutils.package "kill"} -SIGUSR2 $MAINPID";
         Restart = "on-failure";
         KillMode = "mixed";
       };

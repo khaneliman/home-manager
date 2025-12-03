@@ -45,7 +45,7 @@ let
                   "${podman-lib.newuidmapPaths}"
                   "${lib.makeBinPath [
                     pkgs.su
-                    pkgs.coreutils
+                    config.home-manager.dependencies.coreutils.package
                   ]}"
                 ]
               );

@@ -219,7 +219,7 @@ in
         ];
         postBuild = ''
           rm $out/conf.hjson
-           ${lib.getExe config.home-manager.dependencies.jq.package} --slurp add > $out/conf.hjson \
+           ${lib.getExe config.programs.jq.package} --slurp add > $out/conf.hjson \
             <(${lib.getExe pkgs.hjson-go} -c ${cfg.package.src}/resources/default-conf/conf.hjson) \
             ${jsonFormat.generate "broot-config.json" cfg.settings}
         '';

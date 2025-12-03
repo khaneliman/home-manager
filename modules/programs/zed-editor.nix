@@ -24,7 +24,7 @@ let
     fi
     dynamic="$(${lib.getExe json5} --as-json ${lib.escapeShellArg path} 2>/dev/null || echo ${lib.escapeShellArg empty})"
     static="$(cat ${lib.escapeShellArg staticSettings})"
-     config="$(${lib.getExe config.home-manager.dependencies.jq.package} -n ${lib.escapeShellArg jqOperation} --argjson dynamic "$dynamic" --argjson static "$static")"
+     config="$(${lib.getExe config.programs.jq.package} -n ${lib.escapeShellArg jqOperation} --argjson dynamic "$dynamic" --argjson static "$static")"
     printf '%s\n' "$config" > ${lib.escapeShellArg path}
     unset config
   '';

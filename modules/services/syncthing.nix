@@ -60,7 +60,7 @@ let
     }
   ) (lib.filterAttrs (_: folder: folder.enable) cfg.settings.folders);
 
-  jq = lib.getExe config.home-manager.dependencies.jq.package;
+  jq = lib.getExe config.programs.jq.package;
   sleep = lib.getExe' config.home-manager.dependencies.coreutils.package "sleep";
   printf = lib.getExe' config.home-manager.dependencies.coreutils.package "printf";
   cat = lib.getExe' config.home-manager.dependencies.coreutils.package "cat";

@@ -60,7 +60,7 @@ in
             "PATH=/run/wrappers/bin"
             "KEYBASE_SYSTEMD=1"
           ];
-          ExecStartPre = "${pkgs.coreutils}/bin/mkdir -p ${mountPoint}";
+          ExecStartPre = "${config.home-manager.dependencies.coreutils.package}/bin/mkdir -p ${mountPoint}";
           ExecStart = "${lib.getExe' cfg.package "kbfsfuse"} ${toString cfg.extraFlags} ${mountPoint}";
           ExecStopPost = "/run/wrappers/bin/fusermount -u ${mountPoint}";
           Restart = "on-failure";

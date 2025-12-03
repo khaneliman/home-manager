@@ -789,9 +789,7 @@ in
               config.home-manager.dependencies.gnugrep.package
               config.home-manager.dependencies.gnused.package
             ]
-            ++ lib.optional (
-              config.home-manager.dependencies.jq.package != null
-            ) config.home-manager.dependencies.jq.package
+            ++ lib.optional (config.programs.jq.package != null) config.programs.jq.package
             ++ [
               pkgs.ncurses # For `tput`.
             ]

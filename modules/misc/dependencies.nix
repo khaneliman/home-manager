@@ -99,13 +99,6 @@ in
     ];
 
     home-manager.__depPackages = {
-      git = {
-        default = "git";
-        example = "gitMinimal";
-      };
-      jq = {
-        default = "jq";
-      };
       curl = {
         default = "curl";
       };

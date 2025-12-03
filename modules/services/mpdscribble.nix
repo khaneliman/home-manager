@@ -190,7 +190,7 @@ in
           name = "mpdscribble-pre-start";
           runtimeInputs = [
             pkgs.replace-secret
-            pkgs.coreutils
+            config.home-manager.dependencies.coreutils.package
           ];
           text = ''
             configFile="${configFile}"

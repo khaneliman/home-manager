@@ -61,29 +61,29 @@ in
         ProtectSystem = "full";
         Nice = 10;
 
-        ExecReload = "${pkgs.coreutils}/bin/kill -HUP $MAINPID";
+        ExecReload = "${config.home-manager.dependencies.coreutils.package}/bin/kill -HUP $MAINPID";
         ExecStop = "${dropboxCmd} stop";
         ExecStart = toString (
           pkgs.writeShellScript "dropbox-start" ''
-            # ensure we have the dirs we need
-            run ${pkgs.coreutils}/bin/mkdir $VERBOSE_ARG -p \
-              ${homeBaseDir}/{.dropbox,.dropbox-dist,Dropbox}
+             # ensure we have the dirs we need
+             run ${config.home-manager.dependencies.coreutils.package}/bin/mkdir $VERBOSE_ARG -p \
+               ${homeBaseDir}/{.dropbox,.dropbox-dist,Dropbox}
 
-            # symlink them as needed
-            if [[ ! -d ${config.home.homeDirectory}/.dropbox ]]; then
-              run ${pkgs.coreutils}/bin/ln $VERBOSE_ARG -s \
-                ${homeBaseDir}/.dropbox ${config.home.homeDirectory}/.dropbox
-            fi
+             # symlink them as needed
+             if [[ ! -d ${config.home.homeDirectory}/.dropbox ]]; then
+               run ${config.home-manager.dependencies.coreutils.package}/bin/ln $VERBOSE_ARG -s \
+                 ${homeBaseDir}/.dropbox ${config.home.homeDirectory}/.dropbox
+             fi
 
-            if [[ ! -d ${lib.escapeShellArg cfg.path} ]]; then
-              run ${pkgs.coreutils}/bin/ln $VERBOSE_ARG -s \
-                ${homeBaseDir}/Dropbox ${lib.escapeShellArg cfg.path}
-            fi
+             if [[ ! -d ${lib.escapeShellArg cfg.path} ]]; then
+               run ${config.home-manager.dependencies.coreutils.package}/bin/ln $VERBOSE_ARG -s \
+                 ${homeBaseDir}/Dropbox ${lib.escapeShellArg cfg.path}
+             fi
 
-            # get the dropbox bins if needed
-            if [[ ! -f $HOME/.dropbox-dist/VERSION ]]; then
-              ${pkgs.coreutils}/bin/yes | ${dropboxCmd} update
-            fi
+             # get the dropbox bins if needed
+             if [[ ! -f $HOME/.dropbox-dist/VERSION ]]; then
+               ${config.home-manager.dependencies.coreutils.package}/bin/yes | ${dropboxCmd} update
+             fi
 
             ${dropboxCmd} start
           ''

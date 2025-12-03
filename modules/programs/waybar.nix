@@ -353,7 +353,7 @@ in
 
           Service = {
             Environment = optional cfg.systemd.enableInspect "GTK_DEBUG=interactive";
-            ExecReload = "${pkgs.coreutils}/bin/kill -SIGUSR2 $MAINPID";
+            ExecReload = "${lib.getExe' config.home-manager.dependencies.coreutils.package "kill"} -SIGUSR2 $MAINPID";
             ExecStart = "${cfg.package}/bin/waybar${lib.optionalString cfg.systemd.enableDebug " -l debug"}";
             KillMode = "mixed";
             Restart = "on-failure";

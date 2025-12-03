@@ -214,8 +214,8 @@ in
     concatStringsSep "\n" nonEmptyLines;
 
   awaitPodmanUnshare = pkgs.writeShellScript "await-podman-unshare" ''
-    until ${config.services.podman.package}/bin/podman unshare ${pkgs.coreutils}/bin/true; do
-      ${pkgs.coreutils}/bin/sleep 1
+    until ${config.services.podman.package}/bin/podman unshare ${config.home-manager.dependencies.coreutils.package}/bin/true; do
+      ${config.home-manager.dependencies.coreutils.package}/bin/sleep 1
     done
   '';
 }

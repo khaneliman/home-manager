@@ -85,7 +85,7 @@ in
 
       Service = {
         ExecStart = "${cfg.package}/bin/yambar";
-        ExecReload = "${pkgs.coreutils}/bin/kill -SIGUSR2 $MAINPID";
+        ExecReload = "${lib.getExe' config.home-manager.dependencies.coreutils.package "kill"} -SIGUSR2 $MAINPID";
         Restart = "on-failure";
         RestartSec = 3;
         KillMode = "mixed";
