@@ -55,11 +55,12 @@ in
         # just disable dconf for darwin hosts by default.
         # In the future, if someone gets dbus working, this _could_ be
         # re-enabled, unclear whether there's actual value in it though.
-        default = !pkgs.stdenv.hostPlatform.isDarwin;
+        # We can't do anything without jq
+        default = !pkgs.stdenv.hostPlatform.isDarwin && config.home-manager.dependencies.jq.package != null;
         visible = false;
         description = ''
-          Whether to enable dconf settings.Add commentMore actions
-          Note, if you use NixOS then you must add
+           Whether to enable dconf settings.
+           Note, if you use NixOS then you must add
           `programs.dconf.enable = true`
           to your system configuration. Otherwise you will see a systemd error
           message when your configuration is activated.
@@ -132,25 +133,24 @@ in
 
             PATH=${
               lib.makeBinPath [
-                pkgs.dconf
-                pkgs.jq
+                config.home-manager.dependencies.jq.package
               ]
             }''${PATH:+:}$PATH
 
-            oldState="$1"
-            newState="$2"
+             oldState="$1"
+             newState="$2"
 
-            # Can't do cleanup if we don't know the old state.
-            if [[ ! -f $oldState ]]; then
-              exit 0
-            fi
+             # Can't do cleanup if we don't know the old state.
+             if [[ ! -f $oldState ]]; then
+               exit 0
+             fi
 
-            # Reset all keys that are present in the old generation but not the new
-            # one.
-            jq -r -n \
-                --slurpfile old "$oldState" \
-                --slurpfile new "$newState" \
-                '($old[] - $new[])[]' \
+             # Reset all keys that are present in the old generation but not the new
+             # one.
+             ${config.home-manager.dependencies.jq.package}/bin/jq -r -n \
+                 --slurpfile old "$oldState" \
+                 --slurpfile new "$newState" \
+                 '($old[] - $new[])[]' \
               | while read -r key; do
                   verboseEcho "Resetting dconf key \"$key\""
                   run $DCONF_DBUS_RUN_SESSION dconf reset "$key"

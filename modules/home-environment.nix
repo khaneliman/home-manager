@@ -788,8 +788,12 @@ in
               gettext
               gnugrep
               gnused
-              jq
-              ncurses # For `tput`.
+            ]
+            ++ lib.optional (
+              config.home-manager.dependencies.jq.package != null
+            ) config.home-manager.dependencies.jq.package
+            ++ [
+              pkgs.ncurses # For `tput`.
             ]
             ++ config.home.extraActivationPath
           )
