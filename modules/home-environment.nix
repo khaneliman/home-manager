@@ -781,13 +781,13 @@ in
           lib.makeBinPath (
             with pkgs;
             [
-              bash
-              coreutils
+              config.home-manager.dependencies.bash.package
+              config.home-manager.dependencies.coreutils.package
               diffutils # For `cmp` and `diff`.
-              findutils
+              config.home-manager.dependencies.findutils.package
               gettext
-              gnugrep
-              gnused
+              config.home-manager.dependencies.gnugrep.package
+              config.home-manager.dependencies.gnused.package
             ]
             ++ lib.optional (
               config.home-manager.dependencies.jq.package != null
@@ -803,7 +803,7 @@ in
             if config.nix.enable && config.nix.package != null then
               ":${config.nix.package}/bin"
             else
-              ":$(${pkgs.coreutils}/bin/dirname $(${pkgs.coreutils}/bin/readlink -m $(type -p nix-env)))"
+              ":$(${lib.getBin config.home-manager.dependencies.coreutils.package}/bin/dirname $(${lib.getBin config.home-manager.dependencies.coreutils.package}/bin/readlink -m $(type -p nix-env)))"
           )
           + lib.optionalString (!cfg.emptyActivationPath) "\${PATH:+:}$PATH";
 

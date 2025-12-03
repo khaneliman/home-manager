@@ -109,6 +109,21 @@ in
       curl = {
         default = "curl";
       };
+      bash = {
+        default = "bash";
+      };
+      coreutils = {
+        default = "coreutils";
+      };
+      gnused = {
+        default = "gnused";
+      };
+      gnugrep = {
+        default = "gnugrep";
+      };
+      findutils = {
+        default = "findutils";
+      };
     };
   };
 }

@@ -60,13 +60,13 @@ let
     }
   ) (lib.filterAttrs (_: folder: folder.enable) cfg.settings.folders);
 
-  jq = lib.getExe pkgs.jq;
-  sleep = lib.getExe' pkgs.coreutils "sleep";
-  printf = lib.getExe' pkgs.coreutils "printf";
-  cat = lib.getExe' pkgs.coreutils "cat";
+  jq = lib.getExe config.home-manager.dependencies.jq.package;
+  sleep = lib.getExe' config.home-manager.dependencies.coreutils.package "sleep";
+  printf = lib.getExe' config.home-manager.dependencies.coreutils.package "printf";
+  cat = lib.getExe' config.home-manager.dependencies.coreutils.package "cat";
   curl = lib.getExe config.home-manager.dependencies.curl.package;
-  install = lib.getExe' pkgs.coreutils "install";
-  mktemp = lib.getExe' pkgs.coreutils "mktemp";
+  install = lib.getExe' config.home-manager.dependencies.coreutils.package "install";
+  mktemp = lib.getExe' config.home-manager.dependencies.coreutils.package "mktemp";
   syncthing = lib.getExe cfg.package;
 
   copyKeys = pkgs.writers.writeBash "syncthing-copy-keys" ''
