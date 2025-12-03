@@ -156,7 +156,7 @@ in
         Type = "simple";
         Restart = "always";
         # swayidle executes commands using "sh -c", so the PATH needs to contain a shell.
-        Environment = [ "PATH=${lib.makeBinPath [ pkgs.bash ]}" ];
+        Environment = [ "PATH=${lib.makeBinPath [ config.home-manager.dependencies.bash.package ]}" ];
         ExecStart =
           let
             mkTimeout =

@@ -192,7 +192,7 @@ in
             Environment = [ "PATH=${config.home.profileDirectory}/bin" ];
             ExecStart = "${cfg.package}/bin/mpd --no-daemon ${mpdConf} ${lib.escapeShellArgs cfg.extraArgs}";
             Type = "notify";
-            ExecStartPre = ''${pkgs.bash}/bin/bash -c "${pkgs.coreutils}/bin/mkdir -p '${cfg.dataDir}' '${cfg.playlistDirectory}'"'';
+            ExecStartPre = ''${config.home-manager.dependencies.bash.package}/bin/bash -c "${config.home-manager.dependencies.coreutils.package}/bin/mkdir -p '${cfg.dataDir}' '${cfg.playlistDirectory}'"'';
           };
         };
 

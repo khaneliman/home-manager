@@ -47,7 +47,7 @@ in
 
       Service = {
         ExecStart = "${pkgs.wl-clipboard}/bin/wl-paste -t text --watch ${cfg.package}/bin/clipman store";
-        ExecReload = "${pkgs.coreutils}/bin/kill -SIGUSR2 $MAINPID";
+        ExecReload = "${config.home-manager.dependencies.coreutils.package}/bin/kill -SIGUSR2 $MAINPID";
         Restart = "on-failure";
         KillMode = "mixed";
       };

@@ -59,9 +59,9 @@
           [
             "PATH=${
               lib.makeBinPath [
-                pkgs.bash
-                pkgs.coreutils
-                pkgs.gnused
+                config.home-manager.dependencies.bash.package
+                config.home-manager.dependencies.coreutils.package
+                config.home-manager.dependencies.gnused.package
                 pkgs.which
                 config.services.sctd.package
                 logger

@@ -114,7 +114,7 @@ in
           enable = true;
           config = {
             ProgramArguments = [
-              (lib.getExe pkgs.bash)
+              (lib.getExe config.home-manager.dependencies.bash.package)
               "-c"
               ''${lib.getExe' cfg.package "ssh-agent"} -D -a "$(${lib.getExe pkgs.getconf} DARWIN_USER_TEMP_DIR)/${cfg.socket}"${
                 lib.optionalString (

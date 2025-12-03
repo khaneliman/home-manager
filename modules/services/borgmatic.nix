@@ -56,7 +56,7 @@ in
               LogRateLimitIntervalSec = 0;
 
               # Delay start to prevent backups running during boot:
-              ExecStartPre = "${pkgs.coreutils}/bin/sleep 3m";
+              ExecStartPre = "${config.home-manager.dependencies.coreutils.package}/bin/sleep 3m";
 
               ExecStart = ''
                 ${pkgs.systemd}/bin/systemd-inhibit \

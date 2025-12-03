@@ -141,7 +141,7 @@ in
       let
         path = lib.escapeShellArg "${config.xdg.configHome}/jellyfin-mpv-shim/conf.json";
         staticSettings = lib.escapeShellArg (jsonFormat.generate "jellyfin-mpv-shim-conf" cfg.settings);
-        cmd = "${lib.getExe pkgs.jq} -s '.[0] * .[1]' ${path} ${staticSettings}";
+        cmd = "${lib.getExe config.home-manager.dependencies.jq.package} -s '.[0] * .[1]' ${path} ${staticSettings}";
       in
       lib.mkIf (cfg.settings != { }) (
         lib.hm.dag.entryAfter [ "linkGeneration" ] ''

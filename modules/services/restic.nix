@@ -438,7 +438,7 @@ in
             mkResticCmd = mkResticCmd' [ ];
 
             backupCmd =
-              "${lib.getExe pkgs.bash} -c "
+              "${lib.getExe config.home-manager.dependencies.bash.package} -c "
               + lib.escapeShellArg (
                 mkResticCmd' inhibitCmd [
                   "backup"

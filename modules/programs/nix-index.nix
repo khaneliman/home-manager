@@ -57,7 +57,7 @@ in
     programs.fish.interactiveShellInit =
       let
         wrapper = pkgs.writeScript "command-not-found" ''
-          #!${pkgs.bash}/bin/bash
+           #!${config.home-manager.dependencies.bash.package}/bin/bash
           source ${cfg.package}/etc/profile.d/command-not-found.sh
           command_not_found_handle "$@"
         '';
