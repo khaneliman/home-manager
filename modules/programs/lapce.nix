@@ -149,7 +149,7 @@ let
       {
         name = file;
         nativeBuildInputs = [
-          pkgs.curl
+          config.home-manager.dependencies.curl.package
           pkgs.cacert
         ];
         dontUnpack = true;

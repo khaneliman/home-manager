@@ -64,7 +64,7 @@ let
   sleep = lib.getExe' pkgs.coreutils "sleep";
   printf = lib.getExe' pkgs.coreutils "printf";
   cat = lib.getExe' pkgs.coreutils "cat";
-  curl = lib.getExe pkgs.curl;
+  curl = lib.getExe config.home-manager.dependencies.curl.package;
   install = lib.getExe' pkgs.coreutils "install";
   mktemp = lib.getExe' pkgs.coreutils "mktemp";
   syncthing = lib.getExe cfg.package;

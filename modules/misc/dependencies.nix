@@ -106,6 +106,9 @@ in
       jq = {
         default = "jq";
       };
+      curl = {
+        default = "curl";
+      };
     };
   };
 }
