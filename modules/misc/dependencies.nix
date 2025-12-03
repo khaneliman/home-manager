@@ -88,7 +88,29 @@ in
       visible = false;
     };
 
-    dependencies = lib.mapAttrs mkDependencyOption config.home-manager.__depPackages;
+    dependencies = lib.mkOption {
+      type = types.attrsOf (
+        types.submodule {
+          options = {
+            enable = lib.mkOption {
+              type = types.bool;
+              default = true;
+              description = "Whether to add this dependency to home.packages.";
+            };
+            package = lib.mkOption {
+              type = types.package;
+              description = "The package to use for this dependency.";
+            };
+          };
+        }
+      );
+      description = ''
+        A set of common utility packages that can be centrally managed and referenced
+        by other home-manager modules. This allows users to override which package
+        implementation is used for common utilities like curl, bash, coreutils, etc.
+      '';
+      default = { };
+    };
   };
 
   config = {
@@ -118,5 +140,8 @@ in
         default = "findutils";
       };
     };
+
+    # Generate the dependencies options from __depPackages
+    home-manager.dependencies = lib.mapAttrs mkDependencyOption config.home-manager.__depPackages;
   };
 }
