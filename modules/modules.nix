@@ -33,6 +33,7 @@ let
       ./manual.nix
       ./misc/dconf.nix
       ./misc/debug.nix
+      ./misc/dependencies.nix
       ./misc/editorconfig.nix
       ./misc/fontconfig.nix
       ./misc/gtk.nix
