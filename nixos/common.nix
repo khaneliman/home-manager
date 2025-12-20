@@ -55,7 +55,11 @@ let
             home = {
               username = config.users.users.${name}.name;
               homeDirectory = config.users.users.${name}.home;
-              uid = mkIf (options.users.users.${name}.uid.isDefined or false) config.users.users.${name}.uid;
+              uid =
+                let
+                  uid = builtins.tryEval config.users.users.${name}.uid;
+                in
+                if uid.success then uid.value else null;
             };
 
             nix = {
