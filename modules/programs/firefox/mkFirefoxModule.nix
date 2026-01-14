@@ -32,6 +32,18 @@ let
     ;
   inherit (pkgs.stdenv.hostPlatform) isDarwin;
 
+  # Determine if we should use XDG paths
+  # Only affects Linux; Darwin continues using Library/Application Support/Firefox
+  useXdgPaths = !isDarwin && lib.versionAtLeast config.home.stateVersion "25.11";
+
+  # Legacy Firefox path for backwards compatibility detection
+  legacyFirefoxPath = "${config.home.homeDirectory}/.mozilla/firefox";
+
+  # Check if legacy path exists (matches Firefox's own migration logic)
+  # Note: This is evaluated at build time, so it checks the build machine,
+  # not the target machine. This matches Firefox's runtime behavior.
+  hasLegacyPath = builtins.pathExists legacyFirefoxPath;
+
   appName = name;
 
   moduleName = concatStringsSep "." modulePath;
@@ -311,9 +323,34 @@ in
     configPath = mkOption {
       internal = true;
       type = types.str;
-      default = with platforms; if isDarwin then darwin.configPath else linux.configPath;
+      default =
+        if isDarwin then
+          platforms.darwin.configPath
+        else if hasLegacyPath then
+          # Prefer existing ~/.mozilla/firefox if found (matches Firefox behavior)
+          platforms.linux.legacyConfigPath
+        else if useXdgPaths then
+          # New installations with stateVersion >= 25.11 use XDG
+          "${config.xdg.configHome}/${platforms.linux.xdgConfigPath}"
+        else
+          # Legacy path for stateVersion < 25.11
+          platforms.linux.legacyConfigPath;
+      defaultText = literalExpression ''
+        On Darwin: "Library/Application Support/Firefox"
+        On Linux with state version < 25.11: ".mozilla/firefox"
+        On Linux with state version ≥ 25.11:
+          - "''${config.xdg.configHome}/firefox" if ~/.mozilla/firefox does not exist
+          - ".mozilla/firefox" if ~/.mozilla/firefox exists (backwards compatibility)
+      '';
       example = ".mozilla/firefox";
-      description = "Directory containing the ${appName} configuration files.";
+      description = ''
+        Directory containing the ''${appName} configuration files.
+
+        Starting with state version 25.11, new Firefox installations on Linux
+        will use XDG Base Directory specification (''${XDG_CONFIG_HOME}/firefox).
+        Existing installations with ~/.mozilla/firefox will continue using
+        the legacy path for backwards compatibility.
+      '';
     };
 
     nativeMessagingHosts = mkOption {

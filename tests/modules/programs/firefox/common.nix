@@ -27,5 +27,7 @@ builtins.mapAttrs
     "${name}-profiles-settings" = ./profiles/settings;
     "${name}-profiles-userchrome" = ./profiles/userchrome;
     "${name}-state-version-19_09" = ./state-version-19_09.nix;
+    "${name}-state-version-25_11-xdg" = ./state-version-25_11-xdg.nix;
+    "${name}-state-version-legacy-xdg" = ./state-version-legacy-xdg.nix;
     "${name}-profiles-shared-path" = ./profiles/shared-path.nix;
   }

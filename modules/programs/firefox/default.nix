@@ -29,7 +29,8 @@ in
       visible = true;
 
       platforms.linux = {
-        configPath = ".mozilla/firefox";
+        legacyConfigPath = ".mozilla/firefox";
+        xdgConfigPath = "firefox"; # Relative to XDG_CONFIG_HOME
       };
       platforms.darwin = {
         configPath = "Library/Application Support/Firefox";
