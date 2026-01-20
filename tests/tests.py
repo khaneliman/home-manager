@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import argparse
+import glob
+import re
 import subprocess
 import sys
 from collections.abc import Sequence
@@ -40,6 +42,57 @@ def _run_command(
         if e.stderr:
             print(f"Nix Error Output:\n{e.stderr.strip()}", file=sys.stderr)
         raise TestRunnerError("Subprocess command failed.") from e
+
+def _parse_assert_file_contains_failure(stderr: str) -> tuple[str, str] | None:
+    """Parse assertFileContains failure from stderr.
+
+    Returns (file_path, expected_content) or None if not found.
+    """
+    match = re.search(r'Expected (.+?) to contain (.+) but it did not\.', stderr)
+    if match:
+        return match.group(1), match.group(2)
+    return None
+
+
+def _show_actual_vs_expected(tested_path: str, file_path: str, expected: str) -> None:
+    """Show actual file content vs expected for assertFileContains failures."""
+    actual_file = Path(tested_path) / file_path
+    if not actual_file.exists():
+        return
+
+    # Extract a key identifier from the expected string to find relevant lines
+    # Try to get the first meaningful token (skip 'export', quotes, etc.)
+    tokens = expected.strip().strip('"\'').split()
+    key = None
+    for token in tokens:
+        # Skip common prefixes
+        if token in ('export',):
+            continue
+        # Extract the variable/identifier name (before = if present)
+        key = token.split('=')[0].strip('"\'')
+        if key:
+            break
+
+    if not key:
+        return
+
+    try:
+        with open(actual_file, 'r') as f:
+            lines = f.readlines()
+
+        relevant_lines = [line.rstrip() for line in lines if key in line]
+
+        if relevant_lines:
+            print(f"\n{INFO_EMOJI} Assertion failed for: {file_path}", file=sys.stderr)
+            print(f"\nExpected to contain:", file=sys.stderr)
+            print(f"  {expected}", file=sys.stderr)
+            print(f"\nActual relevant line(s):", file=sys.stderr)
+            for line in relevant_lines:
+                print(f"  {line}", file=sys.stderr)
+            print("", file=sys.stderr)
+    except Exception:
+        pass
+
 
 class TestRunner:
     """Manages the discovery and execution of Nix-based tests."""
@@ -141,14 +194,13 @@ class TestRunner:
                 if e.stderr:
                     print(e.stderr, file=sys.stderr)
 
-                import re
+                tested_path = None
                 if e.stderr:
                     build_dir_match = re.search(r"keeping build directory '([^']+)'", e.stderr)
                     if build_dir_match:
                         build_dir = build_dir_match.group(1)
                         try:
-                            import glob
-                            attr_files = glob.glob(f"{build_dir}/.attr-*")
+                            attr_files = glob.glob(f"{build_dir}/**/.attr-*", recursive=True)
                             for attr_file in attr_files:
                                 with open(attr_file, 'r') as f:
                                     content = f.read()
@@ -159,6 +211,13 @@ class TestRunner:
                                         break
                         except Exception:
                             print(f"{INFO_EMOJI} Build directory available at: {build_dir}", file=sys.stderr)
+
+                # Show actual vs expected for assertFileContains failures
+                if tested_path and e.stderr:
+                    failure_info = _parse_assert_file_contains_failure(e.stderr)
+                    if failure_info:
+                        file_path, expected = failure_info
+                        _show_actual_vs_expected(tested_path, file_path, expected)
 
                 store_path = self._get_store_path(test, nix_args)
                 if store_path:
