@@ -16,6 +16,13 @@ let
     ;
 
   cfg = config.programs.yazi;
+  shellWrapperNameDefault = lib.hm.deprecations.mkStateVersionOptionDefault {
+    stateVersion = config.home.stateVersion;
+    since = "26.05";
+    option = "programs.yazi.shellWrapperName";
+    legacyValue = "yy";
+    defaultValue = "y";
+  };
   tomlFormat = pkgs.formats.toml { };
 in
 {
@@ -48,8 +55,11 @@ in
 
     shellWrapperName = lib.mkOption {
       type = types.str;
-      default = "yy";
-      example = "y";
+      inherit (shellWrapperNameDefault)
+        default
+        defaultText
+        ;
+      example = "yy";
       description = ''
         Name of the shell wrapper to be called.
       '';
