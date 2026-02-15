@@ -87,7 +87,6 @@ let
       qt6Packages.qtstyleplugin-kvantum
     ];
   };
-
 in
 {
   meta.maintainers = with lib.maintainers; [
@@ -227,6 +226,7 @@ in
             Deprecated. Use {option}`qt.platformTheme.name` instead.
           '';
         };
+
       style = {
         name = lib.mkOption {
           type = with lib.types; nullOr str;
@@ -288,6 +288,47 @@ in
             Auto-detected from {option}`qt.style.name` if possible.
             See its documentation for available options.
           '';
+        };
+      };
+
+      kvantum = {
+        theme = {
+          name = lib.mkOption {
+            type = with lib.types; nullOr str;
+            default = null;
+            example = "KvAdapta";
+            description = ''
+              The name of the default Kvantum theme to use.
+            '';
+          };
+
+          package = lib.mkOption {
+            type = with lib.types; nullOr (either package (listOf package));
+            default = null;
+            example = lib.literalExpression "pkgs.catppuccin-kvantum";
+            description = ''
+              The Kvantum theme package(s) to install.
+            '';
+          };
+        };
+
+        applications = lib.mkOption {
+          type = with lib.types; attrsOf (listOf str);
+          default = { };
+          example = lib.literalExpression ''
+            {
+              THEME1 = [ "app1" "app2" ];
+              THEME2 = [ "app3" ];
+            }
+          '';
+          description = ''
+            A set of application-specific theme overrides.
+          '';
+        };
+
+        finalConfig = lib.mkOption {
+          default = { };
+          internal = true;
         };
       };
     }
@@ -376,7 +417,6 @@ in
           QT_PLUGIN_PATH = makeQtPath "qtPluginPrefix";
           QML2_IMPORT_PATH = makeQtPath "qtQmlPrefix";
         };
-
     in
     lib.mkIf cfg.enable {
       assertions = [
@@ -401,6 +441,15 @@ in
         lib.mkDefault (stylePackages.${lib.toLower cfg.style.name} or null)
       );
 
+      qt.kvantum.finalConfig = lib.mkMerge [
+        (lib.mkIf (cfg.kvantum.theme.name != null) {
+          General.theme = cfg.kvantum.theme.name;
+        })
+        (lib.mkIf (cfg.kvantum.applications != { }) {
+          Applications = cfg.kvantum.applications;
+        })
+      ];
+
       home = {
         sessionVariables = envVars;
         sessionSearchVariables = envVarsExtra;
@@ -420,7 +469,8 @@ in
             (lib.optionals (platformTheme.name != null) platformPackages.${platformTheme.name} or [ ])
           ]
         )
-        ++ (lib.optionals (cfg.style.package != null) (lib.toList cfg.style.package));
+        ++ (lib.optionals (cfg.style.package != null) (lib.toList cfg.style.package))
+        ++ (lib.optionals (cfg.kvantum.theme.package != null) (lib.toList cfg.kvantum.theme.package));
 
       xsession.importedVariables = [
         "QT_PLUGIN_PATH"
@@ -429,8 +479,8 @@ in
       ++ lib.optionals (platformTheme.name != null) [ "QT_QPA_PLATFORMTHEME" ]
       ++ lib.optionals (cfg.style.name != null) [ "QT_STYLE_OVERRIDE" ];
 
-      xdg.configFile =
-        lib.pipe
+      xdg.configFile = lib.mkMerge [
+        (lib.pipe
           [ "qt5ct" "qt6ct" ]
           [
             (lib.filter (qtct: cfg."${qtct}Settings" != null))
@@ -440,6 +490,25 @@ in
                 source = qtctFormat.generate "${qtct}-config" cfg."${qtct}Settings";
               }
             ))
-          ];
+          ]
+        )
+        (
+          let
+            toKvconfig = lib.generators.toINI {
+              mkKeyValue = lib.generators.mkKeyValueDefault {
+                mkValueString =
+                  v: if lib.isList v then lib.join ", " v else lib.generators.mkValueStringDefault { } v;
+              } "=";
+            };
+
+            finalConfig = cfg.kvantum.finalConfig;
+          in
+          {
+            "Kvantum/kvantum.kvconfig" = lib.mkIf (finalConfig != { }) {
+              text = toKvconfig finalConfig;
+            };
+          }
+        )
+      ];
     };
 }
