@@ -158,9 +158,10 @@ lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
 }
 ```
 
-For cross-platform modules that have packages which need to be stubbed on Darwin,
-add the package names to `tests/darwinScrublist.nix` to prevent build failures
-during cross-platform test runs.
+For cross-platform modules, Darwin now uses an automatic scrub overlay that
+stubs packages by default. If a test needs a real package on Darwin, explicitly
+unscrub it in the test (for example with `test.unstubs` or a `nixpkgs.overlays`
+override that inherits from `realPkgs`).
 
 ## Using the tests command {#sec-tests-command}
 

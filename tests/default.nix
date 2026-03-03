@@ -44,29 +44,40 @@ let
       value;
   scrubDerivations = lib.mapAttrs scrubDerivation;
 
-  # Globally unscrub a few selected packages that are used by a wide selection of tests.
+  # Globally unscrub a few selected packages that are used by a wide selection
+  # of tests.
+  #
+  # Keep this resilient across platforms: on Darwin some of these package names
+  # may not exist in Nixpkgs, so we only inherit those that are present.
   whitelist =
     let
-      inner = self: super: {
-        inherit (pkgs)
-          coreutils
-          crudini
-          jq
-          desktop-file-utils
-          diffutils
-          findutils
-          glibcLocales
-          gettext
-          gnugrep
-          gnused
-          shared-mime-info
-          emptyDirectory
-          # Needed by pretty much all tests that have anything to do with fish.
-          babelfish
-          fish
-          lndir
-          ;
-      };
+      whitelistPackageNames = [
+        # keep-sorted start case=no numeric=yes
+        "babelfish"
+        "coreutils"
+        "crudini"
+        "desktop-file-utils"
+        "diffutils"
+        "emptyDirectory"
+        "findutils"
+        "fish"
+        "gettext"
+        "glibcLocales"
+        "gnugrep"
+        "gnused"
+        "jq"
+        "lndir"
+        "shared-mime-info"
+        # keep-sorted end
+      ];
+
+      inheritExisting =
+        attrs: names:
+        lib.genAttrs (lib.filter (name: builtins.hasAttr name attrs) names) (
+          name: builtins.getAttr name attrs
+        );
+
+      inner = _self: _super: inheritExisting pkgs whitelistPackageNames;
 
       outer =
         self: super:
@@ -77,16 +88,16 @@ let
     in
     outer;
 
-  # TODO: figure out stdenv stubbing so we don't have to do this
   darwinScrublist = import ./darwinScrublist.nix { inherit lib scrubDerivation; };
 
   scrubbedPkgs =
-    # TODO: fix darwin stdenv stubbing
     if isDarwin then
       let
         rawPkgs = lib.makeExtensible (final: pkgs);
       in
-      builtins.traceVerbose "eval scrubbed darwin nixpkgs" (rawPkgs.extend darwinScrublist)
+      builtins.traceVerbose "eval scrubbed darwin nixpkgs" (
+        (rawPkgs.extend darwinScrublist).extend whitelist
+      )
     else
       let
         rawScrubbedPkgs = lib.makeExtensible (final: scrubDerivations pkgs);
