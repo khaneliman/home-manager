@@ -1,7 +1,28 @@
-#! /usr/bin/env nix-shell
-#! nix-shell -I nixpkgs=https://github.com/NixOS/nixpkgs/archive/62b852f6c6742134ade1abdd2a21685fd617a291.tar.gz -i bash -p gettext
+#! /usr/bin/env bash
 
 set -euo pipefail
+
+if ! command -v xgettext >/dev/null 2>&1; then
+  if [[ -n "${HM_XGETTEXT_BOOTSTRAPPED:-}" ]]; then
+    echo "xgettext is still unavailable after nix-shell bootstrap" >&2
+    exit 1
+  fi
+
+  repoRoot="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+  nixpkgsRev="$(
+    nix-instantiate \
+      --eval \
+      --expr '{ lockFile }: let lock = builtins.fromJSON (builtins.readFile lockFile); in lock.nodes.nixpkgs.locked.rev' \
+      --argstr lockFile "$repoRoot/flake.lock" \
+      | tr -d '"'
+  )"
+  printf -v cmd '%q ' "$0" "$@"
+  exec env HM_XGETTEXT_BOOTSTRAPPED=1 nix-shell \
+    -I "nixpkgs=https://github.com/NixOS/nixpkgs/archive/${nixpkgsRev}.tar.gz" \
+    -p gettext \
+    --run "${cmd% }"
+fi
+
 shopt -s globstar
 
 function run() {
@@ -13,6 +34,7 @@ function run() {
   xgettext -v --package-name="$packageName" \
            --copyright-holder='Home Manager contributors' \
            --msgid-bugs-address=https://github.com/nix-community/home-manager/issues \
+           --from-code=UTF-8 \
            -L Shell -k \
            -k_i:1 --flag=_i:1:c-format \
            -k_iError:1 --flag=_i:1:c-format \
