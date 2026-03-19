@@ -52,7 +52,7 @@ function run() {
 
 # Files that should be ignored due to various complications. They have been
 # verified not contain any translatable strings.
-GLOBIGNORE="modules/programs/thefuck.nix"
+GLOBIGNORE=""
 
 run 'Home Manager' \
     home-manager/po/home-manager.pot \
