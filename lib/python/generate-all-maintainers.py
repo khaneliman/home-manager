@@ -11,6 +11,7 @@ reliable than parsing files with regex.
 import argparse
 import inspect
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -48,6 +49,11 @@ class MetaMaintainerGenerator:
         self.hm_maintainers_file = hm_root / "modules" / "lib" / "maintainers.nix"
         self.output_file = hm_root / "all-maintainers.nix"
         self.extractor_script = hm_root / "lib" / "nix" / "extract-maintainers-meta.nix"
+        with open(hm_root / "flake.lock") as f:
+            lock = json.load(f)
+        rev = lock["nodes"]["nixpkgs"]["locked"]["rev"]
+        self.nix_env = os.environ.copy()
+        self.nix_env["NIX_PATH"] = f"nixpkgs=https://github.com/NixOS/nixpkgs/archive/{rev}.tar.gz"
 
     def extract_maintainers_from_meta(self) -> dict:
         """Extract maintainer information using meta.maintainers."""
@@ -56,7 +62,7 @@ class MetaMaintainerGenerator:
         try:
             result = subprocess.run([
                 "nix", "eval", "--file", str(self.extractor_script), "--json"
-            ], capture_output=True, text=True, timeout=60)
+            ], capture_output=True, text=True, timeout=60, env=self.nix_env)
 
             if result.returncode == 0:
                 data = json.loads(result.stdout)
@@ -116,7 +122,7 @@ class MetaMaintainerGenerator:
         try:
             result = subprocess.run([
                 'nix-instantiate', '--eval', str(self.output_file), '--strict'
-            ], capture_output=True, text=True, timeout=10)
+            ], capture_output=True, text=True, timeout=10, env=self.nix_env)
 
             if result.returncode == 0:
                 print("✅ Generated file has valid Nix syntax")

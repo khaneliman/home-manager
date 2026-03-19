@@ -9,6 +9,7 @@ for easier testing and validation.
 import argparse
 import json
 import logging
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -19,8 +20,20 @@ class NixEvalError(Exception):
     pass
 
 
+def locked_nix_env(repo_root: Path) -> dict[str, str]:
+    """Return an environment with nixpkgs pinned to the repo's flake.lock revision."""
+    with open(repo_root / "flake.lock") as f:
+        lock = json.load(f)
+
+    rev = lock["nodes"]["nixpkgs"]["locked"]["rev"]
+    env = os.environ.copy()
+    env["NIX_PATH"] = f"nixpkgs=https://github.com/NixOS/nixpkgs/archive/{rev}.tar.gz"
+    return env
+
+
 def run_nix_eval(nix_file: Path, *args: str) -> str:
     """Run a Nix evaluation expression and return the result as a string."""
+    repo_root = nix_file.parents[2]
     command = [
         "nix-instantiate",
         "--eval",
@@ -36,6 +49,7 @@ def run_nix_eval(nix_file: Path, *args: str) -> str:
             capture_output=True,
             text=True,
             check=True,
+            env=locked_nix_env(repo_root),
         )
         return result.stdout.strip()
     except FileNotFoundError:
