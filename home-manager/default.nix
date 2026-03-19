@@ -21,6 +21,17 @@
 let
 
   pathStr = if path == null then "" else path;
+  releaseInfo = builtins.fromJSON (builtins.readFile ../release.json);
+  defaultHomeManagerUrl =
+    if releaseInfo.isReleaseBranch then
+      "github:nix-community/home-manager/release-${releaseInfo.release}"
+    else
+      "github:nix-community/home-manager";
+  defaultNixpkgsUrl =
+    if releaseInfo.isReleaseBranch then
+      "github:nixos/nixpkgs/nixos-${releaseInfo.release}"
+    else
+      "github:nixos/nixpkgs/nixos-unstable";
 
   nixos-option =
     pkgs.nixos-option or (callPackage (pkgs.path + "/nixos/modules/installer/tools/nixos-option") { });
@@ -57,6 +68,8 @@ runCommand "home-manager"
         ]
       }" \
       --subst-var-by HOME_MANAGER_LIB '${../lib/bash/home-manager.sh}' \
+      --subst-var-by DEFAULT_HOME_MANAGER_URL '${defaultHomeManagerUrl}' \
+      --subst-var-by DEFAULT_NIXPKGS_URL '${defaultNixpkgsUrl}' \
       --subst-var-by HOME_MANAGER_PATH '${pathStr}' \
       --subst-var-by OUT "$out"
 

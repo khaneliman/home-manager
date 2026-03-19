@@ -1,5 +1,19 @@
 { pkgs, ... }:
 
+let
+  releaseInfo = builtins.fromJSON (builtins.readFile ../../../release.json);
+  defaultHomeManagerUrl =
+    if releaseInfo.isReleaseBranch then
+      "github:nix-community/home-manager/release-${releaseInfo.release}"
+    else
+      "github:nix-community/home-manager";
+  defaultNixpkgsUrl =
+    if releaseInfo.isReleaseBranch then
+      "github:nixos/nixpkgs/nixos-${releaseInfo.release}"
+    else
+      "github:nixos/nixpkgs/nixos-unstable";
+in
+
 {
   name = "standalone-flake-basics";
   meta.maintainers = [ pkgs.lib.maintainers.rycee ];
@@ -71,6 +85,15 @@
 
       # The default configuration creates this link on activation.
       machine.succeed("test -L /home/alice/.cache/.keep")
+
+    with subtest("Home Manager init default URLs"):
+      succeed_as_alice("nix run home-manager -- init /home/alice/default-hmconf")
+
+      actual = machine.succeed("cat /home/alice/default-hmconf/flake.nix")
+      assert '${defaultHomeManagerUrl}' in actual, \
+        f"expected generated flake to contain ${defaultHomeManagerUrl}, but got {actual}"
+      assert '${defaultNixpkgsUrl}' in actual, \
+        f"expected generated flake to contain ${defaultNixpkgsUrl}, but got {actual}"
 
     with subtest("GC root and profile"):
       # There should be a GC root and Home Manager profile and they should point
