@@ -1,5 +1,5 @@
 .PHONY: all all-tests test test-install format
-NIXPKGS_REV := nixos-unstable
+NIXPKGS_REV := $(shell nix-instantiate --eval --expr 'let lock = builtins.fromJSON (builtins.readFile ./flake.lock); in lock.nodes.nixpkgs.locked.rev' | tr -d '"')
 NIX_PATH := nixpkgs=https://github.com/NixOS/nixpkgs/archive/${NIXPKGS_REV}.tar.gz
 
 all: all-tests test-install
