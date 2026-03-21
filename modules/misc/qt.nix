@@ -326,10 +326,6 @@ in
           '';
         };
 
-        finalConfig = lib.mkOption {
-          default = { };
-          internal = true;
-        };
       };
     }
     // (lib.genAttrs' [ "qt5ct" "qt6ct" ] (
@@ -441,15 +437,6 @@ in
         lib.mkDefault (stylePackages.${lib.toLower cfg.style.name} or null)
       );
 
-      qt.kvantum.finalConfig = lib.mkMerge [
-        (lib.mkIf (cfg.kvantum.theme.name != null) {
-          General.theme = cfg.kvantum.theme.name;
-        })
-        (lib.mkIf (cfg.kvantum.applications != { }) {
-          Applications = cfg.kvantum.applications;
-        })
-      ];
-
       home = {
         sessionVariables = envVars;
         sessionSearchVariables = envVarsExtra;
@@ -501,11 +488,18 @@ in
               } "=";
             };
 
-            finalConfig = cfg.kvantum.finalConfig;
+            kvantumConfig = lib.mkMerge [
+              (lib.mkIf (cfg.kvantum.theme.name != null) {
+                General.theme = cfg.kvantum.theme.name;
+              })
+              (lib.mkIf (cfg.kvantum.applications != { }) {
+                Applications = cfg.kvantum.applications;
+              })
+            ];
           in
           {
-            "Kvantum/kvantum.kvconfig" = lib.mkIf (finalConfig != { }) {
-              text = toKvconfig finalConfig;
+            "Kvantum/kvantum.kvconfig" = lib.mkIf (kvantumConfig != { }) {
+              text = toKvconfig kvantumConfig;
             };
           }
         )
