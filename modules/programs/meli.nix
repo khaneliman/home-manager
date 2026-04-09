@@ -21,9 +21,9 @@ let
     name: value: value.enable && (value.meli.enable or false)
   ) config.accounts.email.accounts;
 
-  meliAccounts = (lib.attrsets.mapAttrs (name: value: (mkMeliAccounts name value)) enabledAccounts);
+  meliAccounts = lib.attrsets.mapAttrs (name: value: (mkMeliAccounts name value)) enabledAccounts;
 
-  mkMeliAccounts = (
+  mkMeliAccounts =
     name: account:
     {
       root_mailbox = "${config.accounts.email.maildirBasePath}/${account.maildir.path}";
@@ -41,8 +41,7 @@ let
       server_url = "https://api.fastmail.com/jmap/session";
       use_token = true;
     }
-    // account.meli.settings
-  );
+    // account.meli.settings;
 
   mkSmtp = account: {
     hostname = account.smtp.host;
@@ -132,15 +131,12 @@ in
               enable = mkEnableOption "the meli mail client for this account.\nRequires SMTP settings.";
               mailboxes = mkOption {
                 type = with types; listOf str;
-                default = (
-                  with config.folders;
-                  [
-                    inbox
-                    sent
-                    trash
-                    drafts
-                  ]
-                );
+                default = with config.folders; [
+                  inbox
+                  sent
+                  trash
+                  drafts
+                ];
                 example = [
                   "INBOX"
                   "Sent"

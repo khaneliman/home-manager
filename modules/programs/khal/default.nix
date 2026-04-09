@@ -65,7 +65,7 @@ let
           ) value.khal.thisCollection)
         }"
       ]
-      ++ optional (value.khal.readOnly) "readonly = True"
+      ++ optional value.khal.readOnly "readonly = True"
       ++ optional (
         value.khal.addresses != [ ]
       ) "addresses= ${lib.concatStringsSep ", " value.khal.addresses}"

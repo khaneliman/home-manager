@@ -190,7 +190,7 @@ in
             Description = "Home Manager X session";
             Requires =
               let
-                requires = lib.optional (config.xdg.autostart.enable) "xdg-desktop-autostart.target" ++ [
+                requires = lib.optional config.xdg.autostart.enable "xdg-desktop-autostart.target" ++ [
                   "graphical-session-pre.target"
                 ];
               in

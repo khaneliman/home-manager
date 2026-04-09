@@ -105,7 +105,7 @@ in
     };
 
     colorSchemes = mkOption {
-      type = types.attrsOf (tomlFormat.type);
+      type = types.attrsOf tomlFormat.type;
       default = { };
       example = literalExpression ''
         myCoolTheme = {

@@ -3,7 +3,7 @@
 lib.mkMerge [
   {
     test.stubs.writers = {
-      extraAttrs.writeBash = (name: fn: "@syncthing-wrapper@");
+      extraAttrs.writeBash = name: fn: "@syncthing-wrapper@";
     };
 
     services.syncthing = {

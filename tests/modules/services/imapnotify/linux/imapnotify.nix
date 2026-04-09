@@ -21,12 +21,10 @@
 
   services.imapnotify = {
     enable = true;
-    package = (
-      config.lib.test.mkStubPackage {
-        name = "goimapnotify";
-        outPath = "@goimapnotify@";
-      }
-    );
+    package = config.lib.test.mkStubPackage {
+      name = "goimapnotify";
+      outPath = "@goimapnotify@";
+    };
   };
 
   nmt.script = ''

@@ -121,7 +121,7 @@ in
     };
 
     plugins = mkOption {
-      type = types.listOf (sbtTypes.plugin);
+      type = types.listOf sbtTypes.plugin;
       default = [ ];
       example = literalExpression ''
         [
@@ -143,7 +143,7 @@ in
     };
 
     pluginsExtra = mkOption {
-      type = types.listOf (types.str);
+      type = types.listOf types.str;
       default = [ ];
       example = literalExpression ''
         [
@@ -157,7 +157,7 @@ in
     };
 
     credentials = mkOption {
-      type = types.listOf (sbtTypes.credential);
+      type = types.listOf sbtTypes.credential;
       default = [ ];
       example = literalExpression ''
         [{

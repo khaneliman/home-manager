@@ -200,7 +200,7 @@ in
       home.activation.createXdgUserDirectories = lib.mkIf cfg.createDirectories (
         let
           directoriesList = lib.attrValues directories;
-          mkdir = (dir: ''[[ -L "${dir}" ]] || run mkdir -p $VERBOSE_ARG "${dir}"'');
+          mkdir = dir: ''[[ -L "${dir}" ]] || run mkdir -p $VERBOSE_ARG "${dir}"'';
         in
         lib.hm.dag.entryAfter [ "linkGeneration" ] (
           lib.strings.concatMapStringsSep "\n" mkdir directoriesList

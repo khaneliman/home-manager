@@ -322,7 +322,7 @@ in
 
       home.packages =
         let
-          wantsPrimeWrapper = (!isNull cfg.prime.installScript);
+          wantsPrimeWrapper = !isNull cfg.prime.installScript;
           wantsWrapper =
             wrapper:
             (!isNull cfg.packages)

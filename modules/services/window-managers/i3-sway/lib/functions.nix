@@ -224,7 +224,7 @@ rec {
       prefix = concatStringsSep "" (lib.genList (x: " ") (level * 2));
 
     in
-    (lib.imap1 (
+    lib.imap1 (
       i: v: "${if includesWrapper && (i == 1 || i == (lib.length list)) then v else "${prefix}${v}"}"
-    ) list);
+    ) list;
 }

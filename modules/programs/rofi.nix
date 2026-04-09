@@ -345,20 +345,18 @@ in
 
     home.file."${cfg.configPath}".text =
       toRasi {
-        configuration = (
-          {
-            inherit (cfg)
-              cycle
-              font
-              terminal
-              xoffset
-              yoffset
-              ;
-            location = (lib.getAttr cfg.location locationsMap);
-          }
-          // lib.optionalAttrs (modes != [ ]) { inherit modes; }
-          // cfg.extraConfig
-        );
+        configuration = {
+          inherit (cfg)
+            cycle
+            font
+            terminal
+            xoffset
+            yoffset
+            ;
+          location = lib.getAttr cfg.location locationsMap;
+        }
+        // lib.optionalAttrs (modes != [ ]) { inherit modes; }
+        // cfg.extraConfig;
         # @theme must go after configuration but attrs are output in alphabetical order ('@' first)
       }
       + (lib.optionalString (themeName != null) (toRasi {

@@ -486,7 +486,7 @@ in
   config = mkIf cfg.enable {
     assertions = [
       {
-        assertion = ((filter (b: (lib.length (lib.toList b.map)) == 0) (cfg.binds ++ cfg.macros)) == [ ]);
+        assertion = (filter (b: (lib.length (lib.toList b.map)) == 0) (cfg.binds ++ cfg.macros)) == [ ];
         message = "The 'programs.neomutt.(binds|macros).map' list must contain at least one element.";
       }
     ];

@@ -180,7 +180,7 @@ in
               (toString machine.speedFactor)
               (
                 let
-                  res = (machine.supportedFeatures ++ machine.mandatoryFeatures);
+                  res = machine.supportedFeatures ++ machine.mandatoryFeatures;
                 in
                 if (res == [ ]) then "-" else (concatStringsSep "," res)
               )

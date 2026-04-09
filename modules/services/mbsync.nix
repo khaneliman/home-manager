@@ -12,7 +12,7 @@ let
   mbsyncOptions = [
     "--all"
   ]
-  ++ lib.optional (cfg.verbose) "--verbose"
+  ++ lib.optional cfg.verbose "--verbose"
   ++ lib.optional (cfg.configFile != null) "--config ${cfg.configFile}";
 
 in

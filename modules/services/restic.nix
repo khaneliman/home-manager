@@ -521,7 +521,7 @@ in
                   ${pkgs.writeShellScript "backupPrepareCommand" backup.backupPrepareCommand}
                 ''}
 
-                ${lib.optionalString (backup.initialize) ''
+                ${lib.optionalString backup.initialize ''
                   ${
                     mkResticCmd [
                       "cat"

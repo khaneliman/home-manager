@@ -169,7 +169,7 @@ in
     };
   };
 
-  config = (
+  config =
     let
       customRC = ''
         ${concatStringsSep "\n" (
@@ -223,6 +223,5 @@ in
         package = vim;
         plugins = defaultPlugins;
       };
-    }
-  );
+    };
 }

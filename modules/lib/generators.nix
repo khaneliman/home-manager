@@ -43,7 +43,7 @@
               let
                 separator = if all isAttrs attrs then "\n" else "";
               in
-              (concatMapStringsSep separator (a: mkSection n a) attrs)
+              concatMapStringsSep separator (a: mkSection n a) attrs
             else if isAttrs attrs then
               ''
                 ${indent}${n} {

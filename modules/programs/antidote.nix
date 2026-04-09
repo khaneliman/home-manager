@@ -7,15 +7,14 @@
 let
   cfg = config.programs.zsh.antidote;
 
-  zPluginStr = (
+  zPluginStr =
     pluginNames:
     lib.optionalString (pluginNames != [ ])
       "${lib.concatStrings (
         map (name: ''
           ${name}
         '') pluginNames
-      )}"
-  );
+      )}";
 
   parseHashId = path: lib.elemAt (builtins.match "${builtins.storeDir}/([a-zA-Z0-9]+)-.*" path) 0;
 in
@@ -47,7 +46,7 @@ in
         '';
         hashId = parseHashId "${configFiles}";
       in
-      (lib.mkOrder 550 ''
+      lib.mkOrder 550 ''
         ## home-manager/antidote begin :
         source ${cfg.package}/share/antidote/antidote.zsh
         ${lib.optionalString cfg.useFriendlyNames "zstyle ':antidote:bundle' use-friendly-names 'yes'"}
@@ -60,6 +59,6 @@ in
         antidote load $bundlefile $staticfile
 
         ## home-manager/antidote end
-      '');
+      '';
   };
 }

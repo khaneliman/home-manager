@@ -131,12 +131,11 @@ in
         mkThemeConfig = name: theme: {
           name = "btop/themes/${name}.theme";
           value = {
-            source = (
+            source =
               if builtins.isPath theme || lib.isStorePath theme then
                 theme
               else
-                pkgs.writeText "btop-theme.theme" theme
-            );
+                pkgs.writeText "btop-theme.theme" theme;
           };
         };
       in

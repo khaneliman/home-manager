@@ -5,5 +5,4 @@ disabled = [
   "faster_groupby",
   "faster_zipattrswith",
   "repeated_keys",
-  "useless_parens",
 ]

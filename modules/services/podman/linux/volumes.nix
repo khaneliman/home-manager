@@ -29,15 +29,13 @@ let
         };
         Service = {
           Environment = {
-            PATH = (
-              builtins.concatStringsSep ":" [
-                "${podman-lib.newuidmapPaths}"
-                "${lib.makeBinPath [
-                  pkgs.su
-                  pkgs.coreutils
-                ]}"
-              ]
-            );
+            PATH = builtins.concatStringsSep ":" [
+              "${podman-lib.newuidmapPaths}"
+              "${lib.makeBinPath [
+                pkgs.su
+                pkgs.coreutils
+              ]}"
+            ];
           };
           ExecStartPre = [ "${podman-lib.awaitPodmanUnshare}" ];
           TimeoutStartSec = 15;

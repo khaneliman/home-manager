@@ -28,7 +28,7 @@ let
         Image = {
           AuthFile = imageDef.authFile;
           CertDir = imageDef.certDir;
-          Creds = (if credsString != "" then credsString else null);
+          Creds = if credsString != "" then credsString else null;
           DecryptionKey = imageDef.decryptionKeyFile;
           Image = imageDef.image;
           ImageTag = imageDef.tag;

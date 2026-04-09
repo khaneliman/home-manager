@@ -121,14 +121,12 @@ in
               let
                 children = lib.filterAttrs (n: _: n != "_params") value;
               in
-              (
-                lib.optionalAttrs (value ? "_params") {
-                  params = value._params;
-                }
-                // lib.optionalAttrs (children != { }) {
-                  children = attrsToDirectiveList children;
-                }
-              )
+              lib.optionalAttrs (value ? "_params") {
+                params = value._params;
+              }
+              // lib.optionalAttrs (children != { }) {
+                children = attrsToDirectiveList children;
+              }
           )
         );
       in

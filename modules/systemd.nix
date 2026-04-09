@@ -279,56 +279,56 @@ in
       services = mkOption {
         default = { };
         type = serviceType;
-        description = (unitDescription "service");
+        description = unitDescription "service";
         example = unitExample "Service";
       };
 
       slices = mkOption {
         default = { };
         type = unitType "slice";
-        description = (unitDescription "slice");
+        description = unitDescription "slice";
         example = unitExample "Slice";
       };
 
       sockets = mkOption {
         default = { };
         type = unitType "socket";
-        description = (unitDescription "socket");
+        description = unitDescription "socket";
         example = unitExample "Socket";
       };
 
       targets = mkOption {
         default = { };
         type = unitType "target";
-        description = (unitDescription "target");
+        description = unitDescription "target";
         example = unitExample "Target";
       };
 
       timers = mkOption {
         default = { };
         type = unitType "timer";
-        description = (unitDescription "timer");
+        description = unitDescription "timer";
         example = unitExample "Timer";
       };
 
       paths = mkOption {
         default = { };
         type = unitType "path";
-        description = (unitDescription "path");
+        description = unitDescription "path";
         example = unitExample "Path";
       };
 
       mounts = mkOption {
         default = { };
         type = unitType "mount";
-        description = (unitDescription "mount");
+        description = unitDescription "mount";
         example = unitExample "Mount";
       };
 
       automounts = mkOption {
         default = { };
         type = unitType "automount";
-        description = (unitDescription "automount");
+        description = unitDescription "automount";
         example = unitExample "Automount";
       };
 

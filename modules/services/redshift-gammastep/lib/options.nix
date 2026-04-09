@@ -177,9 +177,9 @@ in
       {
         assertion =
           (cfg.settings ? ${mainSection}.dawn-time || cfg.settings ? ${mainSection}.dusk-time)
-          || (cfg.settings.${mainSection}.location-provider) == "geoclue2"
+          || cfg.settings.${mainSection}.location-provider == "geoclue2"
           || (
-            (cfg.settings.${mainSection}.location-provider) == "manual"
+            cfg.settings.${mainSection}.location-provider == "manual"
             && (cfg.settings ? manual.lat || cfg.settings ? manual.lon)
           );
         message = ''

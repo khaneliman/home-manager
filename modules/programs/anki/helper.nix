@@ -158,8 +158,8 @@ in
 {
   ankiConfig =
     let
-      cfgAnkiPython = (
-        lib.lists.findSingle (x: x.isPy3 or false) null null (cfg.package.nativeBuildInputs or [ ])
+      cfgAnkiPython = lib.lists.findSingle (x: x.isPy3 or false) null null (
+        cfg.package.nativeBuildInputs or [ ]
       );
       ankiPackage = if cfgAnkiPython == null then pkgs.anki else cfg.package;
       ankiPython = if cfgAnkiPython == null then pkgs.python3 else cfgAnkiPython;

@@ -6,7 +6,7 @@
 }:
 let
   cfg = config.programs.chawan;
-  tomlFormat = (pkgs.formats.toml { });
+  tomlFormat = pkgs.formats.toml { };
   tomlType = tomlFormat.type;
   toConf = tomlFormat.generate "config.toml";
 in

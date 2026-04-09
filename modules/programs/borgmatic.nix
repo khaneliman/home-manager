@@ -235,7 +235,7 @@ let
   removeNullValues = attrSet: lib.filterAttrs (key: value: value != null) attrSet;
 
   hmFiles = builtins.attrValues config.home.file;
-  hmSymlinks = (lib.filter (file: !file.recursive) hmFiles);
+  hmSymlinks = lib.filter (file: !file.recursive) hmFiles;
   hmExcludePattern = file: ''
     ${config.home.homeDirectory}/${file.target}
   '';

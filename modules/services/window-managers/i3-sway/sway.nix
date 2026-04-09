@@ -452,7 +452,7 @@ let
               "focus_follows_mouse ${focus.followMouse}"
               "focus_on_window_activation ${focus.newWindow}"
               "mouse_warping ${
-                if builtins.isString (focus.mouseWarping) then
+                if builtins.isString focus.mouseWarping then
                   focus.mouseWarping
                 else if focus.mouseWarping then
                   "output"
@@ -469,11 +469,11 @@ let
               "client.background ${colors.background}"
               (keybindingsStr {
                 keybindings = keybindingDefaultWorkspace;
-                bindsymArgs = lib.optionalString (cfg.config.bindkeysToCode) "--to-code";
+                bindsymArgs = lib.optionalString cfg.config.bindkeysToCode "--to-code";
               })
               (keybindingsStr {
                 keybindings = keybindingsRest;
-                bindsymArgs = lib.optionalString (cfg.config.bindkeysToCode) "--to-code";
+                bindsymArgs = lib.optionalString cfg.config.bindkeysToCode "--to-code";
               })
               (keycodebindingsStr keycodebindings)
             ]

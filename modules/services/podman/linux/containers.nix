@@ -35,7 +35,7 @@ let
             name = extractQuadletReference type value;
           in
           if (lib.hasAttr name cfg.internal.builtQuadlets) then
-            [ (cfg.internal.builtQuadlets.${name}) ]
+            [ cfg.internal.builtQuadlets.${name} ]
           else
             [ ]
         else
@@ -90,62 +90,59 @@ let
           else
             [ value ];
 
-      quadlet = (
-        podman-lib.deepMerge {
-          Container = {
-            AddCapability = containerDef.addCapabilities;
-            AddDevice = containerDef.devices;
-            AutoUpdate = containerDef.autoUpdate;
-            ContainerName = name;
-            DropCapability = containerDef.dropCapabilities;
-            Entrypoint = containerDef.entrypoint;
-            Environment = containerDef.environment;
-            EnvironmentFile = containerDef.environmentFile;
-            Exec = containerDef.exec;
-            Group = containerDef.group;
-            Image = checkQuadletReference [ "build" "image" ] containerDef.image;
-            IP = containerDef.ip4;
-            IP6 = containerDef.ip6;
-            Label = (containerDef.labels // { "nix.home-manager.managed" = true; });
-            Network = checkQuadletReference [ "network" ] containerDef.network;
-            NetworkAlias = containerDef.networkAlias;
-            PodmanArgs = containerDef.extraPodmanArgs;
-            PublishPort = containerDef.ports;
-            UserNS = containerDef.userNS;
-            User = containerDef.user;
-            Volume = checkQuadletReference [ "volume" ] containerDef.volumes;
+      quadlet = podman-lib.deepMerge {
+        Container = {
+          AddCapability = containerDef.addCapabilities;
+          AddDevice = containerDef.devices;
+          AutoUpdate = containerDef.autoUpdate;
+          ContainerName = name;
+          DropCapability = containerDef.dropCapabilities;
+          Entrypoint = containerDef.entrypoint;
+          Environment = containerDef.environment;
+          EnvironmentFile = containerDef.environmentFile;
+          Exec = containerDef.exec;
+          Group = containerDef.group;
+          Image = checkQuadletReference [ "build" "image" ] containerDef.image;
+          IP = containerDef.ip4;
+          IP6 = containerDef.ip6;
+          Label = containerDef.labels // {
+            "nix.home-manager.managed" = true;
           };
-          Install = {
-            WantedBy = lib.optionals containerDef.autoStart [
-              "default.target"
-              "multi-user.target"
+          Network = checkQuadletReference [ "network" ] containerDef.network;
+          NetworkAlias = containerDef.networkAlias;
+          PodmanArgs = containerDef.extraPodmanArgs;
+          PublishPort = containerDef.ports;
+          UserNS = containerDef.userNS;
+          User = containerDef.user;
+          Volume = checkQuadletReference [ "volume" ] containerDef.volumes;
+        };
+        Install = {
+          WantedBy = lib.optionals containerDef.autoStart [
+            "default.target"
+            "multi-user.target"
+          ];
+        };
+        Service = {
+          Environment = {
+            PATH = builtins.concatStringsSep ":" [
+              "/run/wrappers/bin"
+              "/run/current-system/sw/bin"
+              "${pkgs.nftables}/bin"
+              "${config.home.homeDirectory}/.nix-profile/bin"
+              "${pkgs.systemd}/bin"
             ];
           };
-          Service = {
-            Environment = {
-              PATH = (
-                builtins.concatStringsSep ":" [
-                  "/run/wrappers/bin"
-                  "/run/current-system/sw/bin"
-                  "${pkgs.nftables}/bin"
-                  "${config.home.homeDirectory}/.nix-profile/bin"
-                  "${pkgs.systemd}/bin"
-                ]
-              );
-            };
-            Restart = "always";
-            TimeoutStopSec = 30;
-          };
-          Unit = {
-            Description = (
-              if (builtins.isString containerDef.description) then
-                containerDef.description
-              else
-                "Service for container ${name}"
-            );
-          };
-        } containerDef.extraConfig
-      );
+          Restart = "always";
+          TimeoutStopSec = 30;
+        };
+        Unit = {
+          Description =
+            if (builtins.isString containerDef.description) then
+              containerDef.description
+            else
+              "Service for container ${name}";
+        };
+      } containerDef.extraConfig;
     in
     {
       dependencies = dependencyServices;

@@ -103,9 +103,7 @@ in
         defaultConfig =
           if (cfg.settings != { }) then
             {
-              "${prefix}/Element/config.json".source = (
-                formatter.generate "element-desktop-default" cfg.settings
-              );
+              "${prefix}/Element/config.json".source = formatter.generate "element-desktop-default" cfg.settings;
             }
           else
             { };
@@ -114,7 +112,7 @@ in
       // (lib.mapAttrs' (
         name: value:
         lib.nameValuePair "${prefix}/Element-${name}/config.json" {
-          source = (formatter.generate "element-desktop-${name}" cfg.profiles."${name}");
+          source = formatter.generate "element-desktop-${name}" cfg.profiles."${name}";
         }
       ) cfg.profiles);
   };

@@ -177,9 +177,7 @@ in
         );
       };
       hotkeysFile = mkIf (cfg.hotkeys != { }) {
-        "${baseConfigPath}/hotkeys.toml".source = tomlFormat.generate "superfile-hotkeys.toml" (
-          cfg.hotkeys
-        );
+        "${baseConfigPath}/hotkeys.toml".source = tomlFormat.generate "superfile-hotkeys.toml" cfg.hotkeys;
       };
       themeFiles = mapAttrs' (
         name: value:

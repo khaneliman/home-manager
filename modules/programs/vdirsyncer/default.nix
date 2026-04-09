@@ -303,7 +303,7 @@ in
               a: v':
               [
                 {
-                  assertion = (lib.elem a allowed);
+                  assertion = lib.elem a allowed;
                   message = ''
                     Storage ${n} is of type ${v.type}. Option
                     ${a} is not allowed for this type.

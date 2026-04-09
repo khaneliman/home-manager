@@ -674,7 +674,7 @@ in
 
           allCompletions =
             let
-              cmp = (a: b: (a.meta.priority or 0) > (b.meta.priority or 0));
+              cmp = a: b: (a.meta.priority or 0) > (b.meta.priority or 0);
             in
             map generateCompletions (lib.sort cmp config.home.packages);
         in

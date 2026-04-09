@@ -32,7 +32,7 @@ let
           type = "${v.type}";
           nick = "${quoteStr v.nick}";
           autosendcmd = "${lib.concatMapStringsSep ";" quoteStr v.autoCommands}";
-          ${lib.optionalString (v.saslExternal) ''
+          ${lib.optionalString v.saslExternal ''
             sasl_username = "${quoteStr v.nick}";
               sasl_mechanism = "EXTERNAL";''}
         };

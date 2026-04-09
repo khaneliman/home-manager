@@ -468,14 +468,13 @@ in
         );
       };
 
-      "opencode/AGENTS.md" = (
+      "opencode/AGENTS.md" =
         if lib.isPath cfg.rules then
           { source = cfg.rules; }
         else
           (mkIf (cfg.rules != "") {
             text = cfg.rules;
-          })
-      );
+          });
 
       "opencode/command" = mkIf (lib.isPath cfg.commands) {
         source = cfg.commands;

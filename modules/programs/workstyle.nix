@@ -86,7 +86,7 @@ in
         ExecStart = "${cfg.package}/bin/workstyle";
         Restart = "always";
         RestartSec = 3;
-        Environment = mkIf (cfg.systemd.debug) "RUST_LOG=debug";
+        Environment = mkIf cfg.systemd.debug "RUST_LOG=debug";
       };
       Install.WantedBy = [ cfg.systemd.target ];
     };

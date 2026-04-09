@@ -139,7 +139,7 @@ in
   config = lib.mkIf cfg.enable {
     assertions = [
       {
-        assertion = ((filterAttrs (n: v: v == "") cfg.keybindings) == { });
+        assertion = (filterAttrs (n: v: v == "") cfg.keybindings) == { };
         message = "To disable a keybinding, use `null` instead of an empty string.";
       }
     ];

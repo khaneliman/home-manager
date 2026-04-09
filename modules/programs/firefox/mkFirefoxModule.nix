@@ -468,7 +468,7 @@ in
               };
 
               bookmarks = mkOption {
-                type = (
+                type =
                   types.coercedTo bookmarkTypes.settingsType
                     (
                       bookmarks:
@@ -507,8 +507,7 @@ in
                           ];
                         }
                       )
-                    )
-                );
+                    );
                 default = { };
                 internal = !enableBookmarks;
                 description = "Declarative bookmarks.";
@@ -997,15 +996,13 @@ in
           Using '${moduleName}.vendorPath' has been deprecated and
           will be removed in the future. Native messaging hosts will function normally without specifying this path.
         '';
-      targets.darwin.defaults = (
-        mkIf (cfg.darwinDefaultsId != null && isDarwin) {
+      targets.darwin.defaults = mkIf (cfg.darwinDefaultsId != null && isDarwin) {
 
-          ${cfg.darwinDefaultsId} = {
-            EnterprisePoliciesEnabled = true;
-          }
-          // cfg.policies;
+        ${cfg.darwinDefaultsId} = {
+          EnterprisePoliciesEnabled = true;
         }
-      );
+        // cfg.policies;
+      };
       home.packages = lib.optional (cfg.finalPackage != null) cfg.finalPackage;
 
       home.file = mkMerge (
@@ -1059,12 +1056,12 @@ in
                 force = profile.containersForce;
               };
 
-              "${cfg.profilesPath}/${profile.path}/search.json.mozlz4" = mkIf (profile.search.enable) {
+              "${cfg.profilesPath}/${profile.path}/search.json.mozlz4" = mkIf profile.search.enable {
                 inherit (profile.search) enable force;
                 source = profile.search.file;
               };
 
-              "${cfg.profilesPath}/${profile.path}/handlers.json" = mkIf (profile.handlers.enable) {
+              "${cfg.profilesPath}/${profile.path}/handlers.json" = mkIf profile.handlers.enable {
                 source = profile.handlers.configFile;
                 inherit (profile.handlers) force;
               };

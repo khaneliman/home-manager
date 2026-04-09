@@ -261,9 +261,8 @@ in
 
   config =
     let
-      shellIntegrationEnabled = (
-        cfg.enableBashIntegration || cfg.enableZshIntegration || cfg.enableFishIntegration
-      );
+      shellIntegrationEnabled =
+        cfg.enableBashIntegration || cfg.enableZshIntegration || cfg.enableFishIntegration;
     in
     mkIf cfg.enable {
       home.packages = [ cfg.package ];

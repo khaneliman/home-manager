@@ -333,7 +333,7 @@ in
     };
   };
 
-  config = (
+  config =
     let
       boolToString = v: if v then "true" else "false";
       optionalBoolean = name: val: lib.optionalString (val != null) "${name} = ${boolToString val}";
@@ -394,6 +394,5 @@ in
 
       programs.bash.enableVteIntegration = lib.mkDefault cfg.enableVteIntegration;
       programs.zsh.enableVteIntegration = lib.mkDefault cfg.enableVteIntegration;
-    }
-  );
+    };
 }

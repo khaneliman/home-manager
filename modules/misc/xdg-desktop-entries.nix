@@ -232,10 +232,9 @@ in
     ]
     ++ lib.flatten (lib.catAttrs "assertions" (lib.attrValues config.xdg.desktopEntries));
 
-    home.packages = (
+    home.packages =
       map lib.hiPrio # we need hiPrio to override existing entries
-        (lib.attrsets.mapAttrsToList makeFile config.xdg.desktopEntries)
-    );
+        (lib.attrsets.mapAttrsToList makeFile config.xdg.desktopEntries);
   };
 
 }

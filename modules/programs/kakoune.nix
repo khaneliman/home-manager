@@ -633,7 +633,7 @@ let
         concatStringsSep " " [
           "hook"
           "${optionalString (h.group != null) "-group ${h.group}"}"
-          "${optionalString (h.once) "-once"}"
+          "${optionalString h.once "-once"}"
           "global"
           "${h.name}"
           "${optionalString (h.option != null) h.option}"

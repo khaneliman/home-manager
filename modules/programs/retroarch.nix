@@ -80,12 +80,10 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    programs.retroarch.finalPackage = (
-      cfg.package.wrapper {
-        inherit (cfg) settings;
-        cores = lib.mapAttrsToList (_: core: core.package) enabledCores;
-      }
-    );
+    programs.retroarch.finalPackage = cfg.package.wrapper {
+      inherit (cfg) settings;
+      cores = lib.mapAttrsToList (_: core: core.package) enabledCores;
+    };
     home.packages = [ cfg.finalPackage ];
   };
 }

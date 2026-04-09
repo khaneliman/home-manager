@@ -215,27 +215,25 @@ in
 
       sessionVarsStr = config.lib.shell.exportAll cfg.sessionVariables;
 
-      historyControlStr = (
-        lib.concatStringsSep "\n" (
-          lib.mapAttrsToList (n: v: "${n}=${v}") (
-            optionalAttrs (cfg.historyFileSize != null) {
-              HISTFILESIZE = toString cfg.historyFileSize;
-            }
-            // optionalAttrs (cfg.historySize != null) {
-              HISTSIZE = toString cfg.historySize;
-            }
-            // optionalAttrs (cfg.historyFile != null) {
-              HISTFILE = ''"${cfg.historyFile}"'';
-            }
-            // optionalAttrs (cfg.historyControl != [ ]) {
-              HISTCONTROL = lib.concatStringsSep ":" cfg.historyControl;
-            }
-            // optionalAttrs (cfg.historyIgnore != [ ]) {
-              HISTIGNORE = lib.escapeShellArg (lib.concatStringsSep ":" cfg.historyIgnore);
-            }
-          )
-          ++ lib.optional (cfg.historyFile != null) ''mkdir -p "$(dirname "$HISTFILE")"''
+      historyControlStr = lib.concatStringsSep "\n" (
+        lib.mapAttrsToList (n: v: "${n}=${v}") (
+          optionalAttrs (cfg.historyFileSize != null) {
+            HISTFILESIZE = toString cfg.historyFileSize;
+          }
+          // optionalAttrs (cfg.historySize != null) {
+            HISTSIZE = toString cfg.historySize;
+          }
+          // optionalAttrs (cfg.historyFile != null) {
+            HISTFILE = ''"${cfg.historyFile}"'';
+          }
+          // optionalAttrs (cfg.historyControl != [ ]) {
+            HISTCONTROL = lib.concatStringsSep ":" cfg.historyControl;
+          }
+          // optionalAttrs (cfg.historyIgnore != [ ]) {
+            HISTIGNORE = lib.escapeShellArg (lib.concatStringsSep ":" cfg.historyIgnore);
+          }
         )
+        ++ lib.optional (cfg.historyFile != null) ''mkdir -p "$(dirname "$HISTFILE")"''
       );
     in
     mkIf cfg.enable {

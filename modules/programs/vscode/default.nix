@@ -243,7 +243,7 @@ let
                 };
 
                 when = mkOption {
-                  type = types.nullOr (types.str);
+                  type = types.nullOr types.str;
                   default = null;
                   example = "textInputFocus";
                   description = "Optional context filter.";
@@ -251,7 +251,7 @@ let
 
                 # https://code.visualstudio.com/docs/getstarted/keybindings#_command-arguments
                 args = mkOption {
-                  type = types.nullOr (jsonFormat.type);
+                  type = types.nullOr jsonFormat.type;
                   default = null;
                   example = {
                     direction = "up";

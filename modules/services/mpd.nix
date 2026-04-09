@@ -154,7 +154,7 @@ in
       + lib.optionalString (cfg.dbFile != null) ''
         db_file             "${cfg.dbFile}"
       ''
-      + lib.optionalString (pkgs.stdenv.hostPlatform.isDarwin) ''
+      + lib.optionalString pkgs.stdenv.hostPlatform.isDarwin ''
         log_file            "${config.home.homeDirectory}/Library/Logs/mpd/log.txt"
       ''
       + ''

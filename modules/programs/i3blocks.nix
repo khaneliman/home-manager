@@ -28,7 +28,7 @@ let
       name = "INI config atom";
       description = "INI atom (null, int, bool, string, or float)";
       check = x: optType.check x;
-      merge = (loc: defs: (optType.merge loc defs));
+      merge = loc: defs: (optType.merge loc defs);
     };
 
   # Create the type of the actual config type
@@ -98,7 +98,7 @@ in
               or (abort "Dependency cycle in i3blocks: ${builtins.toJSON trySortedBlocks}");
 
           # Turn the blocks back into their name value pairs
-          orderedBlocks = (map (value: (nameValuePairToAttr (dagEntryToNameValue value))) blocks);
+          orderedBlocks = map (value: (nameValuePairToAttr (dagEntryToNameValue value))) blocks;
         in
         {
           # We create an "INI" file for each bar, then append them all in order
@@ -114,8 +114,8 @@ in
 
       home.packages = [ cfg.package ];
 
-      xdg.configFile = (
-        lib.mapAttrs' (name: value: lib.nameValuePair "i3blocks/${name}" (makeFile value)) cfg.bars
-      );
+      xdg.configFile = lib.mapAttrs' (
+        name: value: lib.nameValuePair "i3blocks/${name}" (makeFile value)
+      ) cfg.bars;
     };
 }

@@ -37,7 +37,7 @@ in
         };
       in
       lib.mapAttrs' (
-        k: _: lib.nameValuePair "calibre/plugins/${k}" { source = (symlinkedPlugins + "/${k}"); }
+        k: _: lib.nameValuePair "calibre/plugins/${k}" { source = symlinkedPlugins + "/${k}"; }
       ) (builtins.readDir symlinkedPlugins)
     );
   };

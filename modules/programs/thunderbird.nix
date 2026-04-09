@@ -868,7 +868,7 @@ in
           ) enabledContactAccounts;
         in
         {
-          assertion = (length foundContacts == 0);
+          assertion = length foundContacts == 0;
           message =
             '''accounts.contact.accounts.<name>.remote.type = "google_contacts";' is not directly supported by Thunderbird, ''
             + "but declared for these address books: "
@@ -887,7 +887,7 @@ in
           foundContacts = filter (a: a.remote != null && a.remote.type == "http") enabledContactAccounts;
         in
         {
-          assertion = (length foundContacts == 0);
+          assertion = length foundContacts == 0;
           message =
             '''accounts.contact.accounts.<name>.remote.type = "http";' is not supported by Thunderbird, ''
             + "but declared for these address books: "
@@ -989,7 +989,7 @@ in
 
                   accountsOrderIds = map (a: accountNameToId."${a}" or a) profile.calendarAccountsOrder;
 
-                  enabledAccountsIds = (lib.attrsets.mapAttrsToList (name: value: value) accountNameToId);
+                  enabledAccountsIds = lib.attrsets.mapAttrsToList (name: value: value) accountNameToId;
                 in
                 lib.optionals (calendarAccounts != [ ]) (
                   accountsOrderIds ++ (lib.lists.subtractLists accountsOrderIds enabledAccountsIds)
@@ -1025,7 +1025,7 @@ in
               )) profile.extraConfig;
             };
 
-          "${thunderbirdProfilesPath}/${name}/search.json.mozlz4" = mkIf (profile.search.enable) {
+          "${thunderbirdProfilesPath}/${name}/search.json.mozlz4" = mkIf profile.search.enable {
             inherit (profile.search) enable force;
             source = profile.search.file;
           };
@@ -1047,20 +1047,18 @@ in
       ++ (mapAttrsToList (
         name: profile:
         let
-          emailAccountsWithFilters = (
-            filter (a: a.thunderbird.messageFilters != [ ]) (
-              getAccountsForProfile name enabledEmailAccountsWithId
-            )
+          emailAccountsWithFilters = filter (a: a.thunderbird.messageFilters != [ ]) (
+            getAccountsForProfile name enabledEmailAccountsWithId
           );
         in
-        (builtins.listToAttrs (
+        builtins.listToAttrs (
           map (a: {
             name = "${thunderbirdProfilesPath}/${name}/ImapMail/${a.id}/msgFilterRules.dat";
             value = {
               text = mkFilterListToIni a.thunderbird.messageFilters;
             };
           }) emailAccountsWithFilters
-        ))
+        )
       ) cfg.profiles)
     );
   };

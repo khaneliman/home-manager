@@ -10,13 +10,11 @@ in
 {
   meta.maintainers = with lib.maintainers; [ hey2022 ];
 
-  imports = (
-    map (x: lib.mkRenamedOptionModule [ "services" "swww" x ] [ "services" "awww" x ]) [
-      "enable"
-      "package"
-      "extraArgs"
-    ]
-  );
+  imports = map (x: lib.mkRenamedOptionModule [ "services" "swww" x ] [ "services" "awww" x ]) [
+    "enable"
+    "package"
+    "extraArgs"
+  ];
 
   options.services.awww = {
     enable = lib.mkEnableOption "awww, An Answer to your Wayland Wallpaper Woes";

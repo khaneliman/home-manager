@@ -28,7 +28,7 @@ let
     ;
   cfg = config.programs.lutris;
   settingsFormat = pkgs.formats.yaml { };
-  formatWineName = (package: toLower package.name);
+  formatWineName = package: toLower package.name;
 in
 {
   meta.maintainers = [ lib.hm.maintainers.bikku ];
@@ -190,14 +190,14 @@ in
         lutris-overrides = {
           # This only adds pkgs.steam to the extraPkgs, I see no reason to ever enable it.
           steamSupport = false;
-          extraPkgs = (prev: cfg.extraPackages ++ optional (cfg.steamPackage != null) cfg.steamPackage);
+          extraPkgs = prev: cfg.extraPackages ++ optional (cfg.steamPackage != null) cfg.steamPackage;
         };
       in
       [ (cfg.package.override lutris-overrides) ];
 
     xdg.configFile =
       let
-        buildRunnerConfig = (
+        buildRunnerConfig =
           runner_name: runner_config:
           # Remove the unset values so they don't end up on the final config.
           filterAttrsRecursive (name: value: value != { } && value != null && value != "") {
@@ -208,8 +208,7 @@ in
                 runner_executable = getExe runner_config.package;
               });
             inherit (runner_config.settings) system;
-          }
-        );
+          };
         # Extra default config for wine if defaultWinePackage was set
         wine_extra = optionalAttrs (cfg.defaultWinePackage != null) {
           wine = {

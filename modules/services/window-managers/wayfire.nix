@@ -168,7 +168,7 @@
       home.packages = lib.mkIf (cfg.package != null) (
         lib.concatLists [
           (lib.singleton finalPackage)
-          (lib.optional (cfg.xwayland.enable) pkgs.xwayland)
+          (lib.optional cfg.xwayland.enable pkgs.xwayland)
         ]
       );
 
@@ -178,8 +178,8 @@
           core = {
             plugins = lib.concatStringsSep " " (
               lib.concatLists [
-                (lib.optional (cfg.systemd.enable) "autostart")
-                (lib.optional (cfg.wf-shell.enable) "wayfire-shell")
+                (lib.optional cfg.systemd.enable "autostart")
+                (lib.optional cfg.wf-shell.enable "wayfire-shell")
               ]
             );
             xwayland = cfg.xwayland.enable;
