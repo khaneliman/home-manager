@@ -19,6 +19,9 @@
     assertFileExists home-files/.config/fish/config.fish
     assertFileContains \
       home-files/.config/fish/config.fish \
+      'set -gx OMP_CACHE_DIR /home/hm-user/.cache/oh-my-posh-generations/'
+    assertFileContains \
+      home-files/.config/fish/config.fish \
       '/bin/oh-my-posh init fish --config'
   '';
 }

@@ -11,15 +11,38 @@ let
 
   jsonFormat = pkgs.formats.json { };
 
-  configArgument =
-    if cfg.settings != { } then
-      "--config ${config.xdg.configHome}/oh-my-posh/config.json"
-    else if cfg.useTheme != null then
-      "--config ${cfg.package}/share/oh-my-posh/themes/${cfg.useTheme}.omp.json"
-    else if cfg.configFile != null then
-      "--config ${cfg.configFile}"
-    else
-      "";
+  generatedConfigFile = jsonFormat.generate "oh-my-posh-settings" cfg.settings;
+
+  configSelection =
+    let
+      selections = [
+        {
+          enabled = cfg.settings != { };
+          source = toString generatedConfigFile;
+          argument = "--config ${config.xdg.configHome}/oh-my-posh/config.json";
+        }
+        {
+          enabled = cfg.useTheme != null;
+          source = "${cfg.package}/share/oh-my-posh/themes/${cfg.useTheme}.omp.json";
+          argument = "--config ${cfg.package}/share/oh-my-posh/themes/${cfg.useTheme}.omp.json";
+        }
+        {
+          enabled = cfg.configFile != null;
+          source = toString cfg.configFile;
+          argument = "--config ${cfg.configFile}";
+        }
+      ];
+    in
+    lib.findFirst (selection: selection.enabled) {
+      source = "";
+      argument = "";
+    } selections;
+
+  cacheKey = builtins.substring 0 16 (
+    builtins.hashString "sha256" "${toString cfg.package}\n${configSelection.source}"
+  );
+
+  cacheRoot = "${config.xdg.cacheHome}/oh-my-posh-generations/${cacheKey}";
 
 in
 {
@@ -87,50 +110,39 @@ in
     home.packages = [ cfg.package ];
 
     xdg.configFile."oh-my-posh/config.json" = mkIf (cfg.settings != { }) {
-      source = jsonFormat.generate "oh-my-posh-settings" cfg.settings;
+      source = generatedConfigFile;
     };
 
     programs.bash.initExtra = mkIf cfg.enableBashIntegration ''
-      eval "$(${lib.getExe cfg.package} init bash ${configArgument})"
+      export OMP_CACHE_DIR=${lib.escapeShellArg cacheRoot}
+      eval "$(${lib.getExe cfg.package} init bash ${configSelection.argument})"
     '';
 
     programs.zsh.initContent = mkIf cfg.enableZshIntegration ''
-      eval "$(${lib.getExe cfg.package} init zsh ${configArgument})"
+      export OMP_CACHE_DIR=${lib.escapeShellArg cacheRoot}
+      eval "$(${lib.getExe cfg.package} init zsh ${configSelection.argument})"
     '';
 
     programs.fish.shellInit = mkIf cfg.enableFishIntegration ''
-      ${lib.getExe cfg.package} init fish ${configArgument} | source
+      set -gx OMP_CACHE_DIR ${lib.escapeShellArg cacheRoot}
+      ${lib.getExe cfg.package} init fish ${configSelection.argument} | source
     '';
 
     programs.nushell = mkIf cfg.enableNushellIntegration {
       extraConfig = ''
+        $env.OMP_CACHE_DIR = ${builtins.toJSON cacheRoot}
         ${
           if lib.versionAtLeast (lib.versions.major cfg.package.version) "26" then
-            "${lib.getExe cfg.package} init nu ${configArgument}"
+            "${lib.getExe cfg.package} init nu ${configSelection.argument}"
           else
             "source ${
               pkgs.runCommand "oh-my-posh-nushell-config.nu" { } ''
-                ${lib.getExe cfg.package} init nu ${configArgument} --print >> "$out"
+                ${lib.getExe cfg.package} init nu ${configSelection.argument} --print >> "$out"
               ''
             }"
         }
       '';
     };
-
-    # Clear oh-my-posh cache when the oh-my-posh package derivation changes
-    home.activation.ohMyPoshClearCache = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      set -eu
-      nixver="${config.programs.oh-my-posh.package}"
-      cache="${config.xdg.cacheHome}/oh-my-posh"
-      state="$cache/pkg-path"
-
-      if [ ! -f "$state" ] || [ "$(cat "$state")" != "$nixver" ]; then
-        rm -rf "$cache"
-      fi
-
-      mkdir -p "$cache"
-      printf '%s' "$nixver" > "$state"
-    '';
 
   };
 }

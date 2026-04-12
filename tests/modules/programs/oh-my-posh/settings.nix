@@ -34,6 +34,9 @@
       '"final_space": true'
     assertFileContains \
       home-files/.bashrc \
+      'export OMP_CACHE_DIR=/home/hm-user/.cache/oh-my-posh-generations/'
+    assertFileContains \
+      home-files/.bashrc \
       '/bin/oh-my-posh init bash --config /home/hm-user/.config/oh-my-posh/config.json'
   '';
 }

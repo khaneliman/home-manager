@@ -28,6 +28,9 @@
     in
     ''
       assertFileExists "${configFile}"
+      assertFileContains \
+              "${configFile}" \
+              '$env.OMP_CACHE_DIR = "/home/hm-user/.cache/oh-my-posh-generations/'
       ${
         if (lib.versionAtLeast (lib.versions.major config.programs.oh-my-posh.package.version) "26") then
           ''
