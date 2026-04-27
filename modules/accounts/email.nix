@@ -80,6 +80,14 @@ let
         default = "none";
         description = "Method to communicate the signature.";
       };
+
+      htmlFormat = mkOption {
+        type = types.bool;
+        default = false;
+        description = ''
+          Whether to treat the signature as HTML where supported.
+        '';
+      };
     };
   };
 
