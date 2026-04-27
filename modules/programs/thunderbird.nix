@@ -688,7 +688,12 @@ in
                       };
                       type = mkOption {
                         type = str;
-                        description = "Type for this filter.";
+                        description = ''
+                          Thunderbird filter type bitmask.
+
+                          To inspect existing values, export or read the account's
+                          `msgFilterRules.dat` file and copy the `type="..."` field.
+                        '';
                       };
                       action = mkOption {
                         type = str;
@@ -732,8 +737,12 @@ in
                   ]
                 '';
                 description = ''
-                  List of message filters to add to this Thunderbird account
-                  configuration.
+                  List of message filters to add to this Thunderbird account configuration.
+
+                  Home Manager writes these to the account's `msgFilterRules.dat` file.
+
+                  A practical way to discover the exact values Thunderbird expects is to
+                  create a filter in the UI, inspect that file, and translate the result into Nix.
                 '';
               };
             };
