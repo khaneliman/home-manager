@@ -421,7 +421,7 @@
           - modules/programs/neomutt/**/*
           - modules/programs/notmuch/**/*
           - modules/programs/offlineimap/**/*
-          - modules/programs/thunderbird.nix
+          - modules/programs/thunderbird/**/*
           - modules/services/getmail.nix
           - modules/services/imapnotify/**/*
           - modules/services/lieer.nix
