@@ -94,23 +94,22 @@ in
             };
 
             messageFilters = mkOption {
-              type =
-                with types;
-                listOf (submodule {
+              type = types.listOf (
+                types.submodule {
                   options = {
                     name = mkOption {
-                      type = str;
+                      type = types.str;
                       description = "Name for the filter.";
                     };
 
                     enabled = mkOption {
-                      type = bool;
+                      type = types.bool;
                       default = true;
                       description = "Whether this filter is currently active.";
                     };
 
                     type = mkOption {
-                      type = str;
+                      type = types.str;
                       description = ''
                         Thunderbird filter type bitmask written as the
                         `type="..."` field in `msgFilterRules.dat`.
@@ -123,29 +122,29 @@ in
                     };
 
                     action = mkOption {
-                      type = str;
+                      type = types.str;
                       description = "Action to perform on matched messages.";
                     };
 
                     actionValue = mkOption {
-                      type = nullOr str;
+                      type = types.nullOr types.str;
                       default = null;
                       description = "Argument passed to the filter action, e.g. a folder path.";
                     };
 
                     condition = mkOption {
-                      type = str;
+                      type = types.str;
                       description = "Condition to match messages against.";
                     };
 
                     extraConfig = mkOption {
-                      type = nullOr str;
+                      type = types.nullOr types.str;
                       default = null;
                       description = "Extra settings to apply to the filter";
                     };
 
                     text = mkOption {
-                      type = nullOr str;
+                      type = types.nullOr types.str;
                       default = null;
                       description = ''
                         The raw text of the filter.
@@ -153,7 +152,8 @@ in
                       '';
                     };
                   };
-                });
+                }
+              );
               default = [ ];
               defaultText = literalExpression "[ ]";
               example = literalExpression ''
@@ -187,14 +187,13 @@ in
   };
 
   accounts.calendar.accounts = mkOption {
-    type =
-      with types;
-      attrsOf (submodule {
+    type = types.attrsOf (
+      types.submodule {
         options.thunderbird = {
           enable = lib.mkEnableOption "the Thunderbird mail client for this account";
 
           profiles = mkOption {
-            type = with types; listOf str;
+            type = types.listOf types.str;
             default = [ ];
             example = literalExpression ''
               [ "profile1" "profile2" ]
@@ -207,13 +206,13 @@ in
           };
 
           readOnly = mkOption {
-            type = bool;
+            type = types.bool;
             default = false;
             description = "Mark calendar as read only";
           };
 
           color = mkOption {
-            type = str;
+            type = types.str;
             default = "";
             example = "#dc8add";
             description = "Display color of the calendar in hex";
@@ -250,18 +249,18 @@ in
             '';
           };
         };
-      });
+      }
+    );
   };
 
   accounts.contact.accounts = mkOption {
-    type =
-      with types;
-      attrsOf (submodule {
+    type = types.attrsOf (
+      types.submodule {
         options.thunderbird = {
           enable = lib.mkEnableOption "the Thunderbird mail client for this account";
 
           profiles = mkOption {
-            type = with types; listOf str;
+            type = types.listOf types.str;
             default = [ ];
             example = literalExpression ''
               [ "profile1" "profile2" ]
@@ -274,7 +273,7 @@ in
           };
 
           token = mkOption {
-            type = nullOr str;
+            type = types.nullOr types.str;
             default = null;
             example = "secret_token";
             description = ''
@@ -282,6 +281,7 @@ in
             '';
           };
         };
-      });
+      }
+    );
   };
 }
