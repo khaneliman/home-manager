@@ -6,6 +6,9 @@
   codex-legacy-custom-instructions = ./legacy-custom-instructions.nix;
   codex-mcp-integration = ./mcp-integration.nix;
   codex-mcp-integration-with-override = ./mcp-integration-with-override.nix;
+  codex-profiles-legacy-old-version = ./profiles-legacy-old-version.nix;
+  codex-profiles-legacy-warning = ./profiles-legacy-warning.nix;
+  codex-profiles = ./profiles.nix;
   codex-rules = ./rules.nix;
   codex-skills-inline = ./skills-inline.nix;
   codex-skills-inline-null-package = ./skills-inline-null-package.nix;

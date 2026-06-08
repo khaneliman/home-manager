@@ -12,8 +12,11 @@ let
   tomlFormat = pkgs.formats.toml { };
   yamlFormat = pkgs.formats.yaml { };
 
-  packageVersion = if cfg.package != null then lib.getVersion cfg.package else "0.94.0";
-  isTomlConfig = lib.versionAtLeast packageVersion "0.2.0";
+  # A null package has no detectable version, so assume the latest Codex and
+  # enable version-gated behavior by default.
+  atLeast = version: cfg.package == null || lib.versionAtLeast (lib.getVersion cfg.package) version;
+  isTomlConfig = atLeast "0.2.0";
+  migrateLegacyProfiles = atLeast "0.134.0";
   settingsFormat = if isTomlConfig then tomlFormat else yamlFormat;
 in
 {
@@ -81,6 +84,32 @@ in
         }
       '';
     };
+
+    profiles = lib.mkOption {
+      type = lib.types.attrsOf tomlFormat.type;
+      default = { };
+      description = ''
+        Named Codex configuration profiles written to
+        {file}`CODEX_HOME/<name>.config.toml`.
+
+        These profiles are selected with {command}`codex --profile <name>`.
+        Codex 0.134.0 and later no longer reads profile settings from
+        {option}`programs.codex.settings.profiles`, and the top-level
+        {option}`programs.codex.settings.profile` selector is no longer
+        supported.
+      '';
+      example = lib.literalExpression ''
+        {
+          deep-review = {
+            model = "gpt-5.5";
+            model_reasoning_effort = "xhigh";
+            approval_policy = "on-request";
+            sandbox_mode = "workspace-write";
+          };
+        }
+      '';
+    };
+
     context = lib.mkOption {
       type = lib.types.either lib.types.lines lib.types.path;
       description = ''
@@ -218,6 +247,11 @@ in
         lib.nameValuePair "${configDir}/rules/${name}.rules" (
           if lib.hm.strings.isPathLike content then { source = content; } else { text = content; }
         );
+      mkProfileEntry =
+        name: settings:
+        lib.nameValuePair "${configDir}/${name}.config.toml" {
+          source = tomlFormat.generate "codex-${name}-config" settings;
+        };
 
       transformedMcpServers = lib.optionalAttrs (cfg.enableMcpIntegration && config.programs.mcp.enable) (
         lib.mapAttrs (
@@ -242,10 +276,34 @@ in
 
       settingMcpServers = lib.attrByPath [ "mcp_servers" ] { } cfg.settings;
       mergedMcpServers = transformedMcpServers // settingMcpServers;
+      # TODO: remove this migration block in a future stateVersion once the
+      # Codex 0.134 profile transition window has passed.
+      hasLegacyProfileSettings =
+        migrateLegacyProfiles && ((cfg.settings ? profile) || (cfg.settings ? profiles));
+      legacyProfiles = lib.optionalAttrs (
+        hasLegacyProfileSettings && builtins.isAttrs (cfg.settings.profiles or null)
+      ) cfg.settings.profiles;
+      mergedProfiles = legacyProfiles // cfg.profiles;
+      baseSettings =
+        if hasLegacyProfileSettings then
+          lib.removeAttrs cfg.settings [
+            "profile"
+            "profiles"
+          ]
+        else
+          cfg.settings;
       mergedSettings =
-        cfg.settings // lib.optionalAttrs (mergedMcpServers != { }) { mcp_servers = mergedMcpServers; };
+        baseSettings // lib.optionalAttrs (mergedMcpServers != { }) { mcp_servers = mergedMcpServers; };
     in
     mkIf cfg.enable {
+      warnings = lib.optional hasLegacyProfileSettings ''
+        `programs.codex.settings.profile` and `programs.codex.settings.profiles`
+        are no longer supported by Codex 0.134.0 and later. Home Manager
+        now writes entries from `programs.codex.settings.profiles` to
+        `CODEX_HOME/<name>.config.toml`. Move them to
+        `programs.codex.profiles` and remove `programs.codex.settings.profile`.
+      '';
+
       assertions = [
         {
           assertion = !lib.hm.strings.isPathLike cfg.skills || lib.pathIsDirectory cfg.skills;
@@ -274,6 +332,7 @@ in
                 text = cfg.context;
               };
         }
+        // lib.mapAttrs' mkProfileEntry mergedProfiles
         // lib.mapAttrs' mkSkillEntry skillSources
         // lib.mapAttrs' mkRuleEntry cfg.rules;
 
