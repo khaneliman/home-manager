@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   ...
 }:
@@ -405,6 +406,7 @@ in
         ++ (lib.optional (deprecatedKde6PlatformThemeOption != null) (
           lib.hm.deprecations.mkDeprecatedOptionValueRenameWarning {
             option = deprecatedKde6PlatformThemeOption;
+            inherit (options.qt.platformTheme) files;
             old = ''"kde6"'';
             replacement = ''"kde"'';
           }

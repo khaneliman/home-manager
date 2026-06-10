@@ -1,5 +1,7 @@
 {
   config,
+  lib,
+  options,
   pkgs,
   ...
 }:
@@ -27,7 +29,7 @@
 
   test.asserts.warnings.expected = [
     ''
-      Using `programs.helix.languages` as a list is deprecated and will be
+      Using `programs.helix.languages` defined in ${lib.showFiles options.programs.helix.languages.files} as a list is deprecated and will be
       removed in a future release. Please use `programs.helix.languages.language` instead.
 
       This option now generates the whole languages.toml file instead of just the language array in that file.

@@ -1,5 +1,7 @@
 {
   config,
+  lib,
+  options,
   ...
 }:
 
@@ -28,7 +30,7 @@ in
 
   test.asserts.warnings.expected = [
     ''
-      Using `programs.firefox.profiles.default.bookmarks` as a list is deprecated and will be
+      Using `programs.firefox.profiles.default.bookmarks` defined in ${lib.showFiles options.programs.firefox.profiles.files} as a list is deprecated and will be
       removed in a future release. Please use `programs.firefox.profiles.default.bookmarks.settings` with `programs.firefox.profiles.default.bookmarks.force = true` instead.
 
       Set `force = true` to acknowledge replacing existing custom bookmarks.

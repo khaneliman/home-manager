@@ -1,4 +1,4 @@
-_:
+{ lib, options, ... }:
 
 {
   programs.infat = {
@@ -14,7 +14,7 @@ _:
   test = {
     asserts.warnings.expected = [
       ''
-        Using `programs.infat.autoActivate` as a Boolean is deprecated and will be
+        Using `programs.infat.autoActivate` defined in ${lib.showFiles options.programs.infat.autoActivate.files} as a Boolean is deprecated and will be
         removed in a future release. Please use `programs.infat.autoActivate.enable` instead.
       ''
     ];

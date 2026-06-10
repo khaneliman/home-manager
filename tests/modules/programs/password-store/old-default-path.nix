@@ -1,4 +1,9 @@
-{ config, ... }:
+{
+  config,
+  lib,
+  options,
+  ...
+}:
 {
   home.stateVersion = "25.05"; # <= 25.11
   programs.password-store.enable = true;
@@ -11,6 +16,8 @@
         programs.password-store.settings = { PASSWORD_STORE_DIR = "''${config.xdg.dataHome}/password-store"; };
       To adopt the new default behavior, set:
         programs.password-store.settings = { };
+
+      This warning is triggered by `home.stateVersion` defined in ${lib.showFiles options.home.stateVersion.files}.
     ''
   ];
 

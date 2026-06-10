@@ -1,4 +1,9 @@
-{ config, ... }:
+{
+  config,
+  lib,
+  options,
+  ...
+}:
 
 {
   programs.hyprpanel = {
@@ -9,7 +14,7 @@
 
   test.asserts.warnings.expected = [
     ''
-      Using `programs.hyprpanel.settings.theme.name` as a named theme is deprecated and will be
+      Using `programs.hyprpanel.settings.theme.name` defined in ${lib.showFiles options.programs.hyprpanel.settings.files} as a named theme is deprecated and will be
       removed in a future release. Please use `programs.hyprpanel.settings.theme` instead.
 
       Named theme loading was removed because it requires import-from-derivation.

@@ -1,6 +1,7 @@
 {
   lib,
   config,
+  options,
   pkgs,
   ...
 }:
@@ -124,6 +125,7 @@ in
           "infat"
           "autoActivate"
         ];
+        files = options.programs.infat.autoActivate.files;
         old = "a Boolean";
         replacement = "`programs.infat.autoActivate.enable`";
       }

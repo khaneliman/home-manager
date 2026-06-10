@@ -1,3 +1,5 @@
+{ lib, options, ... }:
+
 {
   qt = {
     enable = true;
@@ -6,7 +8,7 @@
 
   test.asserts.warnings.expected = [
     ''
-      The value "kde6" for `qt.platformTheme.name` is deprecated and will be
+      The value "kde6" for `qt.platformTheme.name` defined in ${lib.showFiles options.qt.platformTheme.files} is deprecated and will be
       removed in a future release. Please use "kde" instead.
     ''
   ];

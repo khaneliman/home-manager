@@ -1,4 +1,7 @@
 { lib }:
+let
+  formatFiles = files: lib.optionalString (files != [ ]) " defined in ${lib.showFiles files}";
+in
 {
   /*
     Builds a standard warning for an option value shape that is deprecated.
@@ -20,9 +23,10 @@
       old,
       replacement,
       details ? "",
+      files ? [ ],
     }:
     ''
-      Using `${lib.showOption option}` as ${old} is deprecated and will be
+      Using `${lib.showOption option}`${formatFiles files} as ${old} is deprecated and will be
       removed in a future release. Please use ${replacement} instead.
     ''
     + lib.optionalString (details != "") ''
@@ -36,9 +40,10 @@
       option,
       old,
       replacement,
+      files ? [ ],
     }:
     ''
-      The value ${old} for `${lib.showOption option}` is deprecated and will be
+      The value ${old} for `${lib.showOption option}`${formatFiles files} is deprecated and will be
       removed in a future release. Please use ${replacement} instead.
     '';
 
@@ -221,6 +226,9 @@
       option = lib.showOption optionPath;
       legacyText = legacy.text or (lib.generators.toPretty { } legacy.value);
       currentText = current.text or (lib.generators.toPretty { } current.value);
+      stateVersionInfo =
+        if options != null then lib.attrByPath [ "home" "stateVersion" ] { } options else { };
+      stateVersionFiles = stateVersionInfo.files or [ ];
       warning = ''
         The default value of `${option}` has changed from `${legacyText}` to `${currentText}`.
         You are currently using the legacy default (`${legacyText}`) because `home.stateVersion` is less than "${since}".
@@ -228,6 +236,10 @@
           ${option} = ${legacyText};
         To adopt the new default behavior, set:
           ${option} = ${currentText};
+      ''
+      + lib.optionalString (stateVersionFiles != [ ]) ''
+
+        This warning is triggered by `home.stateVersion` defined in ${lib.showFiles stateVersionFiles}.
       ''
       + lib.optionalString (extraWarning != "") ("\n" + extraWarning);
       canDeferWarning = config != null && options != null;
@@ -333,7 +345,7 @@
         definition:
         lib.imap1 (index: value: {
           inherit index value;
-          file = baseNameOf (toString definition.file);
+          inherit (definition) file;
         }) definition.value
       ) definitions;
 
@@ -345,7 +357,7 @@
         lib.concatStringsSep "\n" (
           [
             (lib.removeSuffix "\n" baseWarning)
-            "Triggered by ${describeEntry entry} defined in `${entry.file}` at list index ${toString entry.index}."
+            "Triggered by ${describeEntry entry} defined in ${lib.showFiles [ entry.file ]} at list index ${toString entry.index}."
           ]
           ++ lib.optional (entryWarning != "") entryWarning
         );

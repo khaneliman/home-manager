@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   ...
 }:
@@ -199,6 +200,7 @@ in
               "userDirs"
               "extraConfig"
             ];
+            files = options.xdg.userDirs.extraConfig.files;
             old = "keys like `${key}`";
             replacement = "keys like `${normalizeExtraConfigKey key}`";
           }

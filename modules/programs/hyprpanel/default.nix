@@ -2,6 +2,7 @@
   pkgs,
   lib,
   config,
+  options,
   ...
 }:
 let
@@ -103,6 +104,7 @@ in
           "theme"
           "name"
         ];
+        files = options.programs.hyprpanel.settings.files;
         old = "a named theme";
         replacement = "`programs.hyprpanel.settings.theme`";
         details = ''

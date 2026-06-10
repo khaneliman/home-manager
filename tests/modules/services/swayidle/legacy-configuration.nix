@@ -1,4 +1,9 @@
-{ config, ... }:
+{
+  config,
+  lib,
+  options,
+  ...
+}:
 {
   # Exercise merging legacy list definitions with new attrset definitions.
   imports = [
@@ -24,7 +29,7 @@
 
   test.asserts.warnings.expected = [
     ''
-      Using `services.swayidle.events` as a list is deprecated and will be
+      Using `services.swayidle.events` defined in ${lib.showFiles options.services.swayidle.events.files} as a list is deprecated and will be
       removed in a future release. Please use an attribute set keyed by event name instead.
 
       Use event names as attribute keys and commands as values.
