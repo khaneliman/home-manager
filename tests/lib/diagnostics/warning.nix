@@ -1,0 +1,3 @@
+{
+  warnings = [ "plain warning" ];
+}

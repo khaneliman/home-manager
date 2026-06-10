@@ -1,0 +1,3 @@
+{
+  programs.example.enable = true;
+}
