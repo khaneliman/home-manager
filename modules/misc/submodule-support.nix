@@ -1,4 +1,9 @@
-{ lib, ... }:
+{
+  config,
+  lib,
+  options,
+  ...
+}:
 
 {
   meta.maintainers = [ lib.maintainers.rycee ];
@@ -26,9 +31,32 @@
         {option}`users.users.‹name?›.packages`.
       '';
     };
+
+    warningsWithDefinitionFiles = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ ];
+      internal = true;
+      description = ''
+        Warning messages with source files added for use by OS integrations.
+      '';
+    };
+
+    failedAssertionsWithDefinitionFiles = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ ];
+      internal = true;
+      description = ''
+        Failed assertion messages with source files added for use by OS integrations.
+      '';
+    };
   };
 
   config = {
+    submoduleSupport = {
+      warningsWithDefinitionFiles = lib.hm.diagnostics.formatWarnings options.warnings config.warnings;
+      failedAssertionsWithDefinitionFiles = lib.hm.diagnostics.collectFailedAssertions options config.assertions;
+    };
+
     # To make it easier for the end user to override the values in the
     # configuration depending on the installation method, we set default values
     # for the arguments that are defined in the NixOS/nix-darwin modules.

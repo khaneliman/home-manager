@@ -8,6 +8,7 @@ rec {
   booleans = import ./booleans.nix;
   darwin = import ./darwin.nix { inherit lib; };
   deprecations = import ./deprecations.nix { inherit lib; };
+  diagnostics = import ./diagnostics.nix { inherit lib; };
   generators = import ./generators.nix { inherit lib; };
   git = import ./git.nix { inherit lib; };
   gvariant = import ./gvariant.nix { inherit lib; };
