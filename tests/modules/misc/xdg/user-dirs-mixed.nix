@@ -1,5 +1,7 @@
 {
   config,
+  lib,
+  options,
   pkgs,
   ...
 }:
@@ -17,7 +19,7 @@
 
     test.asserts.warnings.expected = [
       ''
-        Using `xdg.userDirs.extraConfig` as keys like `XDG_MISC_DIR` is deprecated and will be
+        Using `xdg.userDirs.extraConfig` defined in ${lib.showFiles options.xdg.userDirs.extraConfig.files} as keys like `XDG_MISC_DIR` is deprecated and will be
         removed in a future release. Please use keys like `MISC` instead.
       ''
     ];

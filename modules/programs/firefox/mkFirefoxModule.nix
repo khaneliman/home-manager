@@ -10,6 +10,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   ...
 }:
@@ -1029,6 +1030,7 @@ in
                   name
                   "bookmarks"
                 ];
+                inherit ((lib.getAttrFromPath (modulePath ++ [ "profiles" ]) options)) files;
                 old = profile.bookmarks._legacySettings;
                 replacement = "`${
                   lib.showOption (

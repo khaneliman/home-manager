@@ -210,6 +210,7 @@ in
           "helix"
           "languages"
         ];
+        files = options.programs.helix.languages.files;
         old = "a list";
         replacement = "`programs.helix.languages.language`";
         details = ''

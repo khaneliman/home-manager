@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   ...
 }:
@@ -46,6 +47,8 @@ in
           programs.firefox.configPath = ".mozilla/firefox";
         To adopt the new default behavior, set:
           programs.firefox.configPath = "''${config.xdg.configHome}/mozilla/firefox";
+
+        This warning is triggered by `home.stateVersion` defined in ${lib.showFiles options.home.stateVersion.files}.
 
         To migrate to the XDG path, move `~/.mozilla/firefox` to
         `$XDG_CONFIG_HOME/mozilla/firefox` and remove the old directory.

@@ -145,6 +145,7 @@ in
           "swayidle"
           "events"
         ];
+        files = options.services.swayidle.events.files;
         old = "a list";
         replacement = "an attribute set keyed by event name";
         details = ''

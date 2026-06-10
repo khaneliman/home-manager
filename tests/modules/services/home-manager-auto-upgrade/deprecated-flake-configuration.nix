@@ -1,3 +1,5 @@
+{ lib, options, ... }:
+
 {
   home.stateVersion = "25.11";
 
@@ -22,6 +24,8 @@
       ];
       To adopt the new default behavior, set:
         services.home-manager.autoUpgrade.preSwitchCommands = [ ];
+
+      This warning is triggered by `home.stateVersion` defined in ${lib.showFiles options.home.stateVersion.files}.
     ''
   ];
 

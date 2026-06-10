@@ -1,5 +1,10 @@
 modulePath:
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  options,
+  ...
+}:
 
 let
 
@@ -74,7 +79,9 @@ in
     // {
       test.asserts.warnings.expected = [
         ''
-          Using `${lib.showOption modulePath}.profiles.bookmarks.bookmarks` as an attribute set is deprecated and will be
+          Using `${lib.showOption modulePath}.profiles.bookmarks.bookmarks` defined in ${
+            lib.showFiles (lib.getAttrFromPath (modulePath ++ [ "profiles" ]) options).files
+          } as an attribute set is deprecated and will be
           removed in a future release. Please use `${lib.showOption modulePath}.profiles.bookmarks.bookmarks.settings` with `${lib.showOption modulePath}.profiles.bookmarks.bookmarks.force = true` instead.
 
           Set `force = true` to acknowledge replacing existing custom bookmarks.
