@@ -1,6 +1,12 @@
 { lib }:
 let
-  formatFiles = files: lib.optionalString (files != [ ]) " defined in ${lib.showFiles files}";
+  filterUnknownFiles = lib.filter (file: toString file != "<unknown-file>");
+  formatFiles =
+    files:
+    let
+      knownFiles = filterUnknownFiles files;
+    in
+    lib.optionalString (knownFiles != [ ]) " defined in ${lib.showFiles knownFiles}";
 in
 {
   /*
@@ -228,7 +234,7 @@ in
       currentText = current.text or (lib.generators.toPretty { } current.value);
       stateVersionInfo =
         if options != null then lib.attrByPath [ "home" "stateVersion" ] { } options else { };
-      stateVersionFiles = stateVersionInfo.files or [ ];
+      stateVersionFiles = filterUnknownFiles (stateVersionInfo.files or [ ]);
       warning = ''
         The default value of `${option}` has changed from `${legacyText}` to `${currentText}`.
         You are currently using the legacy default (`${legacyText}`) because `home.stateVersion` is less than "${since}".
@@ -357,7 +363,7 @@ in
         lib.concatStringsSep "\n" (
           [
             (lib.removeSuffix "\n" baseWarning)
-            "Triggered by ${describeEntry entry} defined in ${lib.showFiles [ entry.file ]} at list index ${toString entry.index}."
+            "Triggered by ${describeEntry entry}${formatFiles [ entry.file ]} at list index ${toString entry.index}."
           ]
           ++ lib.optional (entryWarning != "") entryWarning
         );
