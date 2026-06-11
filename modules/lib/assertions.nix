@@ -2,19 +2,29 @@
 
 {
   assertPlatform =
-    module: pkgs: platforms:
+    moduleOrAttrs: pkgs: platforms:
     let
-      optionPath = lib.splitString "." module;
+      attrs =
+        if lib.isAttrs moduleOrAttrs then
+          moduleOrAttrs
+        else
+          {
+            module = moduleOrAttrs;
+          };
+
+      optionPath = attrs.optionPath or (lib.splitString "." attrs.module);
+      relatedOptions =
+        attrs.relatedOptions or [
+          (optionPath ++ [ "enable" ])
+          optionPath
+        ];
       platformsStr = lib.concatStringsSep "\n" (map (p: "  - ${p}") (lib.sort (a: b: a < b) platforms));
     in
     {
       assertion = lib.elem pkgs.stdenv.hostPlatform.system platforms;
-      relatedOptions = [
-        (optionPath ++ [ "enable" ])
-        optionPath
-      ];
+      inherit relatedOptions;
       message = ''
-        The module ${module} does not support your platform. It only supports
+        The module ${attrs.module} does not support your platform. It only supports
 
         ${platformsStr}'';
     };

@@ -452,7 +452,13 @@ in
   # available, in particular we assume that systemctl is in PATH.
   config = mkIf cfg.enable {
     assertions = [
-      (lib.hm.assertions.assertPlatform "systemd" pkgs lib.platforms.linux)
+      (lib.hm.assertions.assertPlatform {
+        module = "systemd";
+        optionPath = [
+          "systemd"
+          "user"
+        ];
+      } pkgs lib.platforms.linux)
     ];
 
     xdg.configFile = mkMerge [

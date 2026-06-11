@@ -15,5 +15,6 @@
     };
 
     programs.example.enable = lib.mkEnableOption "example";
+    systemd.user.enable = lib.mkEnableOption "systemd user services";
   };
 }
