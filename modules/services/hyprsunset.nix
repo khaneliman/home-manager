@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   ...
 }:
@@ -164,10 +165,10 @@ in
     ];
 
     warnings = lib.mkIf (cfg.transitions != { }) [
-      ''
+      (lib.hm.diagnostics.warningForOption options [ "services" "hyprsunset" "transitions" ] ''
         Using services.hyprsunset.transitions is deprecated. Please use
         services.hyprsunset.settings instead.
-      ''
+      '')
     ];
 
     home.packages = [ cfg.package ];

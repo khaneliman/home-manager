@@ -24,7 +24,11 @@
   test.asserts.warnings.expected = [
     "The option `programs.git.delta.options' defined in ${lib.showFiles options.programs.git.delta.options.files} has been renamed to `programs.delta.options'."
     "The option `programs.git.delta.enable' defined in ${lib.showFiles options.programs.git.delta.enable.files} has been renamed to `programs.delta.enable'."
-    "`programs.delta.enableGitIntegration` automatic enablement is deprecated. Please explicitly set `programs.delta.enableGitIntegration = true`."
+    (lib.concatStringsSep "\n" [
+      "`programs.delta.enableGitIntegration` automatic enablement is deprecated. Please explicitly set `programs.delta.enableGitIntegration = true`."
+      ""
+      "Warning defined in ${lib.showFiles options.programs.git.delta.enable.files}."
+    ])
   ];
 
   nmt.script = ''

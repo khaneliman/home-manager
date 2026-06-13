@@ -2,6 +2,7 @@
   lib,
   pkgs,
   config,
+  options,
   ...
 }:
 let
@@ -463,14 +464,21 @@ in
         hasTuiConfig = lib.versionAtLeast packageVersion "1.2.15";
       in
       lib.optionals (hasTuiConfig && deprecatedConfigKeys != [ ]) [
-        ''
-          programs.opencode.settings contains deprecated TUI-specific keys: ${lib.concatStringsSep ", " deprecatedConfigKeys}
+        (lib.hm.diagnostics.warningForOption options
+          [
+            "programs"
+            "opencode"
+            "settings"
+          ]
+          ''
+            programs.opencode.settings contains deprecated TUI-specific keys: ${lib.concatStringsSep ", " deprecatedConfigKeys}
 
-          These settings should be moved to programs.opencode.tui instead.
+            These settings should be moved to programs.opencode.tui instead.
 
-          OpenCode v1.2.15+ requires TUI settings in a separate tui.json file.
-          See: https://opencode.ai/docs/config#tui
-        ''
+            OpenCode v1.2.15+ requires TUI settings in a separate tui.json file.
+            See: https://opencode.ai/docs/config#tui
+          ''
+        )
       ];
 
     home.packages = mkIf (packageWithExtraPackages != null) [ packageWithExtraPackages ];

@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   ...
 }:
@@ -289,11 +290,27 @@ in
 
       (mkIf (cfg.config != null) {
         warnings =
-          (lib.optional (lib.isList cfg.config.fonts) "Specifying i3.config.fonts as a list is deprecated. Use the attrset version instead.")
+          (lib.optional (lib.isList cfg.config.fonts) (
+            lib.hm.diagnostics.warningForOption options [
+              "xsession"
+              "windowManager"
+              "i3"
+              "config"
+              "fonts"
+            ] "Specifying i3.config.fonts as a list is deprecated. Use the attrset version instead."
+          ))
           ++ lib.flatten (
             map (
               b:
-              lib.optional (lib.isList b.fonts) "Specifying i3.config.bars[].fonts as a list is deprecated. Use the attrset version instead."
+              lib.optional (lib.isList b.fonts) (
+                lib.hm.diagnostics.warningForOption options [
+                  "xsession"
+                  "windowManager"
+                  "i3"
+                  "config"
+                  "bars"
+                ] "Specifying i3.config.bars[].fonts as a list is deprecated. Use the attrset version instead."
+              )
             ) cfg.config.bars
           )
           ++ [

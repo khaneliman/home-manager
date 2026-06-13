@@ -121,7 +121,16 @@ in
         warnings =
           lib.optional
             (cfg.enableGitIntegration && options.programs.delta.enableGitIntegration.highestPrio == 1490)
-            "`programs.delta.enableGitIntegration` automatic enablement is deprecated. Please explicitly set `programs.delta.enableGitIntegration = true`.";
+            (
+              lib.hm.diagnostics.warningForOption options
+                [
+                  "programs"
+                  "git"
+                  "delta"
+                  "enable"
+                ]
+                "`programs.delta.enableGitIntegration` automatic enablement is deprecated. Please explicitly set `programs.delta.enableGitIntegration = true`."
+            );
       })
 
       (lib.mkIf (cfg.enable && cfg.enableGitIntegration) {

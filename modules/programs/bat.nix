@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   ...
 }:
@@ -151,20 +152,20 @@ in
     lib.mkMerge [
       (mkIf (lib.any lib.isString (lib.attrValues cfg.themes)) {
         warnings = [
-          ''
+          (lib.hm.diagnostics.warningForOption options [ "programs" "bat" "themes" ] ''
             Using programs.bat.themes as a string option is deprecated and will be
             removed in the future. Please change to using it as an attribute set
             instead.
-          ''
+          '')
         ];
       })
       (mkIf (lib.any lib.isString (lib.attrValues cfg.syntaxes)) {
         warnings = [
-          ''
+          (lib.hm.diagnostics.warningForOption options [ "programs" "bat" "syntaxes" ] ''
             Using programs.bat.syntaxes as a string option is deprecated and will be
             removed in the future. Please change to using it as an attribute set
             instead.
-          ''
+          '')
         ];
       })
       {

@@ -1,3 +1,5 @@
+{ lib, options, ... }:
+
 {
   imports = [ ../../accounts/email-test-accounts.nix ];
 
@@ -52,7 +54,11 @@
   };
 
   test.asserts.warnings.expected = [
-    "Specifying 'programs.neomutt.(binds|macros).map' as a string is deprecated, use a list of strings instead. See https://github.com/nix-community/home-manager/pull/1885."
+    (lib.concatStringsSep "\n" [
+      "Specifying 'programs.neomutt.(binds|macros).map' as a string is deprecated, use a list of strings instead. See https://github.com/nix-community/home-manager/pull/1885."
+      ""
+      "Warning defined in ${lib.showFiles options.programs.neomutt.binds.files}."
+    ])
   ];
 
   nmt.script = ''

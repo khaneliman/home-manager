@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   ...
 }:
@@ -291,20 +292,44 @@ in
     lib.mkMerge [
       (lib.mkIf (missingNotmuchAccounts != [ ]) {
         warnings = [
-          ''
-            mujmap is enabled for the following email accounts, but notmuch is not:
+          (lib.hm.diagnostics.warningForOptions options
+            [
+              [
+                "programs"
+                "mujmap"
+                "enable"
+              ]
+              [
+                "programs"
+                "mujmap"
+                "notmuchSetupWarning"
+              ]
+              [
+                "programs"
+                "notmuch"
+                "enable"
+              ]
+              [
+                "accounts"
+                "email"
+                "accounts"
+              ]
+            ]
+            ''
+              mujmap is enabled for the following email accounts, but notmuch is not:
 
-                ${lib.concatStringsSep "\n    " missingNotmuchAccounts}
+                  ${lib.concatStringsSep "\n    " missingNotmuchAccounts}
 
-            Notmuch can be enabled with:
+              Notmuch can be enabled with:
 
-                ${lib.concatStringsSep "\n    " notmuchConfigHelp}
+                  ${lib.concatStringsSep "\n    " notmuchConfigHelp}
 
-            If you have configured notmuch outside of Home Manager, you can suppress this
-            warning with:
+              If you have configured notmuch outside of Home Manager, you can suppress this
+              warning with:
 
-                programs.mujmap.notmuchSetupWarning = false;
-          ''
+                  programs.mujmap.notmuchSetupWarning = false;
+            ''
+          )
         ];
       })
 

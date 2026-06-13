@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   ...
 }:
@@ -281,20 +282,44 @@ in
 
       (mkIf (missingNotmuchAccounts != [ ]) {
         warnings = [
-          ''
-            lieer is enabled for the following email accounts, but notmuch is not:
+          (lib.hm.diagnostics.warningForOptions options
+            [
+              [
+                "programs"
+                "lieer"
+                "enable"
+              ]
+              [
+                "programs"
+                "lieer"
+                "notmuchSetupWarning"
+              ]
+              [
+                "programs"
+                "notmuch"
+                "enable"
+              ]
+              [
+                "accounts"
+                "email"
+                "accounts"
+              ]
+            ]
+            ''
+              lieer is enabled for the following email accounts, but notmuch is not:
 
-                ${concatStringsSep "\n    " missingNotmuchAccounts}
+                  ${concatStringsSep "\n    " missingNotmuchAccounts}
 
-            Notmuch can be enabled with:
+              Notmuch can be enabled with:
 
-                ${concatStringsSep "\n    " notmuchConfigHelp}
+                  ${concatStringsSep "\n    " notmuchConfigHelp}
 
-            If you have configured notmuch outside of Home Manager, you can suppress this
-            warning with:
+              If you have configured notmuch outside of Home Manager, you can suppress this
+              warning with:
 
-                programs.lieer.notmuchSetupWarning = false;
-          ''
+                  programs.lieer.notmuchSetupWarning = false;
+            ''
+          )
         ];
       })
     ]

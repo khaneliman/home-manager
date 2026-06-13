@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   ...
 }:
@@ -126,11 +127,28 @@
         }
       ];
 
-      warnings = lib.optional (config.targets.genericLinux.nixGL.packages != null) ''
-        Both targets.genericLinux.gpu and targets.genericLinux.nixGL are enabled.
-        This is an unsupported configuration. Only mix the two if you know what
-        you are doing!
-      '';
+      warnings = lib.optional (config.targets.genericLinux.nixGL.packages != null) (
+        lib.hm.diagnostics.warningForOptions options
+          [
+            [
+              "targets"
+              "genericLinux"
+              "gpu"
+              "enable"
+            ]
+            [
+              "targets"
+              "genericLinux"
+              "nixGL"
+              "packages"
+            ]
+          ]
+          ''
+            Both targets.genericLinux.gpu and targets.genericLinux.nixGL are enabled.
+            This is an unsupported configuration. Only mix the two if you know what
+            you are doing!
+          ''
+      );
 
       home.packages = [ setupPackage ];
 

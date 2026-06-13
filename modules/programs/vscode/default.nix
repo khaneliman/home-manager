@@ -1,4 +1,9 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  options,
+  ...
+}:
 let
   modulePath = [
     "programs"
@@ -79,11 +84,13 @@ in
         pname = if pkg != null then pkg.pname or null else null;
         forkModule = if pname != null then forkModules.${pname} or null else null;
       in
-      lib.optional (forkModule != null) ''
-        programs.vscode.package is set to a known VSCode fork (pname: "${pname}"),
-        but programs.vscode now always writes to Visual Studio Code's paths
-        (e.g. ~/.vscode, "Code/User"). Use ${forkModule} instead so that
-        configuration is written to the fork's own paths.
-      '';
+      lib.optional (forkModule != null) (
+        lib.hm.diagnostics.warningForOption options [ "programs" "vscode" "package" ] ''
+          programs.vscode.package is set to a known VSCode fork (pname: "${pname}"),
+          but programs.vscode now always writes to Visual Studio Code's paths
+          (e.g. ~/.vscode, "Code/User"). Use ${forkModule} instead so that
+          configuration is written to the fork's own paths.
+        ''
+      );
   };
 }

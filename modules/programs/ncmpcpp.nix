@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   ...
 }:
@@ -137,7 +138,21 @@ in
 
   config = mkIf cfg.enable {
     warnings = mkIf (cfg.settings ? mpd_music_dir && cfg.mpdMusicDir != null) [
-      ("programs.ncmpcpp.settings.mpd_music_dir will be overridden by" + " programs.ncmpcpp.mpdMusicDir.")
+      (lib.hm.diagnostics.warningForOptions options
+        [
+          [
+            "programs"
+            "ncmpcpp"
+            "settings"
+          ]
+          [
+            "programs"
+            "ncmpcpp"
+            "mpdMusicDir"
+          ]
+        ]
+        ("programs.ncmpcpp.settings.mpd_music_dir will be overridden by" + " programs.ncmpcpp.mpdMusicDir.")
+      )
     ];
 
     home.packages = [ cfg.package ];

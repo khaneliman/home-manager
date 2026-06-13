@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   ...
 }:
@@ -123,6 +124,7 @@ in
       inherit
         (lib.hm.deprecations.mkStateVersionOptionDefault {
           inherit (config.home) stateVersion;
+          inherit options;
           since = "26.05";
           optionPath = [
             "wayland"
@@ -558,11 +560,62 @@ in
             _name: submap: filterNonBinds submap.settings
           ) cfg.submaps;
 
-          submapWarnings = lib.mapAttrsToList (submapName: nonBinds: ''
-            wayland.windowManager.hyprland.submaps."${submapName}".settings: found non-bind entries: [${toString nonBinds}], which will have no effect in a submap
-          '') (lib.filterAttrs (_n: v: v != [ ]) submapWarningsAttrset);
+          submapWarnings = lib.mapAttrsToList (
+            submapName: nonBinds:
+            lib.hm.diagnostics.warningForOption options
+              [
+                "wayland"
+                "windowManager"
+                "hyprland"
+                "submaps"
+              ]
+              ''
+                wayland.windowManager.hyprland.submaps."${submapName}".settings: found non-bind entries: [${toString nonBinds}], which will have no effect in a submap
+              ''
+          ) (lib.filterAttrs (_n: v: v != [ ]) submapWarningsAttrset);
         in
-        submapWarnings ++ lib.optional inconsistent warning;
+        submapWarnings
+        ++ lib.optional inconsistent (
+          lib.hm.diagnostics.warningForOptions options [
+            [
+              "wayland"
+              "windowManager"
+              "hyprland"
+              "systemd"
+              "enable"
+            ]
+            [
+              "wayland"
+              "windowManager"
+              "hyprland"
+              "plugins"
+            ]
+            [
+              "wayland"
+              "windowManager"
+              "hyprland"
+              "settings"
+            ]
+            [
+              "wayland"
+              "windowManager"
+              "hyprland"
+              "extraConfig"
+            ]
+            [
+              "wayland"
+              "windowManager"
+              "hyprland"
+              "extraLuaFiles"
+            ]
+            [
+              "wayland"
+              "windowManager"
+              "hyprland"
+              "submaps"
+            ]
+          ] warning
+        );
 
       home.packages = lib.mkIf (cfg.package != null) (
         [ cfg.finalPackage ] ++ lib.optional cfg.xwayland.enable pkgs.xwayland

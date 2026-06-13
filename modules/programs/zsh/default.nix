@@ -410,6 +410,13 @@ in
           assertions = [
             {
               assertion = !lib.hasInfix "$" cfg.dotDir;
+              relatedOptions = [
+                [
+                  "programs"
+                  "zsh"
+                  "dotDir"
+                ]
+              ];
               message = ''
                 programs.zsh.dotDir cannot contain shell variables as it is used for file creation at build time.
                 Current dotDir: ${cfg.dotDir}
@@ -427,7 +434,7 @@ in
             lib.optionals
               (cfg.dotDir != homeDir && !lib.hasPrefix "/" cfg.dotDir && !lib.hasInfix "$" cfg.dotDir)
               [
-                ''
+                (lib.hm.diagnostics.warningForOption options [ "programs" "zsh" "dotDir" ] ''
                   Using relative paths in programs.zsh.dotDir is deprecated and will be removed in a future release.
                   Current dotDir: ${cfg.dotDir}
                   Consider using absolute paths or home-manager config options instead.
@@ -436,7 +443,7 @@ in
                   - config.xdg.configHome (XDG config directory)
                   - config.xdg.dataHome (XDG data directory)
                   - config.xdg.cacheHome (XDG cache directory)
-                ''
+                '')
               ]
             ++
               lib.optionals
@@ -446,14 +453,27 @@ in
                   && options.programs.zsh.dotDir.highestPrio >= 1500
                 )
                 [
-                  ''
-                    The default value of `programs.zsh.dotDir` will change in future versions.
-                    You are currently using the legacy default (home directory) because `home.stateVersion` is less than "26.05".
-                    To silence this warning and lock in the current behavior, set:
-                      programs.zsh.dotDir = config.home.homeDirectory;
-                    To adopt the new behavior (XDG config directory), set:
-                      programs.zsh.dotDir = "''${config.xdg.configHome}/zsh";
-                  ''
+                  (lib.hm.diagnostics.warningForOptions options
+                    [
+                      [
+                        "programs"
+                        "zsh"
+                        "dotDir"
+                      ]
+                      [
+                        "home"
+                        "stateVersion"
+                      ]
+                    ]
+                    ''
+                      The default value of `programs.zsh.dotDir` will change in future versions.
+                      You are currently using the legacy default (home directory) because `home.stateVersion` is less than "26.05".
+                      To silence this warning and lock in the current behavior, set:
+                        programs.zsh.dotDir = config.home.homeDirectory;
+                      To adopt the new behavior (XDG config directory), set:
+                        programs.zsh.dotDir = "''${config.xdg.configHome}/zsh";
+                    ''
+                  )
                 ];
         }
 
@@ -486,6 +506,13 @@ in
         (lib.mkIf (cfg.siteFunctions != { }) {
           assertions = lib.mapAttrsToList (funcName: _text: {
             assertion = !(lib.hasPrefix "/" funcName);
+            relatedOptions = [
+              [
+                "programs"
+                "zsh"
+                "siteFunctions"
+              ]
+            ];
             message =
               "programs.zsh.siteFunctions: function name '${funcName}' cannot start with a '/'. "
               + "either rename it, or don't rely on autoloading for that function (e.g. by defining it inside your '.zshrc')";

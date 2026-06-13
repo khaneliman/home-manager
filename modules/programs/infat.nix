@@ -125,7 +125,7 @@ in
           "infat"
           "autoActivate"
         ];
-        files = options.programs.infat.autoActivate.files;
+        inherit options;
         old = "a Boolean";
         replacement = "`programs.infat.autoActivate.enable`";
       }

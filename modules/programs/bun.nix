@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   ...
 }:
@@ -46,11 +47,26 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    warnings = lib.optional (cfg.package == null && cfg.enableGitIntegration) ''
-      You have enabled git integration for `bun` but have not set `package`.
+    warnings = lib.optional (cfg.package == null && cfg.enableGitIntegration) (
+      lib.hm.diagnostics.warningForOptions options
+        [
+          [
+            "programs"
+            "bun"
+            "package"
+          ]
+          [
+            "programs"
+            "bun"
+            "enableGitIntegration"
+          ]
+        ]
+        ''
+          You have enabled git integration for `bun` but have not set `package`.
 
-      Git integration will not be configured.
-    '';
+          Git integration will not be configured.
+        ''
+    );
 
     home.packages = lib.mkIf (cfg.package != null) [ cfg.package ];
 

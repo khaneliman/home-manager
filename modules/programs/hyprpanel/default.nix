@@ -104,7 +104,12 @@ in
           "theme"
           "name"
         ];
-        files = options.programs.hyprpanel.settings.files;
+        inherit options;
+        relatedOption = [
+          "programs"
+          "hyprpanel"
+          "settings"
+        ];
         old = "a named theme";
         replacement = "`programs.hyprpanel.settings.theme`";
         details = ''

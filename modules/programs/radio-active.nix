@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   ...
 }:
@@ -94,9 +95,11 @@ in
       ];
     in
     mkIf cfg.enable {
-      warnings = lib.optional (builtins.elem player knownPlayers == false) ''
-        Unknown player defined in `config.programs.radio-active.AppConfig.player`
-      '';
+      warnings = lib.optional (builtins.elem player knownPlayers == false) (
+        lib.hm.diagnostics.warningForOption options [ "programs" "radio-active" "settings" ] ''
+          Unknown player defined in `config.programs.radio-active.AppConfig.player`
+        ''
+      );
 
       ## TODO: test that dependency `postPatch` modifications works at runtime
       home.packages =

@@ -85,7 +85,16 @@ in
             (
               cfg.enableGitIntegration && options.programs.diff-highlight.enableGitIntegration.highestPrio == 1490
             )
-            "`programs.diff-highlight.enableGitIntegration` automatic enablement is deprecated. Please explicitly set `programs.diff-highlight.enableGitIntegration = true`.";
+            (
+              lib.hm.diagnostics.warningForOption options
+                [
+                  "programs"
+                  "git"
+                  "diff-highlight"
+                  "enable"
+                ]
+                "`programs.diff-highlight.enableGitIntegration` automatic enablement is deprecated. Please explicitly set `programs.diff-highlight.enableGitIntegration = true`."
+            );
 
         # Auto-enable git integration if programs.git.diff-highlight.enable was set to true
         programs.diff-highlight.enableGitIntegration = lib.mkIf oldOptionEnabled (lib.mkOverride 1490 true);

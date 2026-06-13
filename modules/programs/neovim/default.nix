@@ -34,6 +34,7 @@ let
 
   pluginTypeStateVersion = lib.hm.deprecations.mkStateVersionOptionDefault {
     inherit (config.home) stateVersion;
+    inherit options;
     since = "26.05";
     optionPath = [
       "programs"
@@ -128,6 +129,7 @@ in
         inherit
           (lib.hm.deprecations.mkStateVersionOptionDefault {
             inherit (config.home) stateVersion;
+            inherit options;
             since = "26.05";
             optionPath = [
               "programs"
@@ -151,6 +153,7 @@ in
         inherit
           (lib.hm.deprecations.mkStateVersionOptionDefault {
             inherit (config.home) stateVersion;
+            inherit options;
             since = "26.05";
             optionPath = [
               "programs"

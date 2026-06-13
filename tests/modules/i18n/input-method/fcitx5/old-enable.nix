@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   realPkgs,
   ...
 }:
@@ -27,7 +28,11 @@ lib.mkIf config.test.enableBig {
   _module.args.pkgs = lib.mkForce realPkgs;
 
   test.asserts.warnings.expected = [
-    "i18n.inputMethod.enabled will be removed in a future release. Please use .type, and .enable = true instead"
+    (lib.concatStringsSep "\n" [
+      "i18n.inputMethod.enabled will be removed in a future release. Please use .type, and .enable = true instead"
+      ""
+      "Warning defined in ${lib.showFiles options.i18n.inputMethod.enabled.files}."
+    ])
   ];
 
   nmt.script = ''

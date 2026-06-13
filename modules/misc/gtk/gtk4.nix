@@ -1,4 +1,9 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  options,
+  ...
+}:
 
 let
   inherit (lib)
@@ -48,6 +53,7 @@ in
       inherit
         (lib.hm.deprecations.mkStateVersionOptionDefault {
           inherit (config.home) stateVersion;
+          inherit options;
           since = "26.05";
           optionPath = [
             "gtk"

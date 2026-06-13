@@ -1033,7 +1033,8 @@ in
                   name
                   "bookmarks"
                 ];
-                inherit ((lib.getAttrFromPath (modulePath ++ [ "profiles" ]) options)) files;
+                inherit options;
+                relatedOption = modulePath ++ [ "profiles" ];
                 old = profile.bookmarks._legacySettings;
                 replacement = "`${
                   lib.showOption (

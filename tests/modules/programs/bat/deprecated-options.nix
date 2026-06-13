@@ -1,3 +1,5 @@
+{ lib, options, ... }:
+
 {
   programs.bat = {
     enable = true;
@@ -22,16 +24,20 @@
 
   test.asserts.warnings.enable = true;
   test.asserts.warnings.expected = [
-    ''
-      Using programs.bat.themes as a string option is deprecated and will be
-      removed in the future. Please change to using it as an attribute set
-      instead.
-    ''
-    ''
-      Using programs.bat.syntaxes as a string option is deprecated and will be
-      removed in the future. Please change to using it as an attribute set
-      instead.
-    ''
+    (lib.concatStringsSep "\n" [
+      "Using programs.bat.themes as a string option is deprecated and will be"
+      "removed in the future. Please change to using it as an attribute set"
+      "instead."
+      ""
+      "Warning defined in ${lib.showFiles options.programs.bat.themes.files}."
+    ])
+    (lib.concatStringsSep "\n" [
+      "Using programs.bat.syntaxes as a string option is deprecated and will be"
+      "removed in the future. Please change to using it as an attribute set"
+      "instead."
+      ""
+      "Warning defined in ${lib.showFiles options.programs.bat.syntaxes.files}."
+    ])
   ];
 
   nmt.script = ''

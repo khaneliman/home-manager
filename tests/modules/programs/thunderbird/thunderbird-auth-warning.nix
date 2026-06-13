@@ -1,5 +1,7 @@
 {
   config,
+  lib,
+  options,
   ...
 }:
 {
@@ -60,26 +62,34 @@
   };
 
   test.asserts.warnings.expected = [
-    ''
-      programs.thunderbird: accounts.email.accounts.exchange@example.com.ews uses authentication method
-      'oauthbearer', which Thunderbird does not support directly. Falling back
-      to password-based authentication.
-    ''
-    ''
-      programs.thunderbird: accounts.email.accounts.hm@example.com.imap uses authentication method
-      'oauthbearer', which Thunderbird does not support directly. Falling back
-      to password-based authentication.
-    ''
-    ''
-      programs.thunderbird: accounts.email.accounts.smtp@example.com.smtp uses authentication method
-      'oauthbearer', which Thunderbird does not support directly. Falling back
-      to password-based authentication.
-    ''
-    ''
-      programs.thunderbird: accounts.email.accounts.smtp@example.com.aliases.overridden-alias@example.com.smtp uses authentication method
-      'oauthbearer', which Thunderbird does not support directly. Falling back
-      to password-based authentication.
-    ''
+    (lib.concatStringsSep "\n" [
+      "programs.thunderbird: accounts.email.accounts.exchange@example.com.ews uses authentication method"
+      "'oauthbearer', which Thunderbird does not support directly. Falling back"
+      "to password-based authentication."
+      ""
+      "Warning defined in ${lib.showFiles options.accounts.email.accounts.files}."
+    ])
+    (lib.concatStringsSep "\n" [
+      "programs.thunderbird: accounts.email.accounts.hm@example.com.imap uses authentication method"
+      "'oauthbearer', which Thunderbird does not support directly. Falling back"
+      "to password-based authentication."
+      ""
+      "Warning defined in ${lib.showFiles options.accounts.email.accounts.files}."
+    ])
+    (lib.concatStringsSep "\n" [
+      "programs.thunderbird: accounts.email.accounts.smtp@example.com.smtp uses authentication method"
+      "'oauthbearer', which Thunderbird does not support directly. Falling back"
+      "to password-based authentication."
+      ""
+      "Warning defined in ${lib.showFiles options.accounts.email.accounts.files}."
+    ])
+    (lib.concatStringsSep "\n" [
+      "programs.thunderbird: accounts.email.accounts.smtp@example.com.aliases.overridden-alias@example.com.smtp uses authentication method"
+      "'oauthbearer', which Thunderbird does not support directly. Falling back"
+      "to password-based authentication."
+      ""
+      "Warning defined in ${lib.showFiles options.accounts.email.accounts.files}."
+    ])
   ];
   test.asserts.warnings.enable = true;
 }

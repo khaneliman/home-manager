@@ -40,6 +40,8 @@
       "  programs.neovim.plugins.PLUGIN.type = \"viml\";"
       "To adopt the new default behavior, set:"
       "  programs.neovim.plugins.PLUGIN.type = \"lua\";"
+      ""
+      "This warning is triggered by `home.stateVersion` defined in ${lib.showFiles options.home.stateVersion.files}."
       "Triggered by plugin `vim-nix` defined in ${lib.showFiles options.programs.neovim.plugins.files} at list index 2."
       "Set `type = \"viml\"` or `type = \"lua\"` on that plugin entry to make the config language explicit."
     ])

@@ -184,17 +184,14 @@ in
     (mkIf (cfg.users != { }) {
       warnings = lib.flatten (
         flip lib.mapAttrsToList cfg.users (
-          user: config:
-          flip map config.submoduleSupport.warningsWithDefinitionFiles (
-            warning: "${user} profile: ${warning}"
-          )
+          user: config: flip map config.warnings (warning: "${user} profile: ${warning}")
         )
       );
 
       assertions = lib.flatten (
         flip lib.mapAttrsToList cfg.users (
           user: config:
-          flip map config.submoduleSupport.failedAssertionsWithDefinitionFiles (message: {
+          flip map config.submoduleSupport.failedAssertionMessages (message: {
             assertion = false;
             message = "${user} profile: ${message}";
           })

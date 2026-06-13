@@ -1,7 +1,13 @@
+{ lib, options, ... }:
+
 {
   config = {
     test.asserts.warnings.expected = [
-      "programs.man.man-db.extraConfig has no effect when programs.man.generateCaches is false"
+      (lib.concatStringsSep "\n" [
+        "programs.man.man-db.extraConfig has no effect when programs.man.generateCaches is false"
+        ""
+        "Warning defined in ${lib.showFiles options.programs.man.man-db.extraConfig.files}."
+      ])
     ];
 
     programs.man = {

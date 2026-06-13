@@ -14,7 +14,11 @@
 
   test.asserts.warnings.expected = [
     "The option `programs.git.patdiff.enable' defined in ${lib.showFiles options.programs.git.patdiff.enable.files} has been renamed to `programs.patdiff.enable'."
-    "`programs.patdiff.enableGitIntegration` automatic enablement is deprecated. Please explicitly set `programs.patdiff.enableGitIntegration = true`."
+    (lib.concatStringsSep "\n" [
+      "`programs.patdiff.enableGitIntegration` automatic enablement is deprecated. Please explicitly set `programs.patdiff.enableGitIntegration = true`."
+      ""
+      "Warning defined in ${lib.showFiles options.programs.git.patdiff.enable.files}."
+    ])
   ];
 
   nmt.script = ''

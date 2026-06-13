@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   ...
 }:
@@ -30,6 +31,7 @@ in
         inherit
           (lib.hm.deprecations.mkStateVersionOptionDefault {
             inherit (config.home) stateVersion;
+            inherit options;
             since = "19.03";
             optionPath = [
               "programs"

@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   ...
 }:
@@ -333,13 +334,21 @@ in
 
       (mkIf (cfg.profiles != { }) {
         warnings = [
-          "kanshi.profiles option is deprecated. Use kanshi.settings instead."
+          (lib.hm.diagnostics.warningForOption options [
+            "services"
+            "kanshi"
+            "profiles"
+          ] "kanshi.profiles option is deprecated. Use kanshi.settings instead.")
         ];
       })
 
       (mkIf (cfg.extraConfig != "") {
         warnings = [
-          "kanshi.extraConfig option is deprecated. Use kanshi.settings instead."
+          (lib.hm.diagnostics.warningForOption options [
+            "services"
+            "kanshi"
+            "extraConfig"
+          ] "kanshi.extraConfig option is deprecated. Use kanshi.settings instead.")
         ];
       })
 

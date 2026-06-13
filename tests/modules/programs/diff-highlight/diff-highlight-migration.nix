@@ -19,7 +19,11 @@
   test.asserts.warnings.expected = [
     "The option `programs.git.diff-highlight.pagerOpts' defined in ${lib.showFiles options.programs.git.diff-highlight.pagerOpts.files} has been renamed to `programs.diff-highlight.pagerOpts'."
     "The option `programs.git.diff-highlight.enable' defined in ${lib.showFiles options.programs.git.diff-highlight.enable.files} has been renamed to `programs.diff-highlight.enable'."
-    "`programs.diff-highlight.enableGitIntegration` automatic enablement is deprecated. Please explicitly set `programs.diff-highlight.enableGitIntegration = true`."
+    (lib.concatStringsSep "\n" [
+      "`programs.diff-highlight.enableGitIntegration` automatic enablement is deprecated. Please explicitly set `programs.diff-highlight.enableGitIntegration = true`."
+      ""
+      "Warning defined in ${lib.showFiles options.programs.git.diff-highlight.enable.files}."
+    ])
   ];
 
   nmt.script = ''

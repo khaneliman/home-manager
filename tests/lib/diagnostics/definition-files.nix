@@ -19,35 +19,21 @@ let
     ];
   };
 
-  definitionFiles =
-    option: value:
-    lib.unique (
-      lib.concatMap (
-        definition: lib.optionals (lib.any (entry: entry == value) definition.value) [ definition.file ]
-      ) option.definitionsWithLocations
-    );
-
   actual = pkgs.writeText "diagnostics-definition-files.actual" (
     lib.concatStringsSep "\n---\n" (
-      (lib.hm.diagnostics.formatWarnings eval.options.warnings eval.config.warnings)
+      eval.config.warnings
       ++ (lib.hm.diagnostics.collectFailedAssertions eval.options eval.config.assertions)
     )
   );
 
   expected = pkgs.writeText "diagnostics-definition-files.expected" (
     lib.concatStringsSep "\n---\n" [
-      ''
-        ${plainWarning}
-
-        Warning defined in ${lib.showFiles (definitionFiles eval.options.warnings plainWarning)}.''
+      plainWarning
       ''
         ${lib.removeSuffix "\n" platformAssertion.message}
 
         Assertion defined in ${lib.showFiles eval.options.programs.example.enable.files}.''
-      ''
-        ${plainAssertion.message}
-
-        Assertion defined in ${lib.showFiles (definitionFiles eval.options.assertions plainAssertion)}.''
+      plainAssertion.message
     ]
   );
 in

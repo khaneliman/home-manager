@@ -19,7 +19,11 @@
   test.asserts.warnings.expected = [
     "The option `programs.git.difftastic.options' defined in ${lib.showFiles options.programs.git.difftastic.options.files} has been renamed to `programs.difftastic.options'."
     "The option `programs.git.difftastic.enable' defined in ${lib.showFiles options.programs.git.difftastic.enable.files} has been renamed to `programs.difftastic.enable'."
-    "`programs.difftastic.git.enable` automatic enablement is deprecated. Please explicitly set `programs.difftastic.git.enable = true`."
+    (lib.concatStringsSep "\n" [
+      "`programs.difftastic.git.enable` automatic enablement is deprecated. Please explicitly set `programs.difftastic.git.enable = true`."
+      ""
+      "Warning defined in ${lib.showFiles options.programs.git.difftastic.enable.files}."
+    ])
   ];
 
   nmt.script = ''

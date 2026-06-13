@@ -3,6 +3,7 @@
   osConfig,
   pkgs,
   lib,
+  options,
   ...
 }:
 
@@ -155,18 +156,33 @@ in
         }
       ];
 
-      warnings = optional (cfg.configPackages == [ ] && cfg.config == { }) ''
-        xdg-desktop-portal 1.17 reworked how portal implementations are loaded, you
-        should either set `xdg.portal.config` or `xdg.portal.configPackages`
-        to specify which portal backend to use for the requested interface.
+      warnings = optional (cfg.configPackages == [ ] && cfg.config == { }) (
+        lib.hm.diagnostics.warningForOptions options
+          [
+            [
+              "xdg"
+              "portal"
+              "config"
+            ]
+            [
+              "xdg"
+              "portal"
+              "configPackages"
+            ]
+          ]
+          ''
+            xdg-desktop-portal 1.17 reworked how portal implementations are loaded, you
+            should either set `xdg.portal.config` or `xdg.portal.configPackages`
+            to specify which portal backend to use for the requested interface.
 
-        https://github.com/flatpak/xdg-desktop-portal/blob/1.18.1/doc/portals.conf.rst.in
+            https://github.com/flatpak/xdg-desktop-portal/blob/1.18.1/doc/portals.conf.rst.in
 
-        If you simply want to keep the behaviour in < 1.17, which uses the first
-        portal implementation found in lexicographical order, use the following:
+            If you simply want to keep the behaviour in < 1.17, which uses the first
+            portal implementation found in lexicographical order, use the following:
 
-        xdg.portal.config.common.default = "*";
-      '';
+            xdg.portal.config.common.default = "*";
+          ''
+      );
 
       home = {
         packages = packages ++ cfg.configPackages;

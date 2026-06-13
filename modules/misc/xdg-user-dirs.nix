@@ -128,6 +128,7 @@ in
       inherit
         (lib.hm.deprecations.mkStateVersionOptionDefault {
           inherit (config.home) stateVersion;
+          inherit options;
           since = "26.05";
           optionPath = [
             "xdg"
@@ -200,7 +201,7 @@ in
               "userDirs"
               "extraConfig"
             ];
-            files = options.xdg.userDirs.extraConfig.files;
+            inherit options;
             old = "keys like `${key}`";
             replacement = "keys like `${normalizeExtraConfigKey key}`";
           }

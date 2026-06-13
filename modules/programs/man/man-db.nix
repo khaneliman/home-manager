@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   ...
 }:
@@ -33,9 +34,21 @@ in
   };
 
   config = mkIf (cfg.enable && cfgManDb.enable) {
-    warnings = lib.optional (
-      cfgManDb.extraConfig != "" && !cfg.generateCaches
-    ) "programs.man.man-db.extraConfig has no effect when programs.man.generateCaches is false";
+    warnings = lib.optional (cfgManDb.extraConfig != "" && !cfg.generateCaches) (
+      lib.hm.diagnostics.warningForOptions options [
+        [
+          "programs"
+          "man"
+          "man-db"
+          "extraConfig"
+        ]
+        [
+          "programs"
+          "man"
+          "generateCaches"
+        ]
+      ] "programs.man.man-db.extraConfig has no effect when programs.man.generateCaches is false"
+    );
 
     # This is mostly copy/pasted/adapted from NixOS' documentation.nix.
     home.file = mkIf (cfg.generateCaches && cfg.package != null) {

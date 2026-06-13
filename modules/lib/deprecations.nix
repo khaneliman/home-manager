@@ -1,13 +1,5 @@
 { lib }:
-let
-  filterUnknownFiles = lib.filter (file: toString file != "<unknown-file>");
-  formatFiles =
-    files:
-    let
-      knownFiles = filterUnknownFiles files;
-    in
-    lib.optionalString (knownFiles != [ ]) " defined in ${lib.showFiles knownFiles}";
-in
+
 {
   /*
     Builds a standard warning for an option value shape that is deprecated.
@@ -29,10 +21,12 @@ in
       old,
       replacement,
       details ? "",
-      files ? [ ],
+      options ? null,
+      relatedOption ? option,
+      files ? lib.optionals (options != null) (lib.hm.diagnostics.filesForOption options relatedOption),
     }:
     ''
-      Using `${lib.showOption option}`${formatFiles files} as ${old} is deprecated and will be
+      Using `${lib.showOption option}`${lib.hm.diagnostics.formatFiles files} as ${old} is deprecated and will be
       removed in a future release. Please use ${replacement} instead.
     ''
     + lib.optionalString (details != "") ''
@@ -46,10 +40,12 @@ in
       option,
       old,
       replacement,
-      files ? [ ],
+      options ? null,
+      relatedOption ? option,
+      files ? lib.optionals (options != null) (lib.hm.diagnostics.filesForOption options relatedOption),
     }:
     ''
-      The value ${old} for `${lib.showOption option}`${formatFiles files} is deprecated and will be
+      The value ${old} for `${lib.showOption option}`${lib.hm.diagnostics.formatFiles files} is deprecated and will be
       removed in a future release. Please use ${replacement} instead.
     '';
 
@@ -234,7 +230,7 @@ in
       currentText = current.text or (lib.generators.toPretty { } current.value);
       stateVersionInfo =
         if options != null then lib.attrByPath [ "home" "stateVersion" ] { } options else { };
-      stateVersionFiles = filterUnknownFiles (stateVersionInfo.files or [ ]);
+      stateVersionFiles = lib.hm.diagnostics.filterUnknownFiles (stateVersionInfo.files or [ ]);
       warning = ''
         The default value of `${option}` has changed from `${legacyText}` to `${currentText}`.
         You are currently using the legacy default (`${legacyText}`) because `home.stateVersion` is less than "${since}".
@@ -363,7 +359,9 @@ in
         lib.concatStringsSep "\n" (
           [
             (lib.removeSuffix "\n" baseWarning)
-            "Triggered by ${describeEntry entry}${formatFiles [ entry.file ]} at list index ${toString entry.index}."
+            "Triggered by ${describeEntry entry}${
+              lib.hm.diagnostics.formatFiles [ entry.file ]
+            } at list index ${toString entry.index}."
           ]
           ++ lib.optional (entryWarning != "") entryWarning
         );

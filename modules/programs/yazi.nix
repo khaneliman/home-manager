@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   ...
 }:
@@ -92,6 +93,7 @@ in
       inherit
         (lib.hm.deprecations.mkStateVersionOptionDefault {
           inherit (config.home) stateVersion;
+          inherit options;
           since = "26.05";
           optionPath = [
             "programs"
@@ -410,19 +412,23 @@ in
       lib.concatLists [
         (mapAttrsToList (
           name: _value:
-          optionalString (lib.hasSuffix ".yazi" name) ''
-            Flavors like `programs.yazi.flavors."${name}"` should no longer have the suffix ".yazi" in their attribute name.
-            The flavor will be linked to `$XDG_CONFIG_HOME/yazi/flavors/${name}.yazi`.
-            You probably want to rename it to `programs.yazi.flavors."${lib.removeSuffix ".yazi" name}"`.
-          ''
+          optionalString (lib.hasSuffix ".yazi" name) (
+            lib.hm.diagnostics.warningForOption options [ "programs" "yazi" "flavors" ] ''
+              Flavors like `programs.yazi.flavors."${name}"` should no longer have the suffix ".yazi" in their attribute name.
+              The flavor will be linked to `$XDG_CONFIG_HOME/yazi/flavors/${name}.yazi`.
+              You probably want to rename it to `programs.yazi.flavors."${lib.removeSuffix ".yazi" name}"`.
+            ''
+          )
         ) cfg.flavors)
         (mapAttrsToList (
           name: _value:
-          optionalString (lib.hasSuffix ".yazi" name) ''
-            Plugins like `programs.yazi.plugins."${name}"` should no longer have the suffix ".yazi" in their attribute name.
-            The plugin will be linked to `$XDG_CONFIG_HOME/yazi/plugins/${name}.yazi`.
-            You probably want to rename it to `programs.yazi.plugins."${lib.removeSuffix ".yazi" name}"`.
-          ''
+          optionalString (lib.hasSuffix ".yazi" name) (
+            lib.hm.diagnostics.warningForOption options [ "programs" "yazi" "plugins" ] ''
+              Plugins like `programs.yazi.plugins."${name}"` should no longer have the suffix ".yazi" in their attribute name.
+              The plugin will be linked to `$XDG_CONFIG_HOME/yazi/plugins/${name}.yazi`.
+              You probably want to rename it to `programs.yazi.plugins."${lib.removeSuffix ".yazi" name}"`.
+            ''
+          )
         ) cfg.plugins)
       ]
     );

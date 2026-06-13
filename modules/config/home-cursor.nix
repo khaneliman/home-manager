@@ -286,38 +286,53 @@ in
 
       {
         warnings =
+          let
+            xsessionPointerCursorOptions = [
+              "package"
+              "name"
+              "size"
+              "defaultCursor"
+            ];
+          in
           (optional
-            (any
-              (
-                x:
-                getAttrFromPath (
-                  [
-                    "xsession"
-                    "pointerCursor"
-                  ]
-                  ++ [ x ]
-                  ++ [ "isDefined" ]
-                ) options
-              )
-              [
-                "package"
-                "name"
-                "size"
-                "defaultCursor"
-              ]
+            (any (
+              x:
+              getAttrFromPath (
+                [
+                  "xsession"
+                  "pointerCursor"
+                ]
+                ++ [ x ]
+                ++ [ "isDefined" ]
+              ) options
+            ) xsessionPointerCursorOptions)
+            (
+              lib.hm.diagnostics.warningForOptions options
+                (map (x: [
+                  "xsession"
+                  "pointerCursor"
+                  x
+                ]) xsessionPointerCursorOptions)
+                ''
+                  The option `xsession.pointerCursor` has been merged into `home.pointerCursor` and will be removed
+                  in the future. Please change to set `home.pointerCursor` directly and enable `home.pointerCursor.x11.enable`
+                  to generate x11 specific cursor configurations. You can refer to the documentation for more details.
+                ''
             )
-            ''
-              The option `xsession.pointerCursor` has been merged into `home.pointerCursor` and will be removed
-              in the future. Please change to set `home.pointerCursor` directly and enable `home.pointerCursor.x11.enable`
-              to generate x11 specific cursor configurations. You can refer to the documentation for more details.
-            ''
           )
-          ++ (optional (opts.highestPrio != (lib.mkOptionDefault { }).priority && cfg == null) ''
-            Setting home.pointerCursor to null is deprecated.
-            Please update your configuration to explicitly set:
+          ++ (optional (opts.highestPrio != (lib.mkOptionDefault { }).priority && cfg == null) (
+            lib.hm.diagnostics.warningForOption options
+              [
+                "home"
+                "pointerCursor"
+              ]
+              ''
+                Setting home.pointerCursor to null is deprecated.
+                Please update your configuration to explicitly set:
 
-              home.pointerCursor.enable = false;
-          '');
+                  home.pointerCursor.enable = false;
+              ''
+          ));
       }
     ];
 }

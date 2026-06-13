@@ -20,9 +20,8 @@ let
     raw: res:
     let
       f = w: x: builtins.trace "[1;31mwarning: ${w}[0m" x;
-      warnings = extendedLib.hm.diagnostics.formatWarnings raw.options.warnings raw.config.warnings;
     in
-    lib.foldr f res warnings;
+    lib.foldr f res raw.config.warnings;
 
   hmModules = import ./modules.nix {
     inherit check pkgs minimal;

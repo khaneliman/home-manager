@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   ...
 }:
@@ -741,11 +742,27 @@ in
 
       (mkIf (cfg.config != null) {
         warnings =
-          (optional (lib.isList cfg.config.fonts) "Specifying sway.config.fonts as a list is deprecated. Use the attrset version instead.")
+          (optional (lib.isList cfg.config.fonts) (
+            lib.hm.diagnostics.warningForOption options [
+              "wayland"
+              "windowManager"
+              "sway"
+              "config"
+              "fonts"
+            ] "Specifying sway.config.fonts as a list is deprecated. Use the attrset version instead."
+          ))
           ++ lib.flatten (
             map (
               b:
-              optional (lib.isList b.fonts) "Specifying sway.config.bars[].fonts as a list is deprecated. Use the attrset version instead."
+              optional (lib.isList b.fonts) (
+                lib.hm.diagnostics.warningForOption options [
+                  "wayland"
+                  "windowManager"
+                  "sway"
+                  "config"
+                  "bars"
+                ] "Specifying sway.config.bars[].fonts as a list is deprecated. Use the attrset version instead."
+              )
             ) cfg.config.bars
           )
           ++ [

@@ -58,12 +58,20 @@ in
             && options.programs.mergiraf.enableGitIntegration.highestPrio >= 1500
           )
           [
-            ''
-              The default value of `programs.mergiraf.enableGitIntegration` will change in future versions.
-              You are currently using the legacy default (true) because `home.stateVersion` is less than "26.05".
-              To silence this warning set:
-                programs.mergiraf.enableGitIntegration = true;
-            ''
+            (lib.hm.diagnostics.warningForOptions options
+              [
+                [
+                  "home"
+                  "stateVersion"
+                ]
+              ]
+              ''
+                The default value of `programs.mergiraf.enableGitIntegration` will change in future versions.
+                You are currently using the legacy default (true) because `home.stateVersion` is less than "26.05".
+                To silence this warning set:
+                  programs.mergiraf.enableGitIntegration = true;
+              ''
+            )
           ]
         ++
           lib.optionals
@@ -74,12 +82,20 @@ in
               && options.programs.mergiraf.enableJujutsuIntegration.highestPrio >= 1500
             )
             [
-              ''
-                The default value of `programs.mergiraf.enableJujutsuIntegration` will change in future versions.
-                You are currently using the legacy default (true) because `home.stateVersion` is less than "26.05".
-                To silence this warning set:
-                  programs.mergiraf.enableJujutsuIntegration = true;
-              ''
+              (lib.hm.diagnostics.warningForOptions options
+                [
+                  [
+                    "home"
+                    "stateVersion"
+                  ]
+                ]
+                ''
+                  The default value of `programs.mergiraf.enableJujutsuIntegration` will change in future versions.
+                  You are currently using the legacy default (true) because `home.stateVersion` is less than "26.05".
+                  To silence this warning set:
+                    programs.mergiraf.enableJujutsuIntegration = true;
+                ''
+              )
             ];
     }
 

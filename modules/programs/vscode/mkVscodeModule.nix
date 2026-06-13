@@ -9,6 +9,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   ...
 }:
@@ -312,9 +313,12 @@ in
 
   config = mkIf cfg.enable {
     warnings = [
-      (mkIf (
-        allProfilesExceptDefault != { } && cfg.mutableExtensionsDir
-      ) "${moduleName}.mutableExtensionsDir can be used only if no profiles apart from default are set.")
+      (mkIf (allProfilesExceptDefault != { } && cfg.mutableExtensionsDir) (
+        lib.hm.diagnostics.warningForOptions options [
+          (modulePath ++ [ "mutableExtensionsDir" ])
+          (modulePath ++ [ "profiles" ])
+        ] "${moduleName}.mutableExtensionsDir can be used only if no profiles apart from default are set."
+      ))
       (mkIf
         (
           (lib.filterAttrs (
@@ -323,7 +327,10 @@ in
             && (v.enableExtensionUpdateCheck != null || v.enableUpdateCheck != null)
           ) allProfilesExceptDefault) != { }
         )
-        "The option ${moduleName}.profiles.*.enableExtensionUpdateCheck and option ${moduleName}.profiles.*.enableUpdateCheck is invalid for all profiles except default."
+        (
+          lib.hm.diagnostics.warningForOption options (modulePath ++ [ "profiles" ])
+            "The option ${moduleName}.profiles.*.enableExtensionUpdateCheck and option ${moduleName}.profiles.*.enableUpdateCheck is invalid for all profiles except default."
+        )
       )
     ];
 

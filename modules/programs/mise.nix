@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   ...
 }:
@@ -96,11 +97,41 @@ in
             || cfg.enableNushellIntegration
           )
         )
-        ''
-          You have enabled shell integration for `mise` but have not set `package`.
+        (
+          lib.hm.diagnostics.warningForOptions options
+            [
+              [
+                "programs"
+                "mise"
+                "package"
+              ]
+              [
+                "programs"
+                "mise"
+                "enableBashIntegration"
+              ]
+              [
+                "programs"
+                "mise"
+                "enableZshIntegration"
+              ]
+              [
+                "programs"
+                "mise"
+                "enableFishIntegration"
+              ]
+              [
+                "programs"
+                "mise"
+                "enableNushellIntegration"
+              ]
+            ]
+            ''
+              You have enabled shell integration for `mise` but have not set `package`.
 
-          The shell integration will not be added.
-        '';
+              The shell integration will not be added.
+            ''
+        );
 
     home.packages = lib.mkIf (cfg.package != null) [
       cfg.package

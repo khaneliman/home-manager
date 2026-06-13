@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   ...
 }:
@@ -413,13 +414,63 @@ in
       };
 
       warnings =
-        lib.optional (cfg.attachExistingSession && !shellIntegrationEnabled) ''
-          You have enabled `programs.zellij.attachExistingSession`, but none of the shell integrations are enabled.
-          This option will have no effect.
-        ''
-        ++ lib.optional (cfg.exitShellOnExit && !shellIntegrationEnabled) ''
-          You have enabled `programs.zellij.exitShellOnExit`, but none of the shell integrations are enabled.
-          This option will have no effect.
-        '';
+        lib.optional (cfg.attachExistingSession && !shellIntegrationEnabled) (
+          lib.hm.diagnostics.warningForOptions options
+            [
+              [
+                "programs"
+                "zellij"
+                "attachExistingSession"
+              ]
+              [
+                "programs"
+                "zellij"
+                "enableBashIntegration"
+              ]
+              [
+                "programs"
+                "zellij"
+                "enableZshIntegration"
+              ]
+              [
+                "programs"
+                "zellij"
+                "enableFishIntegration"
+              ]
+            ]
+            ''
+              You have enabled `programs.zellij.attachExistingSession`, but none of the shell integrations are enabled.
+              This option will have no effect.
+            ''
+        )
+        ++ lib.optional (cfg.exitShellOnExit && !shellIntegrationEnabled) (
+          lib.hm.diagnostics.warningForOptions options
+            [
+              [
+                "programs"
+                "zellij"
+                "exitShellOnExit"
+              ]
+              [
+                "programs"
+                "zellij"
+                "enableBashIntegration"
+              ]
+              [
+                "programs"
+                "zellij"
+                "enableZshIntegration"
+              ]
+              [
+                "programs"
+                "zellij"
+                "enableFishIntegration"
+              ]
+            ]
+            ''
+              You have enabled `programs.zellij.exitShellOnExit`, but none of the shell integrations are enabled.
+              This option will have no effect.
+            ''
+        );
     };
 }

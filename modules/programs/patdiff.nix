@@ -67,7 +67,16 @@ in
         warnings =
           lib.optional
             (cfg.enableGitIntegration && options.programs.patdiff.enableGitIntegration.highestPrio == 1490)
-            "`programs.patdiff.enableGitIntegration` automatic enablement is deprecated. Please explicitly set `programs.patdiff.enableGitIntegration = true`.";
+            (
+              lib.hm.diagnostics.warningForOption options
+                [
+                  "programs"
+                  "git"
+                  "patdiff"
+                  "enable"
+                ]
+                "`programs.patdiff.enableGitIntegration` automatic enablement is deprecated. Please explicitly set `programs.patdiff.enableGitIntegration = true`."
+            );
       })
 
       (mkIf (cfg.enable && cfg.enableGitIntegration) {

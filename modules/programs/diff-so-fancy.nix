@@ -126,7 +126,16 @@ in
             (
               cfg.enableGitIntegration && options.programs.diff-so-fancy.enableGitIntegration.highestPrio == 1490
             )
-            "`programs.diff-so-fancy.enableGitIntegration` automatic enablement is deprecated. Please explicitly set `programs.diff-so-fancy.enableGitIntegration = true`.";
+            (
+              lib.hm.diagnostics.warningForOption options
+                [
+                  "programs"
+                  "git"
+                  "diff-so-fancy"
+                  "enable"
+                ]
+                "`programs.diff-so-fancy.enableGitIntegration` automatic enablement is deprecated. Please explicitly set `programs.diff-so-fancy.enableGitIntegration = true`."
+            );
       })
 
       (mkIf (cfg.enable && cfg.enableGitIntegration) {

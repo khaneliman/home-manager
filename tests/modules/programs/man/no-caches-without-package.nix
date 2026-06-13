@@ -1,3 +1,5 @@
+{ lib, options, ... }:
+
 {
   config = {
     home.stateVersion = "26.05";
@@ -9,7 +11,11 @@
     };
 
     test.asserts.warnings.expected = [
-      "programs.man.generateCaches has no effect when programs.man.package is null"
+      (lib.concatStringsSep "\n" [
+        "programs.man.generateCaches has no effect when programs.man.package is null"
+        ""
+        "Warning defined in ${lib.showFiles options.programs.man.generateCaches.files}."
+      ])
     ];
 
     nmt.script = ''

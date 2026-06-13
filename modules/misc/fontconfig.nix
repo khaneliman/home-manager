@@ -6,6 +6,7 @@
   config,
   lib,
   nixosConfig,
+  options,
   pkgs,
   ...
 }:
@@ -28,6 +29,7 @@ let
           inherit
             (lib.hm.deprecations.mkStateVersionOptionDefault {
               inherit (globalConfig.home) stateVersion;
+              inherit options;
               since = "26.11";
               optionPath = [
                 "fonts"

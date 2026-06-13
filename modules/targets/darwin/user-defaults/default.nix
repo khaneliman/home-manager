@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   ...
 }:
@@ -98,14 +99,30 @@ in
           "com.apple.Safari.ContentPageGroupIdentifier.WebKit2DeveloperExtrasEnabled"
         ] null cfg.defaults;
       in
-      lib.optional (batteryPercentage != null) ''
-        The option 'com.apple.menuextra.battery.ShowPercent' no longer works on
-        macOS 11 and later. Instead, use '${batteryOptionName}'.
-      ''
-      ++ lib.optional (webkitDevExtras != null) ''
-        The option 'com.apple.Safari.com.apple.Safari.ContentPageGroupIdentifier.WebKit2DeveloperExtrasEnabled'
-        is no longer present in recent versions of Safari.
-      '';
+      lib.optional (batteryPercentage != null) (
+        lib.hm.diagnostics.warningForOption options
+          [
+            "targets"
+            "darwin"
+            "defaults"
+          ]
+          ''
+            The option 'com.apple.menuextra.battery.ShowPercent' no longer works on
+            macOS 11 and later. Instead, use '${batteryOptionName}'.
+          ''
+      )
+      ++ lib.optional (webkitDevExtras != null) (
+        lib.hm.diagnostics.warningForOption options
+          [
+            "targets"
+            "darwin"
+            "defaults"
+          ]
+          ''
+            The option 'com.apple.Safari.com.apple.Safari.ContentPageGroupIdentifier.WebKit2DeveloperExtrasEnabled'
+            is no longer present in recent versions of Safari.
+          ''
+      );
 
     home.activation.setDarwinDefaults = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       verboseEcho "Configuring macOS user defaults"

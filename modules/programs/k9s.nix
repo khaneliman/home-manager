@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   ...
 }:
@@ -200,15 +201,18 @@ in
     mkIf cfg.enable {
       home.packages = lib.mkIf (cfg.package != null) [ cfg.package ];
       warnings =
-        (lib.optional (cfg.aliases ? alias)
-          "Nested 'alias' key in programs.k9s.aliases is deprecated, move the contents directly under programs.k9s.aliases"
-        )
-        ++ (lib.optional (cfg.plugins ? plugin)
-          "Nested 'plugin' key in programs.k9s.plugins is deprecated, move the contents directly under programs.k9s.plugins"
-        )
-        ++ (lib.optional (cfg.views ? k9s.views)
-          "Nested 'k9s.views' structure in programs.k9s.views is deprecated, move the contents directly under programs.k9s.views"
-        );
+        (lib.optional (cfg.aliases ? alias) (
+          lib.hm.diagnostics.warningForOption options [ "programs" "k9s" "aliases" ]
+            "Nested 'alias' key in programs.k9s.aliases is deprecated, move the contents directly under programs.k9s.aliases"
+        ))
+        ++ (lib.optional (cfg.plugins ? plugin) (
+          lib.hm.diagnostics.warningForOption options [ "programs" "k9s" "plugins" ]
+            "Nested 'plugin' key in programs.k9s.plugins is deprecated, move the contents directly under programs.k9s.plugins"
+        ))
+        ++ (lib.optional (cfg.views ? k9s.views) (
+          lib.hm.diagnostics.warningForOption options [ "programs" "k9s" "views" ]
+            "Nested 'k9s.views' structure in programs.k9s.views is deprecated, move the contents directly under programs.k9s.views"
+        ));
 
       xdg.configFile = mkIf enableXdgConfig (
         {

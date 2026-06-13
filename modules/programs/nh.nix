@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   ...
 }:
@@ -96,9 +97,23 @@ in
   };
 
   config = {
-    warnings =
-      lib.optional (cfg.clean.enable && config.nix.gc.automatic)
-        "programs.nh.clean.enable and nix.gc.automatic (Home-Manager) are both enabled. Please use one or the other to avoid conflict.";
+    warnings = lib.optional (cfg.clean.enable && config.nix.gc.automatic) (
+      lib.hm.diagnostics.warningForOptions options
+        [
+          [
+            "programs"
+            "nh"
+            "clean"
+            "enable"
+          ]
+          [
+            "nix"
+            "gc"
+            "automatic"
+          ]
+        ]
+        "programs.nh.clean.enable and nix.gc.automatic (Home-Manager) are both enabled. Please use one or the other to avoid conflict."
+    );
 
     assertions = [
       (lib.hm.darwin.assertInterval "programs.nh.clean.dates" cfg.clean.dates pkgs)

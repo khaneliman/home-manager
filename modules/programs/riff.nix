@@ -81,7 +81,16 @@ in
         warnings =
           lib.optional
             (cfg.enableGitIntegration && options.programs.riff.enableGitIntegration.highestPrio == 1490)
-            "`programs.riff.enableGitIntegration` automatic enablement is deprecated. Please explicitly set `programs.riff.enableGitIntegration = true`.";
+            (
+              lib.hm.diagnostics.warningForOption options
+                [
+                  "programs"
+                  "git"
+                  "riff"
+                  "enable"
+                ]
+                "`programs.riff.enableGitIntegration` automatic enablement is deprecated. Please explicitly set `programs.riff.enableGitIntegration = true`."
+            );
       })
 
       (mkIf (cfg.enable && cfg.enableGitIntegration) {

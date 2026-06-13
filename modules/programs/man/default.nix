@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   ...
 }:
@@ -72,9 +73,20 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    warnings = lib.optional (
-      cfg.generateCaches && cfg.package == null
-    ) "programs.man.generateCaches has no effect when programs.man.package is null";
+    warnings = lib.optional (cfg.generateCaches && cfg.package == null) (
+      lib.hm.diagnostics.warningForOptions options [
+        [
+          "programs"
+          "man"
+          "generateCaches"
+        ]
+        [
+          "programs"
+          "man"
+          "package"
+        ]
+      ] "programs.man.generateCaches has no effect when programs.man.package is null"
+    );
 
     assertions = [
       {

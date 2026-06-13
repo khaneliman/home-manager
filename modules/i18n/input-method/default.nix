@@ -2,6 +2,7 @@
   config,
   pkgs,
   lib,
+  options,
   ...
 }:
 let
@@ -126,9 +127,15 @@ in
       }
     ];
 
-    warnings =
-      lib.optional (cfg.enabled != null)
-        "i18n.inputMethod.enabled will be removed in a future release. Please use .type, and .enable = true instead";
+    warnings = lib.optional (cfg.enabled != null) (
+      lib.hm.diagnostics.warningForOption options
+        [
+          "i18n"
+          "inputMethod"
+          "enabled"
+        ]
+        "i18n.inputMethod.enabled will be removed in a future release. Please use .type, and .enable = true instead"
+    );
 
     home.packages = [
       cfg.package

@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   ...
 }:
@@ -106,11 +107,13 @@ let
 
   authMethodWarning =
     name: authentication:
-    lib.optional (authentication != null && !builtins.hasAttr authentication thunderbirdAuthMethods) ''
-      ${moduleName}: accounts.email.accounts.${name} uses authentication method
-      '${authentication}', which Thunderbird does not support directly. Falling back
-      to password-based authentication.
-    '';
+    lib.optional (authentication != null && !builtins.hasAttr authentication thunderbirdAuthMethods) (
+      lib.hm.diagnostics.warningForOption options [ "accounts" "email" "accounts" ] ''
+        ${moduleName}: accounts.email.accounts.${name} uses authentication method
+        '${authentication}', which Thunderbird does not support directly. Falling back
+        to password-based authentication.
+      ''
+    );
 
   unsupportedAuthMethodWarnings =
     account:
@@ -1078,10 +1081,10 @@ in
 
     warnings =
       lib.optionals (!cfg.darwinSetupWarning) [
-        ''
+        (lib.hm.diagnostics.warningForOption options [ "programs" "thunderbird" "darwinSetupWarning" ] ''
           Using programs.thunderbird.darwinSetupWarning is deprecated and will be
           removed in the future. Thunderbird is now supported on Darwin.
-        ''
+        '')
       ]
       ++ lib.flatten (map unsupportedAuthMethodWarnings enabledEmailAccounts);
 

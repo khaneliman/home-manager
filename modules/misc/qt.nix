@@ -397,16 +397,32 @@ in
       ];
 
       warnings =
-        (lib.lists.optional (
-          platformTheme.option == "qt.platformTheme"
-        ) "The option `qt.platformTheme` has been renamed to `qt.platformTheme.name`.")
-        ++ (lib.lists.optional (
-          platformTheme.name == "gnome" && platformTheme.package == null
-        ) "The value `gnome` for option `${platformTheme.option}` is deprecated. Use `adwaita` instead.")
+        (lib.lists.optional (platformTheme.option == "qt.platformTheme") (
+          lib.hm.diagnostics.warningForOption options [
+            "qt"
+            "platformTheme"
+          ] "The option `qt.platformTheme` has been renamed to `qt.platformTheme.name`."
+        ))
+        ++ (lib.lists.optional (platformTheme.name == "gnome" && platformTheme.package == null) (
+          lib.hm.diagnostics.warningForOptions options [
+            [
+              "qt"
+              "platformTheme"
+            ]
+            [
+              "qt"
+              "style"
+            ]
+          ] "The value `gnome` for option `${platformTheme.option}` is deprecated. Use `adwaita` instead."
+        ))
         ++ (lib.optional (deprecatedKde6PlatformThemeOption != null) (
           lib.hm.deprecations.mkDeprecatedOptionValueRenameWarning {
             option = deprecatedKde6PlatformThemeOption;
-            inherit (options.qt.platformTheme) files;
+            inherit options;
+            relatedOption = [
+              "qt"
+              "platformTheme"
+            ];
             old = ''"kde6"'';
             replacement = ''"kde"'';
           }

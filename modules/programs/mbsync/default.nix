@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   ...
 }:
@@ -295,6 +296,13 @@ in
               in
               {
                 assertion = badAccounts == [ ];
+                relatedOptions = [
+                  [
+                    "accounts"
+                    "email"
+                    "accounts"
+                  ]
+                ];
                 message = "mbsync: ${msg} for accounts: " + concatMapStringsSep ", " (a: a.name) badAccounts;
               };
           in
@@ -308,13 +316,21 @@ in
 
       (mkIf (accountInvalidOption mbsyncAccounts "masterPattern") {
         warnings = [
-          "mbsync channels no longer use masterPattern. Use farPattern in its place."
+          (lib.hm.diagnostics.warningForOption options [
+            "accounts"
+            "email"
+            "accounts"
+          ] "mbsync channels no longer use masterPattern. Use farPattern in its place.")
         ];
       })
 
       (mkIf (accountInvalidOption mbsyncAccounts "slavePattern") {
         warnings = [
-          "mbsync channels no longer use slavePattern. Use nearPattern in its place."
+          (lib.hm.diagnostics.warningForOption options [
+            "accounts"
+            "email"
+            "accounts"
+          ] "mbsync channels no longer use slavePattern. Use nearPattern in its place.")
         ];
       })
 

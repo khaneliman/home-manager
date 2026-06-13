@@ -855,24 +855,25 @@ in
           optional (cfg.matchBlocks != { }) ''
             `programs.ssh.matchBlocks` defined in ${lib.showFiles options.programs.ssh.matchBlocks.files} is deprecated. Use `programs.ssh.settings`.
           ''
-          ++
-            mapAttrsToList
-              (n: _v: ''
-                The SSH config match block `programs.ssh.matchBlocks.${n}` sets both of the host and match options.
-                The match option takes precedence.'')
-              (lib.filterAttrs (_n: v: v.data.host != null && v.data.match != null) cfg.matchBlocks)
+          ++ mapAttrsToList (
+            n: _v:
+            lib.hm.diagnostics.warningForOption options [ "programs" "ssh" "matchBlocks" ] ''
+              The SSH config match block `programs.ssh.matchBlocks.${n}` sets both of the host and match options.
+              The match option takes precedence.
+            ''
+          ) (lib.filterAttrs (_n: v: v.data.host != null && v.data.match != null) cfg.matchBlocks)
           ++ mapAttrsToList (n: _v: ''
             `programs.ssh.matchBlocks.${n}.extraOptions` defined in ${lib.showFiles options.programs.ssh.matchBlocks.files} is deprecated. Move these OpenSSH options to `programs.ssh.settings.${n}` using upstream directive names.
           '') (lib.filterAttrs (_n: v: v.data.extraOptions != { }) cfg.matchBlocks);
       }
       (lib.mkIf cfg.enableDefaultConfig {
         warnings = [
-          ''
+          (lib.hm.diagnostics.warningForOption options [ "programs" "ssh" "enableDefaultConfig" ] ''
             `programs.ssh` default values will be removed in the future.
             Consider setting `programs.ssh.enableDefaultConfig` to false,
             and manually set the default values you want to keep at
             `programs.ssh.settings."*"`.
-          ''
+          '')
         ];
 
         programs.ssh.settings."*" = {

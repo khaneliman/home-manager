@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   ...
 }:
@@ -711,11 +712,26 @@ in
   };
 
   config = mkIf cfg.enable {
-    warnings = lib.optional (cfg.package == null && cfg.plugins != [ ]) ''
-      You have configured `plugins` for `kakoune` but have not set `package`.
+    warnings = lib.optional (cfg.package == null && cfg.plugins != [ ]) (
+      lib.hm.diagnostics.warningForOptions options
+        [
+          [
+            "programs"
+            "kakoune"
+            "package"
+          ]
+          [
+            "programs"
+            "kakoune"
+            "plugins"
+          ]
+        ]
+        ''
+          You have configured `plugins` for `kakoune` but have not set `package`.
 
-      The listed plugins will not be installed.
-    '';
+          The listed plugins will not be installed.
+        ''
+    );
 
     programs.kakoune.finalPackage = lib.mkIf (cfg.package != null) kakouneWithPlugins;
 

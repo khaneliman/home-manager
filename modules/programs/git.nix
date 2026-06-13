@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   ...
 }:
@@ -19,6 +20,7 @@ let
 
   signingFormatStateVersionDefault = lib.hm.deprecations.mkStateVersionOptionDefault {
     inherit (config.home) stateVersion;
+    inherit options;
     since = "25.05";
     optionPath = [
       "programs"

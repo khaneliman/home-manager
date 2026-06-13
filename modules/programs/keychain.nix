@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   ...
 }:
@@ -85,20 +86,20 @@ in
     lib.mkMerge [
       (lib.mkIf ((lib.versionAtLeast cfg.package.version "2.9.0") && cfg.agents != [ ]) {
         warnings = [
-          ''
+          (lib.hm.diagnostics.warningForOption options [ "programs" "keychain" "agents" ] ''
             Option `programs.keychain.agents` is deprecated and will be removed in the future.
             Please avoid using it.
             See https://github.com/funtoo/keychain/releases/tag/2.9.0 for more information
-          ''
+          '')
         ];
       })
       (lib.mkIf ((lib.versionAtLeast cfg.package.version "2.9.0") && cfg.inheritType != null) {
         warnings = [
-          ''
+          (lib.hm.diagnostics.warningForOption options [ "programs" "keychain" "inheritType" ] ''
             Option `programs.keychain.inheritType` is deprecated and will be removed in the future.
             Please avoid using it.
             See https://github.com/funtoo/keychain/releases/tag/2.9.0 for more information
-          ''
+          '')
         ];
       })
       {

@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   ...
 }:
@@ -168,22 +169,39 @@ in
         );
       in
       filter (e: e != "") [
-        (optionalString (redundantRunners != [ ]) ''
-          Under programs.lutris.runners, the following lutris runners had both a
-          <runner>.package and <runner>.settings.runner.runner_executable options set:
-            - ${concatStringsSep ", " redundantRunners}
-          Note that runner_executable overrides package, setting both is pointless.
-        '')
-        (optionalString ((cfg.runners.wine.package or null) != null) ''
-          Setting programs.lutris.runners.wine.package does nothing.
-          Use the respective options, proton/winePackages and defaultWinePackage.
-        '')
-        (optionalString ((cfg ? runners.wine.settings.runner.version) && (cfg.defaultWinePackage != null))
+        (optionalString (redundantRunners != [ ]) (
+          lib.hm.diagnostics.warningForOption options [ "programs" "lutris" "runners" ] ''
+            Under programs.lutris.runners, the following lutris runners had both a
+            <runner>.package and <runner>.settings.runner.runner_executable options set:
+              - ${concatStringsSep ", " redundantRunners}
+            Note that runner_executable overrides package, setting both is pointless.
           ''
-            Found conflicting options under programs.lutris, both runners.wine.settings.version and defaultWinePackage
-            were set.
+        ))
+        (optionalString ((cfg.runners.wine.package or null) != null) (
+          lib.hm.diagnostics.warningForOption options [ "programs" "lutris" "runners" ] ''
+            Setting programs.lutris.runners.wine.package does nothing.
+            Use the respective options, proton/winePackages and defaultWinePackage.
           ''
-        )
+        ))
+        (optionalString ((cfg ? runners.wine.settings.runner.version) && (cfg.defaultWinePackage != null)) (
+          lib.hm.diagnostics.warningForOptions options
+            [
+              [
+                "programs"
+                "lutris"
+                "runners"
+              ]
+              [
+                "programs"
+                "lutris"
+                "defaultWinePackage"
+              ]
+            ]
+            ''
+              Found conflicting options under programs.lutris, both runners.wine.settings.version and defaultWinePackage
+              were set.
+            ''
+        ))
       ];
     home.packages =
       let

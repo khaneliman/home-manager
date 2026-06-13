@@ -1,3 +1,5 @@
+{ lib, options, ... }:
+
 {
   services.hyprsunset = {
     enable = true;
@@ -50,9 +52,11 @@
   '';
 
   test.asserts.warnings.expected = [
-    ''
-      Using services.hyprsunset.transitions is deprecated. Please use
-      services.hyprsunset.settings instead.
-    ''
+    (lib.concatStringsSep "\n" [
+      "Using services.hyprsunset.transitions is deprecated. Please use"
+      "services.hyprsunset.settings instead."
+      ""
+      "Warning defined in ${lib.showFiles options.services.hyprsunset.transitions.files}."
+    ])
   ];
 }

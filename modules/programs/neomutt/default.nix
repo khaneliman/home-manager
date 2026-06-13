@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   ...
 }:
@@ -553,7 +554,21 @@ in
         hasOldBinds = binds: (filter (b: !(lib.isList b.map)) binds) != [ ];
       in
       mkIf (hasOldBinds (cfg.binds ++ cfg.macros)) [
-        "Specifying 'programs.neomutt.(binds|macros).map' as a string is deprecated, use a list of strings instead. See https://github.com/nix-community/home-manager/pull/1885."
+        (lib.hm.diagnostics.warningForOptions options
+          [
+            [
+              "programs"
+              "neomutt"
+              "binds"
+            ]
+            [
+              "programs"
+              "neomutt"
+              "macros"
+            ]
+          ]
+          "Specifying 'programs.neomutt.(binds|macros).map' as a string is deprecated, use a list of strings instead. See https://github.com/nix-community/home-manager/pull/1885."
+        )
       ];
   };
 }

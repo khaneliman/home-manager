@@ -134,7 +134,16 @@ in
 
         warnings =
           lib.optional (cfg.git.enable && options.programs.difftastic.git.enable.highestPrio == 1490)
-            "`programs.difftastic.git.enable` automatic enablement is deprecated. Please explicitly set `programs.difftastic.git.enable = true`.";
+            (
+              lib.hm.diagnostics.warningForOption options
+                [
+                  "programs"
+                  "git"
+                  "difftastic"
+                  "enable"
+                ]
+                "`programs.difftastic.git.enable` automatic enablement is deprecated. Please explicitly set `programs.difftastic.git.enable = true`."
+            );
       })
 
       (mkIf (cfg.enable && cfg.git.enable) {

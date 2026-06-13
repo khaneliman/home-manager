@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   ...
 }:
@@ -214,11 +215,26 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    warnings = lib.optional (cfg.package == null && cfg.plugins != [ ]) ''
-      You have configured `plugins` for `nushell` but have not set `package`.
+    warnings = lib.optional (cfg.package == null && cfg.plugins != [ ]) (
+      lib.hm.diagnostics.warningForOptions options
+        [
+          [
+            "programs"
+            "nushell"
+            "package"
+          ]
+          [
+            "programs"
+            "nushell"
+            "plugins"
+          ]
+        ]
+        ''
+          You have configured `plugins` for `nushell` but have not set `package`.
 
-      The listed plugins will not be installed.
-    '';
+          The listed plugins will not be installed.
+        ''
+    );
 
     home.packages = lib.mkIf (cfg.package != null) [ cfg.package ];
 

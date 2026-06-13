@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   ...
 }:
@@ -151,11 +152,19 @@ in
       };
     in
     lib.mkIf cfg.enable {
-      warnings = lib.optional (lib.isBool cfg.icons) ''
-        Setting programs.eza.icons to a Boolean is deprecated.
-        Please update your configuration so that
+      warnings = lib.optional (lib.isBool cfg.icons) (
+        lib.hm.diagnostics.warningForOption options
+          [
+            "programs"
+            "eza"
+            "icons"
+          ]
+          ''
+            Setting programs.eza.icons to a Boolean is deprecated.
+            Please update your configuration so that
 
-          programs.eza.icons = ${if cfg.icons then ''"auto"'' else "null"}'';
+              programs.eza.icons = ${if cfg.icons then ''"auto"'' else "null"}''
+      );
 
       home.packages = lib.mkIf (cfg.package != null) [ cfg.package ];
 

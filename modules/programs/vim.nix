@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   ...
 }:
@@ -194,6 +195,13 @@ in
         [
           {
             assertion = packagesNotFound == [ ];
+            relatedOptions = [
+              [
+                "programs"
+                "vim"
+                "plugins"
+              ]
+            ];
             message = "Following VIM plugin not found in pkgs.vimPlugins: ${
               lib.concatMapStringsSep ", " (p: ''"${p}"'') packagesNotFound
             }";
@@ -204,11 +212,13 @@ in
         let
           stringPlugins = lib.filter lib.isString cfg.plugins;
         in
-        lib.optional (stringPlugins != [ ]) ''
-          Specifying VIM plugins using strings is deprecated, found ${
-            lib.concatMapStringsSep ", " (p: ''"${p}"'') stringPlugins
-          } as strings.
-        '';
+        lib.optional (stringPlugins != [ ]) (
+          lib.hm.diagnostics.warningForOption options [ "programs" "vim" "plugins" ] ''
+            Specifying VIM plugins using strings is deprecated, found ${
+              lib.concatMapStringsSep ", " (p: ''"${p}"'') stringPlugins
+            } as strings.
+          ''
+        );
 
       home.packages = [ cfg.package ];
 

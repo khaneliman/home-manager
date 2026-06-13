@@ -16,7 +16,11 @@
   test.asserts.warnings.expected = [
     "The option `programs.git.riff.commandLineOptions' defined in ${lib.showFiles options.programs.git.riff.commandLineOptions.files} has been renamed to `programs.riff.commandLineOptions'."
     "The option `programs.git.riff.enable' defined in ${lib.showFiles options.programs.git.riff.enable.files} has been renamed to `programs.riff.enable'."
-    "`programs.riff.enableGitIntegration` automatic enablement is deprecated. Please explicitly set `programs.riff.enableGitIntegration = true`."
+    (lib.concatStringsSep "\n" [
+      "`programs.riff.enableGitIntegration` automatic enablement is deprecated. Please explicitly set `programs.riff.enableGitIntegration = true`."
+      ""
+      "Warning defined in ${lib.showFiles options.programs.git.riff.enable.files}."
+    ])
   ];
 
   nmt.script = ''

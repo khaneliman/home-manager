@@ -2,6 +2,7 @@
   config,
   pkgs,
   lib,
+  options,
   ...
 }:
 let
@@ -248,10 +249,19 @@ in
           (assertNumeric cfg.config.y)
         ];
 
-      warnings = optional (cfg.config.plugins == null) ''
-        You haven't enabled any plugins. Anyrun will not show any results, unless you specify plugins with the --override-plugins flag.
-        Add plugins to programs.anyrun.config.plugins, or set it to [] to silence the warning.
-      '';
+      warnings = optional (cfg.config.plugins == null) (
+        lib.hm.diagnostics.warningForOption options
+          [
+            "programs"
+            "anyrun"
+            "config"
+            "plugins"
+          ]
+          ''
+            You haven't enabled any plugins. Anyrun will not show any results, unless you specify plugins with the --override-plugins flag.
+            Add plugins to programs.anyrun.config.plugins, or set it to [] to silence the warning.
+          ''
+      );
 
       home.packages = optional (cfg.package != null) cfg.package;
 

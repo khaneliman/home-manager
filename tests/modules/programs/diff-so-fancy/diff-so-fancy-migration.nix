@@ -18,7 +18,11 @@
     "The option `programs.git.diff-so-fancy.changeHunkIndicators' defined in ${lib.showFiles options.programs.git.diff-so-fancy.changeHunkIndicators.files} has been renamed to `programs.diff-so-fancy.settings.changeHunkIndicators'."
     "The option `programs.git.diff-so-fancy.markEmptyLines' defined in ${lib.showFiles options.programs.git.diff-so-fancy.markEmptyLines.files} has been renamed to `programs.diff-so-fancy.settings.markEmptyLines'."
     "The option `programs.git.diff-so-fancy.enable' defined in ${lib.showFiles options.programs.git.diff-so-fancy.enable.files} has been renamed to `programs.diff-so-fancy.enable'."
-    "`programs.diff-so-fancy.enableGitIntegration` automatic enablement is deprecated. Please explicitly set `programs.diff-so-fancy.enableGitIntegration = true`."
+    (lib.concatStringsSep "\n" [
+      "`programs.diff-so-fancy.enableGitIntegration` automatic enablement is deprecated. Please explicitly set `programs.diff-so-fancy.enableGitIntegration = true`."
+      ""
+      "Warning defined in ${lib.showFiles options.programs.git.diff-so-fancy.enable.files}."
+    ])
   ];
 
   nmt.script = ''
