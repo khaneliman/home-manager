@@ -36,8 +36,9 @@ let
     options: file:
     let
       declaredOpts = findOptionsDeclaredIn file options;
+      userFiles = userFilesForOptions declaredOpts;
     in
-    userFilesForOptions declaredOpts;
+    if userFiles != [ ] then userFiles else [ file ];
 
   filesForRelatedOptions =
     options: assertion: lib.hm.diagnostics.filesForOptions options (assertion.relatedOptions or [ ]);

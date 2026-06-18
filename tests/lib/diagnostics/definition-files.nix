@@ -26,14 +26,36 @@ let
     )
   );
 
+  warningFile =
+    let
+      matching = lib.filter (
+        def: lib.any (val: toString val == toString plainWarning) def.value
+      ) eval.options.warnings.definitionsWithLocations;
+    in
+    (lib.head matching).file;
+
+  plainAssertionFile =
+    let
+      matching = lib.filter (
+        def: lib.any (val: val.message or "" == plainAssertion.message) def.value
+      ) eval.options.assertions.definitionsWithLocations;
+    in
+    (lib.head matching).file;
+
   expected = pkgs.writeText "diagnostics-definition-files.expected" (
     lib.concatStringsSep "\n---\n" [
-      plainWarning
+      ''
+        ${plainWarning}
+
+        Warning defined in ${lib.showFiles [ warningFile ]}.''
       ''
         ${lib.removeSuffix "\n" platformAssertion.message}
 
         Assertion defined in ${lib.showFiles eval.options.programs.example.enable.files}.''
-      plainAssertion.message
+      ''
+        ${plainAssertion.message}
+
+        Assertion defined in ${lib.showFiles [ plainAssertionFile ]}.''
     ]
   );
 in
