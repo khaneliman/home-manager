@@ -14,7 +14,7 @@
       '';
 
       actual = pkgs.writeText "deprecation-warnings.actual" (
-        lib.hm.deprecations.mkDeprecatedOptionValueWarning {
+        (lib.hm.deprecations.mkDeprecatedOptionValueWarning {
           option = [
             "programs"
             "example"
@@ -23,9 +23,9 @@
           old = "a list";
           replacement = "`programs.example.settings.items`";
           details = "Move list entries under `settings.items`.";
-        }
+        }).message
         + "\n"
-        + lib.hm.deprecations.mkDeprecatedOptionValueRenameWarning {
+        + (lib.hm.deprecations.mkDeprecatedOptionValueRenameWarning {
           option = [
             "qt"
             "platformTheme"
@@ -33,7 +33,7 @@
           ];
           old = ''"kde6"'';
           replacement = ''"kde"'';
-        }
+        }).message
       );
     in
     ''

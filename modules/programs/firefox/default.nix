@@ -91,7 +91,7 @@ in
   ];
 
   config = lib.mkIf cfg.enable {
-    warnings = lib.optional linuxConfigPathStateVersion.shouldWarn linuxConfigPathStateVersion.warning;
+    warnings = lib.optional linuxConfigPathStateVersion.shouldWarn linuxConfigPathStateVersion.structuredWarning;
 
     mozilla.firefoxNativeMessagingHosts =
       cfg.nativeMessagingHosts

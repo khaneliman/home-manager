@@ -3,6 +3,9 @@
   /*
     Builds a standard warning for an option value shape that is deprecated.
 
+    The result is a structured entry for `config.warnings` whose displayed
+    message includes the files in which the user defined the option.
+
     Example:
       mkDeprecatedOptionValueWarning {
         option = [ "programs" "example" "settings" ];
@@ -21,26 +24,33 @@
       replacement,
       details ? "",
     }:
-    ''
-      Using `${lib.showOption option}` as ${old} is deprecated and will be
-      removed in a future release. Please use ${replacement} instead.
-    ''
-    + lib.optionalString (details != "") ''
+    {
+      message = ''
+        Using `${lib.showOption option}` as ${old} is deprecated and will be
+        removed in a future release. Please use ${replacement} instead.
+      ''
+      + lib.optionalString (details != "") ''
 
-      ${details}
-    '';
+        ${details}
+      '';
+      relatedOptions = [ option ];
+    };
 
   # Builds a standard warning for an option value that has been renamed.
+  # Returns a structured entry for `config.warnings`.
   mkDeprecatedOptionValueRenameWarning =
     {
       option,
       old,
       replacement,
     }:
-    ''
-      The value ${old} for `${lib.showOption option}` is deprecated and will be
-      removed in a future release. Please use ${replacement} instead.
-    '';
+    {
+      message = ''
+        The value ${old} for `${lib.showOption option}` is deprecated and will be
+        removed in a future release. Please use ${replacement} instead.
+      '';
+      relatedOptions = [ option ];
+    };
 
   /*
     Returns a function that maps
@@ -200,7 +210,7 @@
           inherit (stateVersionDefault) defaultText;
         };
 
-        config.warnings = lib.optional stateVersionDefault.shouldWarn stateVersionDefault.warning;
+        config.warnings = lib.optional stateVersionDefault.shouldWarn stateVersionDefault.structuredWarning;
       };
   */
   mkStateVersionOptionDefault =
@@ -252,6 +262,18 @@
       '';
       effectiveDefault = if usingLegacyBranch then legacy.value else current.value;
       inherit warning optionUsesDefaultPriority;
+      # Structured entry for `config.warnings`; points the user at their
+      # `home.stateVersion` definition, which selects the legacy default.
+      structuredWarning = {
+        message = warning;
+        relatedOptions = [
+          optionPath
+          [
+            "home"
+            "stateVersion"
+          ]
+        ];
+      };
       shouldWarn =
         deferWarningToConfig
         && usingLegacyBranch
@@ -333,7 +355,7 @@
         definition:
         lib.imap1 (index: value: {
           inherit index value;
-          file = baseNameOf (toString definition.file);
+          inherit (definition) file;
         }) definition.value
       ) definitions;
 

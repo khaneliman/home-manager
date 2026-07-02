@@ -66,7 +66,7 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    warnings = lib.optional settingsStateVersion.shouldWarn settingsStateVersion.warning;
+    warnings = lib.optional settingsStateVersion.shouldWarn settingsStateVersion.structuredWarning;
 
     home = {
       packages = [ cfg.package ];

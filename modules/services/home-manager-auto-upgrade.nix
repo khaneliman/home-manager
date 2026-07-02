@@ -163,7 +163,7 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    warnings = lib.optional preSwitchCommandsStateVersion.shouldWarn preSwitchCommandsStateVersion.warning;
+    warnings = lib.optional preSwitchCommandsStateVersion.shouldWarn preSwitchCommandsStateVersion.structuredWarning;
 
     assertions = [
       (lib.hm.assertions.assertPlatform "services.home-manager.autoUpgrade" pkgs lib.platforms.linux)

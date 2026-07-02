@@ -39,7 +39,7 @@
       "  programs.neovim.plugins.PLUGIN.type = \"viml\";"
       "To adopt the new default behavior, set:"
       "  programs.neovim.plugins.PLUGIN.type = \"lua\";"
-      "Triggered by plugin `vim-nix` defined in `plugin-type-warning.nix` at list index 2."
+      "Triggered by plugin `vim-nix` defined in `${toString ./plugin-type-warning.nix}` at list index 2."
       "Set `type = \"viml\"` or `type = \"lua\"` on that plugin entry to make the config language explicit."
     ])
   ];
