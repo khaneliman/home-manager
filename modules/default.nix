@@ -11,14 +11,15 @@
 
 let
 
-  collectFailed = cfg: map (x: x.message) (lib.filter (x: !x.assertion) cfg.assertions);
+  collectFailed =
+    raw: extendedLib.hm.diagnostics.collectFailedAssertions raw.options raw.config.assertions;
 
   showWarnings =
-    res:
+    raw: res:
     let
       f = w: x: builtins.trace "[1;31mwarning: ${w}[0m" x;
     in
-    lib.foldr f res res.config.warnings;
+    lib.foldr f res (extendedLib.hm.diagnostics.formatWarnings raw.options raw.config.warnings);
 
   extendedLib = import ./lib/stdlib-extended.nix lib;
 
@@ -38,9 +39,9 @@ let
 
   moduleChecks =
     raw:
-    showWarnings (
+    showWarnings raw (
       let
-        failed = collectFailed raw.config;
+        failed = collectFailed raw;
         failedStr = lib.concatStringsSep "\n" (map (x: "- ${x}") failed);
       in
       if failed == [ ] then

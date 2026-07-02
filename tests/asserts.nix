@@ -43,7 +43,7 @@ in
         "asserts/warnings.actual".text = concatStringsSep ''
 
           --
-        '' config.warnings;
+        '' (map (w: w.message) config.warnings);
         "asserts/warnings.expected".text = concatStringsSep ''
 
           --

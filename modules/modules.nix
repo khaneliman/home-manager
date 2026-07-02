@@ -31,6 +31,7 @@ let
       ./i18n/input-method/default.nix
       ./launchd/default.nix
       ./manual.nix
+      ./misc/assertions.nix
       ./misc/dconf.nix
       ./misc/debug.nix
       ./misc/editorconfig.nix
@@ -61,7 +62,6 @@ let
       ./xresources.nix
       ./xsession.nix
       # keep-sorted end
-      (pkgs.path + "/nixos/modules/misc/assertions.nix")
       (pkgs.path + "/nixos/modules/misc/meta.nix")
       # Module deprecations and removals
       ./deprecations.nix

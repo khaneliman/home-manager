@@ -178,6 +178,7 @@ import nmtSrc {
         [
           # keep-sorted start case=no numeric=yes
           ./lib/deprecations
+          ./lib/diagnostics
           ./lib/generators
           ./lib/mcp
           ./lib/types
