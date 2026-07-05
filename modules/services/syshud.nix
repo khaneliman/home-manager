@@ -17,7 +17,7 @@ let
   iniFormat = pkgs.formats.ini { };
 in
 {
-  meta.maintainers = [ lib.maintainers.yarn ];
+  meta.maintainers = [ lib.maintainers.yaaaarn ];
 
   options.services.syshud = {
     enable = mkEnableOption "syshud";
