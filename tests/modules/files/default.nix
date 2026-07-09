@@ -9,6 +9,7 @@
   files-recursive-overlap-override = ./recursive-overlap-override.nix;
   files-source-with-spaces = ./source-with-spaces.nix;
   files-target-conflict = ./target-conflict.nix;
+  files-target-parent-dangling = ./target-parent-dangling.nix;
   files-target-with-shellvar = ./target-with-shellvar.nix;
   files-text = ./text.nix;
 }

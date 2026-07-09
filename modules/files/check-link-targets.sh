@@ -14,6 +14,18 @@ for sourcePath in "$@" ; do
   relativePath="${sourcePath#$newGenFiles/}"
   targetPath="$HOME/$relativePath"
 
+  parentPath="$(dirname "$targetPath")"
+  while [[ $parentPath != "$HOME" && $parentPath != / ]]; do
+    if [[ ( -e "$parentPath" || -L "$parentPath" ) \
+        && ! -d "$parentPath" \
+        && ! "$(readlink "$parentPath")" == $homeFilePattern ]] ; then
+      collisionErrors+=("Existing path '$parentPath' would block creating '$targetPath'")
+      break
+    fi
+
+    parentPath="$(dirname "$parentPath")"
+  done
+
   forced=""
   for forcedPath in "${forcedPaths[@]}"; do
     if [[ $targetPath == $forcedPath* ]]; then
@@ -24,7 +36,7 @@ for sourcePath in "$@" ; do
 
   if [[ -n $forced ]]; then
     verboseEcho "Skipping collision check for $targetPath"
-  elif [[ -e "$targetPath" \
+  elif [[ ( -e "$targetPath" || -L "$targetPath" ) \
       && ! "$(readlink "$targetPath")" == $homeFilePattern ]] ; then
     # The target file already exists and it isn't a symlink owned by Home Manager.
     if cmp -s "$sourcePath" "$targetPath"; then
