@@ -429,8 +429,10 @@ in
 
               # If the path already exists as a non-directory, then we are
               # conflicting with a file from a recursively linked directory. Log
-              # this fact and error out the build.
-              if [[ -e "$realOut/$relTarget" && ! -d "$realOut/$relTarget" ]]; then
+              # this fact and error out the build. Check -L too: a dangling
+              # symlink left by a prior recursive insert is a real conflict
+              # even though -e reports it as absent.
+              if [[ ( -e "$realOut/$relTarget" || -L "$realOut/$relTarget" ) && ! -d "$realOut/$relTarget" ]]; then
                 echo "$relTarget conflicts with recursively symlinked file" >&2
                 ${
                   if fileOverlapResolution == "ignore" then
