@@ -41,6 +41,8 @@
       ${./example-settings-expected.conf}
 
     assertFileContains home-path/etc/profile.d/hm-session-vars.sh \
-      'export NIX_PATH="/a:/b/c''${NIX_PATH:+:$NIX_PATH}"'
+      '__hm_new="/a:/b/c"'
+    assertFileContains home-path/etc/profile.d/hm-session-vars.sh \
+      '__hm_cur="''${NIX_PATH-}"'
   '';
 }

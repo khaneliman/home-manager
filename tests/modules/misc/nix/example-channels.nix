@@ -17,7 +17,11 @@ in
 
   nmt.script = ''
     assertFileContains home-path/etc/profile.d/hm-session-vars.sh \
-      'export NIX_PATH="/home/hm-user/.nix-defexpr/50-home-manager''${NIX_PATH:+:$NIX_PATH}"'
+      '__hm_new="/home/hm-user/.nix-defexpr/50-home-manager"'
+    assertFileContains home-path/etc/profile.d/hm-session-vars.sh \
+      '__hm_cur="''${NIX_PATH-}"'
+    assertFileContains home-path/etc/profile.d/hm-session-vars.sh \
+      '  export NIX_PATH="$__hm_add''${__hm_cur:+:}$__hm_cur"'
     assertFileContent \
       home-files/.nix-defexpr/50-home-manager/example/default.nix \
       ${exampleChannel}/default.nix

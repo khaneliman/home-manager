@@ -71,6 +71,40 @@ in
     sep: n: v:
     "${lib.concatStringsSep sep v}\${${n}:+${sep}}\$${n}";
 
+  # Produces Bourne shell statements that prepend new values to a
+  # possibly existing variable in an idempotent way: only non-empty
+  # values not already present in the variable or earlier in the input
+  # are prepended. Sourcing the output multiple times introduces no new
+  # duplicates and never reorders entries that other tools (dev shells,
+  # direnv, system startup files) deliberately placed in front.
+  #
+  # The generated code must stay within the POSIX subset that
+  # babelfish can translate, since the fish module translates
+  # hm-session-vars.sh with it.
+  idempotentPrepend = sep: n: v: ''
+    __hm_new="${lib.concatStringsSep sep v}"
+    __hm_add=""
+    __hm_cur="''${${n}-}"
+    while [ -n "$__hm_new" ]; do
+      case "$__hm_new" in
+        *"${sep}"*) __hm_entry="''${__hm_new%%${sep}*}" ; __hm_new="''${__hm_new#*${sep}}" ;;
+        *) __hm_entry="$__hm_new" ; __hm_new="" ;;
+      esac
+      if [ -n "$__hm_entry" ]; then
+        case "${sep}$__hm_cur${sep}$__hm_add${sep}" in
+          *"${sep}$__hm_entry${sep}"*) ;;
+          *) __hm_add="$__hm_add''${__hm_add:+${sep}}$__hm_entry" ;;
+        esac
+      fi
+    done
+    # Only export when something was added; a variable that already
+    # contains every entry is intentionally left untouched.
+    if [ -n "$__hm_add" ]; then
+      export ${n}="$__hm_add''${__hm_cur:+${sep}}$__hm_cur"
+    fi
+    unset __hm_new __hm_add __hm_cur __hm_entry
+  '';
+
   # Given an attribute set containing shell variable names and their
   # assignment, this function produces a string containing an export
   # statement for each set entry.

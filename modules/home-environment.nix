@@ -315,6 +315,16 @@ in
         value `bar` can be given as per
         `''${parameter:+bar}`.
 
+        These variables are re-exported by every shell, so a value must
+        not reference the variable it defines. Code like
+        ```nix
+        home.sessionVariables.MANPATH = "$HOME/man:$MANPATH";
+        ```
+        would grow the variable with every nested shell. Use
+        [](#opt-home.sessionPath) or
+        [](#opt-home.sessionSearchVariables) for such search paths
+        instead.
+
         Note, these variables may be set in any order so no session
         variable may have a runtime dependency on another session
         variable. In particular code like
@@ -360,6 +370,15 @@ in
       description = ''
         Extra directories to prepend to {env}`PATH`.
 
+        Non-empty entries are only prepended when they are not already present
+        in {env}`PATH`, so re-sourcing the session variables does not add
+        another copy. An entry that is already present keeps its current
+        position; it is not moved to the front. Existing duplicates are not
+        removed.
+
+        Entries removed from this option are not removed from an existing
+        {env}`PATH`; they remain until the parent environment is reset.
+
         These directories are added to the {env}`PATH` variable in a
         double-quoted context, so expressions like `$HOME` are
         expanded by the shell. However, since expressions like `~` or
@@ -381,6 +400,16 @@ in
         Extra directories to prepend to arbitrary PATH-like
         environment variables (e.g.: {env}`MANPATH`). The values
         will be concatenated by `:`.
+
+        Non-empty entries are only prepended when they are not already present
+        in the variable, so re-sourcing the session variables does not add
+        another copy. An entry that is already present keeps its current
+        position; it is not moved to the front. Existing duplicates are not
+        removed.
+
+        Entries removed from this option are not removed from an existing
+        variable; they remain until the parent environment is reset.
+
         These directories are added to the environment variable in a
         double-quoted context, so expressions like `$HOME` are
         expanded by the shell. However, since expressions like `~` or
@@ -661,19 +690,28 @@ in
       name = "hm-session-vars.sh";
       destination = "/etc/profile.d/hm-session-vars.sh";
       text = ''
-        # Only source this once.
-        if [ -n "''${__HM_SESS_VARS_SOURCED-}" ]; then return; fi
-        export __HM_SESS_VARS_SOURCED=1
+        # This file is safe to source multiple times: session variables are
+        # plain assignments and search variables (PATH and friends) only
+        # prepend non-empty entries that are not already present, so
+        # re-sourcing introduces no new duplicates and never reorders
+        # entries added by other tools. Only the extra section at the
+        # end, which may contain non-idempotent commands, runs once per
+        # session.
 
         ${config.lib.shell.exportAll cfg.sessionVariables}
       ''
       + lib.concatStringsSep "\n" (
         lib.mapAttrsToList (
-          env: values: config.lib.shell.export env (config.lib.shell.prependToVar ":" env values)
+          env: values: config.lib.shell.idempotentPrepend ":" env values
         ) cfg.sessionSearchVariables
       )
-      + "\n"
-      + cfg.sessionVariablesExtra;
+      + ''
+
+        if [ -z "''${__HM_SESS_VARS_SOURCED-}" ]; then
+        export __HM_SESS_VARS_SOURCED=1
+        ${cfg.sessionVariablesExtra}
+        fi
+      '';
     };
 
     home.sessionSearchVariables.PATH = lib.mkIf (cfg.sessionPath != [ ]) cfg.sessionPath;

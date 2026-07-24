@@ -33,9 +33,17 @@
       sessionVarsFile=home-path/etc/profile.d/hm-session-vars.sh
       assertFileExists $sessionVarsFile
       assertFileContains $sessionVarsFile \
-        'export XDG_CONFIG_DIRS="/etc/xdg:/foo/bar''${XDG_CONFIG_DIRS:+:$XDG_CONFIG_DIRS}"'
+        '__hm_new="/etc/xdg:/foo/bar"'
       assertFileContains $sessionVarsFile \
-        'export XDG_DATA_DIRS="/usr/local/share:/usr/share:/baz/quux''${XDG_DATA_DIRS:+:$XDG_DATA_DIRS}"'
+        '__hm_cur="''${XDG_CONFIG_DIRS-}"'
+      assertFileContains $sessionVarsFile \
+        '  export XDG_CONFIG_DIRS="$__hm_add''${__hm_cur:+:}$__hm_cur"'
+      assertFileContains $sessionVarsFile \
+        '__hm_new="/usr/local/share:/usr/share:/baz/quux"'
+      assertFileContains $sessionVarsFile \
+        '__hm_cur="''${XDG_DATA_DIRS-}"'
+      assertFileContains $sessionVarsFile \
+        '  export XDG_DATA_DIRS="$__hm_add''${__hm_cur:+:}$__hm_cur"'
     '';
   };
 }

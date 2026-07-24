@@ -15,13 +15,18 @@ in
     # Not using `home.sessionSearchVariables` because it only prepends, whereas
     # we need `/usr/share/terminfo` appended as an explicit fallback: once
     # TERMINFO_DIRS is set, ncurses stops searching the default system path.
-    home.sessionVariables = {
-      TERMINFO_DIRS = lib.mkDefault "${profileDirectory}/share/terminfo:$TERMINFO_DIRS\${TERMINFO_DIRS:+:}/usr/share/terminfo";
-    };
+    # The default is self-referential, so it must live in the once-guarded
+    # extra section rather than among the plain session variables, which are
+    # re-exported by every shell. An explicit session variable keeps the
+    # previous mkDefault override behavior by suppressing this default.
+    home.sessionVariablesExtra =
+      lib.optionalString (!(config.home.sessionVariables ? TERMINFO_DIRS)) ''
+        export TERMINFO_DIRS="${profileDirectory}/share/terminfo:''${TERMINFO_DIRS-}''${TERMINFO_DIRS:+:}/usr/share/terminfo"
 
-    home.sessionVariablesExtra = ''
-      # reset TERM with new TERMINFO available (if any)
-      export TERM="$TERM"
-    '';
+      ''
+      + ''
+        # reset TERM with new TERMINFO available (if any)
+        export TERM="$TERM"
+      '';
   };
 }
