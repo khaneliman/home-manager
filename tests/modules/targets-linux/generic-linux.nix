@@ -1,4 +1,8 @@
-{ lib, pkgs, ... }:
+{
+  config,
+  lib,
+  ...
+}:
 let
   expectedXdgDataDirs = lib.concatStringsSep ":" [
     "\${NIX_STATE_DIR:-/nix/var/nix}/profiles/default/share"
@@ -14,6 +18,24 @@ in
   config = {
     targets.genericLinux.enable = true;
 
+    programs.bash = {
+      enable = true;
+      enableCompletion = false;
+    };
+
+    nix.package = config.lib.test.mkStubPackage {
+      name = "nix-with-session-script";
+      buildScript = ''
+        mkdir -p "$out/etc/profile.d"
+        cat > "$out/etc/profile.d/nix.sh" <<'EOF'
+        NIX_SH_SOURCES=$(( ''${NIX_SH_SOURCES:-0} + 1 ))
+        export NIX_SH_SOURCES
+        export PATH="/nix-profile/bin''${PATH:+:}$PATH"
+        export XDG_DATA_DIRS="''${XDG_DATA_DIRS:+$XDG_DATA_DIRS:}/nix-profile/share"
+        EOF
+      '';
+    };
+
     xdg.systemDirs.data = [ "/foo" ];
 
     nmt.script = ''
@@ -27,11 +49,63 @@ in
       sessionVarsFile=home-path/etc/profile.d/hm-session-vars.sh
       assertFileExists $sessionVarsFile
       assertFileContains $sessionVarsFile \
-        '. "${pkgs.nix}/etc/profile.d/nix.sh"'
+        '. "${config.nix.package}/etc/profile.d/nix.sh"'
 
       assertFileContains \
         home-path/etc/profile.d/hm-session-vars.sh \
         'export TERM="$TERM"'
+
+      # A login shell reads .profile and then .bashrc. nix.sh must still run
+      # only once even though generic Linux re-sources hm-session-vars.sh from
+      # Bash initialization.
+      # NMT runs this script with Bash, so no separate real package is needed.
+      bashBin="$BASH"
+      testBashrc=$TMPDIR/test-bashrc
+      sed \
+        "s|${config.home.profileDirectory}/etc/profile.d/hm-session-vars.sh|$TESTED/$sessionVarsFile|" \
+        "$TESTED/home-files/.bashrc" > "$testBashrc"
+      HOME="$TESTED/home-files" \
+        TEST_BASHRC="$testBashrc" \
+        USER="hm-user" \
+        TERM="dumb" \
+        PATH="/flatpak/bin:/usr/bin" \
+        XDG_DATA_DIRS="/flatpak/share:/usr/share" \
+        "$bashBin" --noprofile --norc -ic '
+          . "$HOME/.profile"
+          . "$TEST_BASHRC"
+          [ "$NIX_SH_SOURCES" = 1 ] || {
+            echo "nix.sh source count: $NIX_SH_SOURCES"
+            exit 1
+          }
+          [ "$PATH" = "/nix-profile/bin:/flatpak/bin:/usr/bin" ] || {
+            echo "PATH after startup: $PATH"
+            exit 1
+          }
+          case "$XDG_DATA_DIRS" in
+            *"/nix-profile/share:/nix-profile/share"*)
+              echo "XDG_DATA_DIRS after startup: $XDG_DATA_DIRS"
+              exit 1
+              ;;
+          esac
+        ' || fail "generic Linux sourced nix.sh more than once"
+
+      HOME="$TESTED/home-files" \
+        TEST_BASHRC="$testBashrc" \
+        USER="hm-user" \
+        TERM="dumb" \
+        PATH="/flatpak/bin:/usr/bin" \
+        XDG_DATA_DIRS="/flatpak/share:/usr/share" \
+        "$bashBin" --noprofile --norc -ic '
+          . "$TEST_BASHRC"
+          [ "$NIX_SH_SOURCES" = 1 ] || {
+            echo "non-login nix.sh source count: $NIX_SH_SOURCES"
+            exit 1
+          }
+          [ "$PATH" = "/nix-profile/bin:/flatpak/bin:/usr/bin" ] || {
+            echo "non-login PATH: $PATH"
+            exit 1
+          }
+        ' || fail "generic Linux non-login shell did not initialize nix.sh once"
     '';
   };
 }
