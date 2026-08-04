@@ -91,6 +91,9 @@ in
       }
     '';
 
+    # Unlike the shell session variables above, these keep the prepend
+    # expansion style: environment.d has no idempotent merge, so systemd user
+    # services may see different ordering or inherited duplicates than shells.
     systemd.user.sessionVariables =
       let
         # https://github.com/archlinux/svntogit-packages/blob/packages/ncurses/trunk/PKGBUILD

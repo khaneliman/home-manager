@@ -26,11 +26,15 @@
       "$STAR_ENTRY"
       "/literal*"
     ];
+    # All-empty entry lists must generate nothing: exporting a set-but-empty
+    # variable differs from leaving it unset.
+    home.sessionSearchVariables.ALL_EMPTY = [ "" ];
 
     programs.fish.enable = true;
 
     nmt.script = ''
       assertFileExists home-path/etc/profile.d/hm-session-vars.fish
+      assertFileNotRegex home-path/etc/profile.d/hm-session-vars.fish 'ALL_EMPTY'
 
       fish=${config.programs.fish.package}/bin/fish
       sessionVars=$TESTED/home-path/etc/profile.d/hm-session-vars.fish
@@ -77,6 +81,11 @@
         test "$__hm_cur:$__hm_add:$__hm_entry" = "keep-cur:keep-add:keep-entry"
         or begin
           echo "merge scratch globals were clobbered"
+          exit 1
+        end
+        not set -q ALL_EMPTY
+        or begin
+          echo "ALL_EMPTY was set: $ALL_EMPTY"
           exit 1
         end
         source $argv[1]

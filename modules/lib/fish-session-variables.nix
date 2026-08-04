@@ -13,9 +13,12 @@ let
       inherit value;
     }) (normalize values);
   };
-  merges =
+  # Drop merges whose configured entries are all empty. Emitting them would
+  # turn a previously unset variable into a set-but-empty exported one.
+  merges = lib.filter (merge: merge.candidates != [ ]) (
     lib.mapAttrsToList (mkMerge "prepend") config.home.sessionSearchVariables
-    ++ lib.mapAttrsToList (mkMerge "append") config.home.sessionSearchVariablesAppend;
+    ++ lib.mapAttrsToList (mkMerge "append") config.home.sessionSearchVariablesAppend
+  );
   candidates = lib.concatMap (merge: merge.candidates) merges;
   candidateNames = map (candidate: candidate.name) candidates;
   candidateAssignments = lib.concatMapStringsSep "\n" (

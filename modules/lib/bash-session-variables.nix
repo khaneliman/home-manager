@@ -1,3 +1,33 @@
+# Theory of operation
+#
+# Refreshing hm-session-vars.sh in a child shell must not clobber values that
+# the Bash login layer owns: variables set by `programs.bash.sessionVariables`
+# (bashOwnedNames) and generic session variables that `profileExtra` changed
+# or unset. Ownership is communicated to descendants through two exported
+# variables written at the end of the login shell's .profile:
+#
+# - __HM_BASH_SESSION_VARS_MANIFEST: names the refresh must skip. It is passed
+#   to hm-session-vars.sh as __HM_SESS_VARS_SKIP.
+# - __HM_BASH_SESSION_VARS_KNOWN: the generic names that existed when the
+#   manifest was written. When a later generation adds new session variables,
+#   `prepareManifest` compares against this list and conservatively claims any
+#   already-set unknown name for the login layer, since it cannot tell whether
+#   the login configuration produced that value.
+#
+# Detecting what `profileExtra` changed requires snapshotting values before it
+# runs (`beforeProfileExtra`) and comparing afterwards (`afterProfileExtra`).
+# The snapshot uses `declare -Ag` and `[[ -v ]]`, so it needs Bash >= 4.2
+# (statefulBashVersions). Older login shells skip the comparison and their
+# interactive children skip the refresh entirely when profileExtra exists,
+# preserving inherited values until the next login.
+#
+# Known conservative gap: a pre-4.2 login shell still exports a manifest
+# listing only the declared Bash-owned names. A Bash >= 4.2 descendant will
+# trust it and may refresh a generic variable that profileExtra modified. We
+# accept this rather than versioning the manifest, since mixed Bash
+# generations within one session are rare and the result is merely an early
+# refresh to the configured value.
+
 { lib }:
 
 {

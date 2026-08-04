@@ -22,11 +22,18 @@
       "head/bin"
     ];
     TEST5 = [ "$TRAILING_NEWLINE_ENTRY" ];
+    # All-empty entry lists must generate nothing: exporting a set-but-empty
+    # variable differs from leaving it unset for consumers like ncurses.
+    TEST_ALL_EMPTY = [
+      ""
+      ""
+    ];
   };
 
   nmt.script = ''
     hmSessVars=home-path/etc/profile.d/hm-session-vars.sh
     assertFileExists $hmSessVars
+    assertFileNotRegex $hmSessVars 'TEST_ALL_EMPTY'
 
     # Exercise expansion, duplicates, empty entries, set -u, and re-sourcing.
     # NMT supplies Bash itself. dash and zsh must come from realPkgs because
@@ -51,6 +58,8 @@
           . "$1"
           [ "$TEST4" = "/runtime/home:toolchain/bin:head/bin" ] \
             || { echo "TEST4 after first source: $TEST4"; exit 1; }
+          [ -z "''${TEST_ALL_EMPTY+x}" ] \
+            || { echo "TEST_ALL_EMPTY was set: $TEST_ALL_EMPTY"; exit 1; }
           [ "$TEST" = "bar:foo:baz" ] \
             || { echo "TEST after first source: $TEST"; exit 1; }
           [ "$TEST2" = "qux" ] \

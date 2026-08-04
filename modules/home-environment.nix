@@ -12,6 +12,12 @@ let
 
   cfg = config.home;
 
+  # Drop search variables whose configured entries are all empty. Emitting
+  # them would turn a previously unset variable into a set-but-empty exported
+  # one, which some consumers (e.g. ncurses' TERMINFO_DIRS) treat differently
+  # from unset.
+  nonEmptySearchVariables = lib.filterAttrs (_env: values: lib.any (value: value != "") values);
+
   guardSessionVariable =
     name: code:
     let
@@ -409,6 +415,10 @@ in
         their position; existing duplicates and removed configuration entries
         remain until the environment is reset.
 
+        Each search variable runs one command substitution when a shell
+        sources the session variables, so startup cost grows with the number
+        of variables (not entries).
+
         Values use a double-quoted shell context: variable, command, and
         arithmetic expansions are evaluated, while `~` and `*` remain literal.
       '';
@@ -723,12 +733,12 @@ in
       + lib.concatStringsSep "\n" (
         lib.mapAttrsToList (
           env: values: guardSessionVariable env (config.lib.shell.idempotentPrepend ":" env values)
-        ) cfg.sessionSearchVariables
+        ) (nonEmptySearchVariables cfg.sessionSearchVariables)
       )
       + lib.concatStringsSep "\n" (
         lib.mapAttrsToList (
           env: values: guardSessionVariable env (config.lib.shell.idempotentAppend ":" env values)
-        ) cfg.sessionSearchVariablesAppend
+        ) (nonEmptySearchVariables cfg.sessionSearchVariablesAppend)
       )
       + ''
 
